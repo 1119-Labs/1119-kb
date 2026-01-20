@@ -36,25 +36,34 @@ pnpm build
 pnpm preview
 ```
 
-## CLI Commands
+## Sync Commands
 
-Sync content directly from the terminal using Nitro tasks:
+Content synchronization uses [Vercel Workflow DevKit](https://useworkflow.dev/) for durable execution with automatic retries.
 
 ```bash
-# Sync all sources
-pnpm sync
+# Start the dev server first
+pnpm dev
 
-# Sync without pushing to snapshot repo
-pnpm sync --payload '{"push": false}'
+# In another terminal, trigger async workflow sync
+pnpm sync:docs
 
-# Sync a specific source
-pnpm sync --payload '{"source": "nuxt-ui"}'
+# Monitor workflow execution
+pnpm workflow:web
+```
 
-# Reset and sync all
-pnpm sync --payload '{"reset": true}'
+**Via curl with options:**
 
-# Combine options
-pnpm sync --payload '{"source": "nuxt", "reset": true, "push": false}'
+```bash
+# Async workflow (recommended)
+curl -X POST http://localhost:3000/api/sync/workflow
+
+# With options
+curl -X POST http://localhost:3000/api/sync/workflow \
+  -H "Content-Type: application/json" \
+  -d '{"source": "nuxt-ui", "push": false}'
+
+# Sync specific source (legacy, synchronous)
+curl -X POST http://localhost:3000/api/sync/nuxt-ui
 ```
 
 **Options:**
@@ -90,9 +99,31 @@ List all configured content sources.
 }
 ```
 
+### POST /api/sync/workflow
+
+Trigger async sync workflow (recommended). Uses Workflow DevKit for automatic retries.
+
+**Body (optional):**
+```json
+{
+  "reset": false,
+  "push": true,
+  "source": "nuxt-ui"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "started",
+  "message": "Sync workflow started. Use `pnpm workflow:web` to monitor.",
+  "options": { "reset": false, "push": true }
+}
+```
+
 ### POST /api/sync
 
-Trigger full content synchronization.
+Trigger full content synchronization (synchronous).
 
 **Body (optional):**
 ```json

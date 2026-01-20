@@ -1,5 +1,5 @@
 import { defineHandler } from 'nitro/h3'
-import { SOURCES, getGitHubSources, getYouTubeSources } from '../../utils/sources'
+import { SOURCES, getGitHubSources, getYouTubeSources } from '~/workflows/sync-docs'
 
 /**
  * GET /api/sources

@@ -3,8 +3,12 @@ import { tmpdir } from 'node:os'
 import { defineHandler, getValidatedRouterParams, readValidatedBody, HTTPError } from 'nitro/h3'
 import { resolve } from 'pathe'
 import { z } from 'zod'
-import { getSourceById, type GitHubSource } from '../../../utils/sources'
-import { syncGitHubSource, pushToSnapshot } from '../../../utils/sync'
+import {
+  getSourceById,
+  syncGitHubSource,
+  pushToSnapshot,
+  type GitHubSource,
+} from '~/workflows/sync-docs'
 import { useRuntimeConfig } from 'nitro/runtime-config'
 
 const paramsSchema = z.object({

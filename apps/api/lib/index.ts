@@ -1,3 +1,4 @@
+// Types
 export type {
   Source,
   GitHubSource,
@@ -6,8 +7,12 @@ export type {
   ContentFile,
   SyncResult,
   SnapshotConfig,
+  SyncConfig,
+  SyncOptions,
+  PushResult,
 } from './types'
 
+// Sources
 export {
   SOURCES,
   GITHUB_SOURCES,
@@ -17,3 +22,15 @@ export {
   getYouTubeSources,
   getSourcesByType,
 } from './sources'
+
+// GitHub sync
+export {
+  syncGitHubSource,
+  resetSourceDir,
+  cleanupNonDocFiles,
+  fetchReadme,
+  collectFiles,
+} from './github'
+
+// Snapshot
+export { pushToSnapshot } from './snapshot'

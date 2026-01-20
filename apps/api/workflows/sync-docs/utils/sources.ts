@@ -1,11 +1,7 @@
-import type { GitHubSource, YouTubeSource, Source } from './types'
+import type { GitHubSource, YouTubeSource, Source } from './types.js'
 
-/**
- * GitHub documentation sources
- * Add your sources here following the GitHubSource interface
- */
 export const GITHUB_SOURCES: GitHubSource[] = [
-  // ===== Nuxt Core =====
+  // Nuxt Core
   {
     id: 'nuxt',
     label: 'Nuxt',
@@ -15,11 +11,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     contentPath: 'docs',
     outputPath: 'nuxt',
     additionalSyncs: [
-      {
-        repo: 'nuxt/nuxt.com',
-        branch: 'main',
-        contentPath: 'content',
-      },
+      { repo: 'nuxt/nuxt.com', branch: 'main', contentPath: 'content' },
     ],
   },
   {
@@ -32,7 +24,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     outputPath: 'nitro',
   },
 
-  // ===== Nuxt Modules =====
+  // Nuxt Modules
   {
     id: 'nuxt-ui',
     label: 'Nuxt UI',
@@ -115,7 +107,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     outputPath: 'nuxt-devtools',
   },
 
-  // ===== README-only sources =====
+  // README-only
   {
     id: 'nuxt-icon',
     label: 'Nuxt Icon',
@@ -147,7 +139,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     readmeOnly: true,
   },
 
-  // ===== UnJS =====
+  // UnJS
   {
     id: 'h3',
     label: 'H3',
@@ -176,7 +168,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     outputPath: 'unhead',
   },
 
-  // ===== SEO Modules =====
+  // SEO
   {
     id: 'nuxt-og-image',
     label: 'Nuxt OG Image',
@@ -205,7 +197,7 @@ export const GITHUB_SOURCES: GitHubSource[] = [
     outputPath: 'nuxt-robots',
   },
 
-  // ===== Other =====
+  // Other
   {
     id: 'mcp-toolkit',
     label: 'MCP Toolkit',
@@ -226,9 +218,6 @@ export const GITHUB_SOURCES: GitHubSource[] = [
   },
 ]
 
-/**
- * YouTube channel sources
- */
 export const YOUTUBE_SOURCES: YouTubeSource[] = [
   {
     id: 'alex-lichter',
@@ -248,35 +237,20 @@ export const YOUTUBE_SOURCES: YouTubeSource[] = [
   },
 ]
 
-/**
- * All sources combined
- */
 export const SOURCES: Source[] = [...GITHUB_SOURCES, ...YOUTUBE_SOURCES]
 
-/**
- * Get source by ID
- */
 export function getSourceById(id: string): Source | undefined {
   return SOURCES.find((s) => s.id === id)
 }
 
-/**
- * Get all GitHub sources
- */
 export function getGitHubSources(): GitHubSource[] {
   return GITHUB_SOURCES
 }
 
-/**
- * Get all YouTube sources
- */
 export function getYouTubeSources(): YouTubeSource[] {
   return YOUTUBE_SOURCES
 }
 
-/**
- * Get sources by type
- */
 export function getSourcesByType<T extends Source['type']>(
   type: T
 ): Extract<Source, { type: T }>[] {

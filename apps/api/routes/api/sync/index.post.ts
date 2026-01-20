@@ -3,8 +3,12 @@ import { tmpdir } from 'node:os'
 import { defineHandler, readValidatedBody, HTTPError } from 'nitro/h3'
 import { resolve } from 'pathe'
 import { z } from 'zod'
-import { getGitHubSources, type SyncResult } from '../../../utils/sources'
-import { syncGitHubSource, pushToSnapshot } from '../../../utils/sync'
+import {
+  getGitHubSources,
+  syncGitHubSource,
+  pushToSnapshot,
+  type SyncResult,
+} from '~/workflows/sync-docs'
 import { useRuntimeConfig } from 'nitro/runtime-config'
 
 const bodySchema = z.object({

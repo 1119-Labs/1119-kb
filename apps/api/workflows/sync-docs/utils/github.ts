@@ -1,16 +1,10 @@
 import { mkdir, rm, writeFile, readdir, stat, unlink, rmdir } from 'node:fs/promises'
 import { resolve, join, extname } from 'pathe'
 import { downloadTemplate } from 'giget'
-import type { GitHubSource, SyncResult, ContentFile } from '../sources'
+import type { GitHubSource, SyncResult, ContentFile } from './types.js'
 
-/**
- * Allowed file extensions for documentation
- */
 const ALLOWED_EXTENSIONS = new Set(['.md', '.mdx', '.yml', '.yaml', '.json'])
 
-/**
- * Files to always exclude
- */
 const EXCLUDED_FILES = new Set([
   'package-lock.json',
   'yarn.lock',
@@ -25,21 +19,11 @@ const EXCLUDED_FILES = new Set([
   'go.sum',
 ])
 
-/**
- * Check if a file should be included in sync
- */
 function isAllowedFile(filename: string): boolean {
-  if (EXCLUDED_FILES.has(filename)) {
-    return false
-  }
-  const ext = extname(filename).toLowerCase()
-  return ALLOWED_EXTENSIONS.has(ext)
+  if (EXCLUDED_FILES.has(filename)) return false
+  return ALLOWED_EXTENSIONS.has(extname(filename).toLowerCase())
 }
 
-/**
- * Clean up non-documentation files from a directory
- * Returns the count of markdown files
- */
 export async function cleanupNonDocFiles(dir: string): Promise<number> {
   let mdCount = 0
 
@@ -62,27 +46,17 @@ export async function cleanupNonDocFiles(dir: string): Promise<number> {
 
       if (stats.isDirectory()) {
         await processDir(fullPath)
-        // Remove empty directories
         try {
           const remaining = await readdir(fullPath)
-          if (remaining.length === 0) {
-            await rmdir(fullPath)
-          }
-        } catch {
-          // Directory may have been deleted
-        }
+          if (remaining.length === 0) await rmdir(fullPath)
+        } catch {}
       } else if (stats.isFile()) {
         if (isAllowedFile(entry)) {
-          if (entry.endsWith('.md') || entry.endsWith('.mdx')) {
-            mdCount++
-          }
+          if (entry.endsWith('.md') || entry.endsWith('.mdx')) mdCount++
         } else {
-          // Delete non-allowed files
           try {
             await unlink(fullPath)
-          } catch {
-            // File may have been deleted
-          }
+          } catch {}
         }
       }
     }
@@ -92,26 +66,16 @@ export async function cleanupNonDocFiles(dir: string): Promise<number> {
   return mdCount
 }
 
-/**
- * Fetch README.md from a GitHub repository
- */
-export async function fetchReadme(
-  repo: string,
-  branch: string
-): Promise<string> {
-  const readmeUrl = `https://raw.githubusercontent.com/${repo}/${branch}/README.md`
-  const response = await fetch(readmeUrl)
-
+export async function fetchReadme(repo: string, branch: string): Promise<string> {
+  const response = await fetch(
+    `https://raw.githubusercontent.com/${repo}/${branch}/README.md`
+  )
   if (!response.ok) {
     throw new Error(`Failed to fetch README from ${repo}: ${response.statusText}`)
   }
-
   return response.text()
 }
 
-/**
- * Sync a GitHub source to a local directory
- */
 export async function syncGitHubSource(
   source: GitHubSource,
   outputDir: string
@@ -121,14 +85,11 @@ export async function syncGitHubSource(
   const targetDir = resolve(outputDir, 'docs', outputFolder)
 
   try {
-    // Ensure output directory exists
     await mkdir(targetDir, { recursive: true })
 
     if (source.readmeOnly) {
-      // Fetch only README.md
       const content = await fetchReadme(source.repo, source.branch)
       await writeFile(resolve(targetDir, 'README.md'), content, 'utf-8')
-
       return {
         sourceId: source.id,
         success: true,
@@ -137,28 +98,18 @@ export async function syncGitHubSource(
       }
     }
 
-    // Download full content tree using giget
     const template = `gh:${source.repo}/${source.contentPath}#${source.branch}`
-    await downloadTemplate(template, {
-      dir: targetDir,
-      force: true,
-    })
+    await downloadTemplate(template, { dir: targetDir, force: true })
 
-    // Clean up non-documentation files
     const mdCount = await cleanupNonDocFiles(targetDir)
 
-    // Sync additional sources if configured
     if (source.additionalSyncs) {
       for (const additional of source.additionalSyncs) {
         const additionalTemplate = `gh:${additional.repo}/${additional.contentPath}#${additional.branch}`
         try {
-          await downloadTemplate(additionalTemplate, {
-            dir: targetDir,
-            force: false, // Don't overwrite existing files
-          })
+          await downloadTemplate(additionalTemplate, { dir: targetDir, force: true })
           await cleanupNonDocFiles(targetDir)
         } catch (error) {
-          // Log but don't fail the entire sync
           console.warn(`[${source.id}] Additional sync failed for ${additional.repo}:`, error)
         }
       }
@@ -180,26 +131,13 @@ export async function syncGitHubSource(
   }
 }
 
-/**
- * Reset a source directory (delete all content)
- */
-export async function resetSourceDir(
-  source: GitHubSource,
-  outputDir: string
-): Promise<void> {
-  const outputFolder = source.outputPath || source.id
-  const targetDir = resolve(outputDir, 'docs', outputFolder)
-
+export async function resetSourceDir(source: GitHubSource, outputDir: string): Promise<void> {
+  const targetDir = resolve(outputDir, 'docs', source.outputPath || source.id)
   try {
     await rm(targetDir, { recursive: true, force: true })
-  } catch {
-    // Directory might not exist
-  }
+  } catch {}
 }
 
-/**
- * Collect all files from a directory as ContentFile array
- */
 export async function collectFiles(dir: string, basePath = ''): Promise<ContentFile[]> {
   const files: ContentFile[] = []
 

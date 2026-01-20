@@ -3,9 +3,7 @@ import { defineConfig } from 'nitro'
 export default defineConfig({
   serverDir: './',
 
-  experimental: {
-    tasks: true,
-  },
+  modules: ['workflow/nitro'],
 
   runtimeConfig: {
     // GitHub token for API access

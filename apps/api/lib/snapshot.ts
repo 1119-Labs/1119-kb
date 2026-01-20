@@ -1,12 +1,6 @@
 import { readdir, stat, readFile } from 'node:fs/promises'
 import { join } from 'pathe'
-
-export interface PushResult {
-  success: boolean
-  commitSha?: string
-  filesChanged?: number
-  error?: string
-}
+import type { PushResult } from './types'
 
 interface GitHubTreeItem {
   path: string
@@ -21,9 +15,6 @@ interface GitHubCommit {
   tree: { sha: string }
 }
 
-/**
- * Collect all files from a directory recursively
- */
 async function collectAllFiles(
   dir: string,
   basePath = ''
@@ -55,9 +46,7 @@ async function collectAllFiles(
         try {
           const content = await readFile(fullPath, 'utf-8')
           files.push({ path: relPath, content })
-        } catch {
-          // Skip files that can't be read
-        }
+        } catch {}
       }
     }
   }
@@ -66,10 +55,6 @@ async function collectAllFiles(
   return files
 }
 
-/**
- * Push content to a GitHub snapshot repository using the GitHub API
- * This creates a new commit with all the content
- */
 export async function pushToSnapshot(
   contentDir: string,
   options: {
@@ -90,17 +75,12 @@ export async function pushToSnapshot(
   }
 
   try {
-    // 1. Collect all files from content directory
     const files = await collectAllFiles(contentDir)
 
     if (files.length === 0) {
-      return {
-        success: false,
-        error: 'No files to push',
-      }
+      return { success: false, error: 'No files to push' }
     }
 
-    // 2. Get the current commit SHA for the branch
     let baseSha: string | null = null
     let baseTreeSha: string | null = null
 
@@ -114,7 +94,6 @@ export async function pushToSnapshot(
         const refData = await refResponse.json()
         baseSha = refData.object.sha
 
-        // Get the tree SHA from the commit
         const commitResponse = await fetch(
           `${apiBase}/repos/${repo}/git/commits/${baseSha}`,
           { headers }
@@ -124,18 +103,12 @@ export async function pushToSnapshot(
           baseTreeSha = commitData.tree.sha
         }
       }
-    } catch {
-      // Branch might not exist yet
-    }
+    } catch {}
 
-    // 3. Create blobs for each file and build tree
     const treeItems: GitHubTreeItem[] = []
 
     for (const file of files) {
-      // For small files, include content directly
-      // For larger files, create a blob first
       if (file.content.length < 1024 * 100) {
-        // < 100KB
         treeItems.push({
           path: file.path,
           mode: '100644',
@@ -143,7 +116,6 @@ export async function pushToSnapshot(
           content: file.content,
         })
       } else {
-        // Create blob for larger files
         const blobResponse = await fetch(`${apiBase}/repos/${repo}/git/blobs`, {
           method: 'POST',
           headers,
@@ -154,8 +126,7 @@ export async function pushToSnapshot(
         })
 
         if (!blobResponse.ok) {
-          const error = await blobResponse.text()
-          throw new Error(`Failed to create blob for ${file.path}: ${error}`)
+          throw new Error(`Failed to create blob for ${file.path}`)
         }
 
         const blobData = await blobResponse.json()
@@ -168,32 +139,20 @@ export async function pushToSnapshot(
       }
     }
 
-    // 4. Create a new tree
     const treeResponse = await fetch(`${apiBase}/repos/${repo}/git/trees`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        base_tree: baseTreeSha,
-        tree: treeItems,
-      }),
+      body: JSON.stringify({ base_tree: baseTreeSha, tree: treeItems }),
     })
 
     if (!treeResponse.ok) {
-      const error = await treeResponse.text()
-      throw new Error(`Failed to create tree: ${error}`)
+      throw new Error(`Failed to create tree: ${await treeResponse.text()}`)
     }
 
     const treeData = await treeResponse.json()
 
-    // 5. Create a new commit
-    const commitPayload: Record<string, unknown> = {
-      message,
-      tree: treeData.sha,
-    }
-
-    if (baseSha) {
-      commitPayload.parents = [baseSha]
-    }
+    const commitPayload: Record<string, unknown> = { message, tree: treeData.sha }
+    if (baseSha) commitPayload.parents = [baseSha]
 
     const commitResponse = await fetch(`${apiBase}/repos/${repo}/git/commits`, {
       method: 'POST',
@@ -202,13 +161,11 @@ export async function pushToSnapshot(
     })
 
     if (!commitResponse.ok) {
-      const error = await commitResponse.text()
-      throw new Error(`Failed to create commit: ${error}`)
+      throw new Error(`Failed to create commit: ${await commitResponse.text()}`)
     }
 
     const commitData = await commitResponse.json()
 
-    // 6. Update the branch reference
     const refPath = baseSha
       ? `${apiBase}/repos/${repo}/git/refs/heads/${branch}`
       : `${apiBase}/repos/${repo}/git/refs`
@@ -224,8 +181,7 @@ export async function pushToSnapshot(
     })
 
     if (!refUpdateResponse.ok) {
-      const error = await refUpdateResponse.text()
-      throw new Error(`Failed to update ref: ${error}`)
+      throw new Error(`Failed to update ref: ${await refUpdateResponse.text()}`)
     }
 
     return {
