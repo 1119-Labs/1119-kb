@@ -5,10 +5,21 @@
   "scripts": {
     "build": "nitro build",
     "dev": "nitro dev",
-    "preview": "npx srvx --prod .output/"
+    "preview": "npx srvx --prod .output/",
+    "sync:docs": "curl --path-as-is -X GET http://localhost:3000/_nitro/tasks/sync:docs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@types/node": "^25.0.9",
+    "giget": "^2.0.0",
+    "pathe": "^2.0.3",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "nitro": "latest",
-    "rolldown": "latest"
+    "rolldown": "latest",
+    "typescript": "^5.8.3"
   }
 }

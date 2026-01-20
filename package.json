@@ -15,7 +15,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:web": "pnpm --filter @savoir/web dev",
+    "dev:api": "pnpm --filter @savoir/api dev",
+    "sync:docs": "pnpm --filter @savoir/api sync:docs",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "typecheck": "turbo typecheck",
@@ -24,6 +25,7 @@
     "workflow": "pnpm --filter @savoir/data exec workflow web"
   },
   "devDependencies": {
+    "@hrcd/eslint-config": "^3.0.3",
     "automd": "^0.4.2",
     "turbo": "^2.5.3"
   },
