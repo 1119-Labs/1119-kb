@@ -1,0 +1,14 @@
+{
+  "name": "@savoir/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nitro build",
+    "dev": "nitro dev",
+    "preview": "npx srvx --prod .output/"
+  },
+  "devDependencies": {
+    "nitro": "latest",
+    "rolldown": "latest"
+  }
+}

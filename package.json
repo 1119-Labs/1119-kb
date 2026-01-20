@@ -1,0 +1,31 @@
+{
+  "name": "@savoir/monorepo",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo for Savoir",
+  "author": "HugoRCD",
+  "funding": "https://github.com/sponsors/HugoRCD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HugoRCD/savoir.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HugoRCD/savoir/issues"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web": "pnpm --filter @savoir/web dev",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "automd": "automd",
+    "workflow": "pnpm --filter @savoir/data exec workflow web"
+  },
+  "devDependencies": {
+    "automd": "^0.4.2",
+    "turbo": "^2.5.3"
+  },
+  "packageManager": "pnpm@10.27.0"
+}
