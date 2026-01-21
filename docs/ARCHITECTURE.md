@@ -329,11 +329,13 @@ async function readFromSandbox(sandbox: Sandbox, paths: string[]): Promise<FileC
 
 ### Authentication
 
-All endpoints require an API key in the `Authorization` header:
+Authentication is optional. If `SAVOIR_SECRET_KEY` is configured, endpoints require an API key:
 
 ```
 Authorization: Bearer <api-key>
 ```
+
+If not configured, the API is open (useful for local development).
 
 ### Source Endpoints
 
@@ -587,17 +589,35 @@ export class SavoirError extends Error {
 
 ## Security
 
-### API Key Validation
+### API Key Validation (Optional)
+
+Authentication is **optional** and only enforced if `SAVOIR_SECRET_KEY` is set.
+
+- If `SAVOIR_SECRET_KEY` is not set → API is open (useful for development)
+- If `SAVOIR_SECRET_KEY` is set → All requests require `Authorization: Bearer <key>`
 
 ```typescript
 // apps/api/middleware/auth.ts
-export default defineEventHandler((event) => {
-  const auth = getHeader(event, 'Authorization')
-  const apiKey = auth?.replace('Bearer ', '')
+export default defineMiddleware((event, next) => {
+  const secretKey = useRuntimeConfig().savoirSecretKey
 
-  if (!apiKey || apiKey !== useRuntimeConfig().savoirSecretKey) {
+  // Skip auth if no secret key configured
+  if (!secretKey) {
+    return next()
+  }
+
+  // Skip auth for public paths (/api health check, etc.)
+  if (isPublicPath(url.pathname)) {
+    return next()
+  }
+
+  const apiKey = getHeader(event, 'Authorization')?.replace('Bearer ', '')
+
+  if (!apiKey || apiKey !== secretKey) {
     throw createError({ statusCode: 401, message: 'Unauthorized' })
   }
+
+  return next()
 })
 ```
 
