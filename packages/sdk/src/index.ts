@@ -16,10 +16,10 @@ export interface Savoir {
   client: SavoirClient
 
   /**
-   * AI SDK compatible tools
+   * AI SDK tools
    */
   tools: {
-    searchAndRead: ReturnType<typeof createSearchAndReadTool>
+    search_and_read: ReturnType<typeof createSearchAndReadTool>
     search: ReturnType<typeof createSearchTool>
     read: ReturnType<typeof createReadTool>
   }
@@ -61,7 +61,7 @@ export function createSavoir(config: SavoirConfig): Savoir {
   return {
     client,
     tools: {
-      searchAndRead: createSearchAndReadTool(client),
+      search_and_read: createSearchAndReadTool(client),
       search: createSearchTool(client),
       read: createReadTool(client),
     },

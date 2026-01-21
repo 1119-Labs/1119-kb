@@ -1,5 +1,6 @@
+import { mkdir, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { Sandbox } from '@vercel/sandbox'
-import { kv } from '@vercel/kv'
 import { getLogger } from '@savoir/logger'
 import { FatalError } from 'workflow'
 import type { SnapshotMetadata } from '../../lib/sandbox/types.js'
@@ -19,9 +20,9 @@ interface SnapshotWorkflowResult {
 }
 
 /**
- * Step: Create sandbox from GitHub repository
+ * Step: Create sandbox and take snapshot
  */
-async function createSandboxStep(config: SnapshotConfig): Promise<Sandbox> {
+async function createAndSnapshotStep(config: SnapshotConfig): Promise<string> {
   'use step'
 
   const logger = getLogger()
@@ -55,19 +56,9 @@ async function createSandboxStep(config: SnapshotConfig): Promise<Sandbox> {
   })
 
   logger.log('snapshot', `Sandbox created: ${sandbox.sandboxId}`)
-  return sandbox
-}
-
-/**
- * Step: Take a snapshot of the sandbox
- */
-async function takeSnapshotStep(sandbox: Sandbox): Promise<string> {
-  'use step'
-
-  const logger = getLogger()
   logger.log('snapshot', 'Taking snapshot...')
 
-  // This also stops the sandbox automatically
+  // Take snapshot (this also stops the sandbox automatically)
   const snapshot = await sandbox.snapshot()
 
   logger.log('snapshot', `Snapshot created: ${snapshot.snapshotId}`)
@@ -75,7 +66,7 @@ async function takeSnapshotStep(sandbox: Sandbox): Promise<string> {
 }
 
 /**
- * Step: Store snapshot metadata in KV
+ * Step: Store snapshot metadata
  */
 async function storeSnapshotMetadataStep(
   snapshotId: string,
@@ -84,7 +75,7 @@ async function storeSnapshotMetadataStep(
   'use step'
 
   const logger = getLogger()
-  logger.log('snapshot', 'Storing snapshot metadata in KV...')
+  logger.log('snapshot', 'Storing snapshot metadata...')
 
   const metadata: SnapshotMetadata = {
     snapshotId,
@@ -92,9 +83,23 @@ async function storeSnapshotMetadataStep(
     sourceRepo,
   }
 
-  await kv.set('snapshot:current', metadata)
+  // Check if we're in production (Vercel KV env vars are set)
+  const isProduction = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
 
-  logger.log('snapshot', 'Snapshot metadata stored successfully')
+  if (isProduction) {
+    // Use Vercel KV in production
+    const { kv } = await import('@vercel/kv')
+    await kv.set('snapshot:current', metadata)
+    logger.log('snapshot', 'Snapshot metadata stored in Vercel KV')
+  } else {
+    // Use filesystem in development
+    const kvDir = join(process.cwd(), '.data', 'kv')
+    const filePath = join(kvDir, 'snapshot:current.json')
+
+    await mkdir(dirname(filePath), { recursive: true })
+    await writeFile(filePath, JSON.stringify(metadata, null, 2))
+    logger.log('snapshot', `Snapshot metadata stored in ${filePath}`)
+  }
 }
 
 /**
@@ -115,13 +120,10 @@ export async function createSnapshot(
   }
 
   try {
-    // Step 1: Create sandbox from repository
-    const sandbox = await createSandboxStep(config)
+    // Step 1: Create sandbox and take snapshot
+    const snapshotId = await createAndSnapshotStep(config)
 
-    // Step 2: Take snapshot (this also stops the sandbox)
-    const snapshotId = await takeSnapshotStep(sandbox)
-
-    // Step 3: Store snapshot metadata
+    // Step 2: Store snapshot metadata
     await storeSnapshotMetadataStep(snapshotId, config.snapshotRepo)
 
     logger.log('snapshot', `✓ Snapshot workflow completed: ${snapshotId}`)

@@ -30,3 +30,4 @@ logs
 .swc*
 .workflow-data*
 apps/web/.data
+apps/chat/.data

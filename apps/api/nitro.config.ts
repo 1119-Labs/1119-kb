@@ -7,7 +7,16 @@ export default defineConfig({
 
   storage: {
     kv: {
-      driver: 'vercel-kv',
+      driver: 'fs',
+      base: '.data/kv',
+    },
+  },
+
+  $production: {
+    storage: {
+      kv: {
+        driver: 'vercel-kv',
+      },
     },
   },
 
