@@ -1,6 +1,6 @@
 # Savoir API
 
-Self-hostable API server for managing content synchronization and sandbox operations.
+Self-hostable API server for managing content synchronization.
 
 ## Setup
 
@@ -38,41 +38,18 @@ pnpm preview
 
 ## Sync Commands
 
-Content synchronization uses [Vercel Workflow DevKit](https://useworkflow.dev/) for durable execution with automatic retries.
+Content synchronization uses [Vercel Workflow](https://github.com/vercel/workflow) for durable execution with automatic retries.
 
 ```bash
 # Start the dev server first
 pnpm dev
 
-# In another terminal, trigger async workflow sync
-pnpm sync:docs
+# In another terminal, trigger sync
+curl -X POST http://localhost:3000/api/sync
 
 # Monitor workflow execution
 pnpm workflow:web
 ```
-
-**Via curl with options:**
-
-```bash
-# Async workflow (recommended)
-curl -X POST http://localhost:3000/api/sync/workflow
-
-# With options
-curl -X POST http://localhost:3000/api/sync/workflow \
-  -H "Content-Type: application/json" \
-  -d '{"source": "nuxt-ui", "push": false}'
-
-# Sync specific source (legacy, synchronous)
-curl -X POST http://localhost:3000/api/sync/nuxt-ui
-```
-
-**Options:**
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `source` | string | - | Sync only this source ID |
-| `reset` | boolean | false | Clear content before sync |
-| `push` | boolean | true | Push to snapshot repo after sync |
 
 ## API Endpoints
 
@@ -99,31 +76,9 @@ List all configured content sources.
 }
 ```
 
-### POST /api/sync/workflow
-
-Trigger async sync workflow (recommended). Uses Workflow DevKit for automatic retries.
-
-**Body (optional):**
-```json
-{
-  "reset": false,
-  "push": true,
-  "source": "nuxt-ui"
-}
-```
-
-**Response:**
-```json
-{
-  "status": "started",
-  "message": "Sync workflow started. Use `pnpm workflow:web` to monitor.",
-  "options": { "reset": false, "push": true }
-}
-```
-
 ### POST /api/sync
 
-Trigger full content synchronization (synchronous).
+Sync all sources.
 
 **Body (optional):**
 ```json
@@ -136,19 +91,9 @@ Trigger full content synchronization (synchronous).
 **Response:**
 ```json
 {
-  "success": true,
-  "summary": {
-    "total": 25,
-    "success": 25,
-    "failed": 0,
-    "files": 1234
-  },
-  "push": {
-    "success": true,
-    "commitSha": "abc123...",
-    "filesChanged": 1234
-  },
-  "results": [...]
+  "status": "started",
+  "message": "Sync workflow started. Use `pnpm workflow:web` to monitor.",
+  "options": { "reset": false, "push": true }
 }
 ```
 
@@ -167,18 +112,24 @@ Sync a specific source.
 }
 ```
 
-## Adding Sources
+## Configuration
 
-Edit `utils/sources/sources.ts` to add new sources:
+Sources are configured in `savoir.config.ts` at the project root:
 
 ```typescript
-{
-  id: 'my-project',
-  label: 'My Project',
-  type: 'github',
-  repo: 'org/repo',
-  branch: 'main',
-  contentPath: 'docs',
-  outputPath: 'my-project',
-}
+import { defineConfig } from '@savoir/config'
+
+export default defineConfig({
+  sources: {
+    github: [
+      { id: 'nuxt', repo: 'nuxt/nuxt', contentPath: 'docs' },
+      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'v3' },
+    ],
+    youtube: [
+      { id: 'alex-lichter', channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA' },
+    ],
+  },
+})
 ```
+
+See [SOURCES.md](/docs/SOURCES.md) for details on source configuration.

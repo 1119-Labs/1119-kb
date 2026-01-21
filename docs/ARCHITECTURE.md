@@ -4,10 +4,11 @@ This document describes the technical architecture of Savoir, a platform for bui
 
 ## System Overview
 
-Savoir consists of two main components:
+Savoir consists of three main components:
 
 1. **Savoir API** (`apps/api`): A Nitro-based server that manages Vercel Sandboxes and content synchronization
 2. **Savoir SDK** (`packages/sdk`): A client library providing AI SDK-compatible tools
+3. **Savoir Config** (`packages/config`): Configuration management with multi-format support
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -20,35 +21,35 @@ Savoir consists of two main components:
 │  │                                                                    │  │
 │  │  const savoir = createSavoir({ apiKey, apiUrl })                   │  │
 │  │  const { text } = await generateText({                             │  │
-│  │    model: 'google/gemini-3-flash',                               │  │
+│  │    model: 'google/gemini-3-flash',                                 │  │
 │  │    tools: { ...savoir.tools }                                      │  │
 │  │  })                                                                │  │
 │  └────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────┬───────────────────────────────────┘
-                                      │
-                                      │ HTTPS (API Key auth)
-                                      ▼
+└─────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     │ HTTPS (API Key auth)
+                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                            Savoir API                                    │
 │                         (Nitro Server)                                   │
 │                                                                          │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
-│  │ /api/sandbox/*  │  │  /api/sync/*    │  │    Nitro Tasks          │  │
+│  │ /api/sandbox/*  │  │   /api/sync/*   │  │    /api/sources/*       │  │
 │  │                 │  │                 │  │                         │  │
-│  │ - create        │  │ - POST /sync    │  │ - sync:content (cron)   │  │
-│  │ - search        │  │ - GET /sources  │  │ - cleanup:sandboxes     │  │
+│  │ - create        │  │ - POST /sync    │  │ - GET /sources          │  │
+│  │ - search        │  │ - POST /sync/:s │  │                         │  │
 │  │ - read          │  │                 │  │                         │  │
 │  │ - searchAndRead │  │                 │  │                         │  │
+│  └────────┬────────┘  └────────┬────────┘  └────────────┬────────────┘  │
+│           │                    │                        │               │
+│           ▼                    ▼                        ▼               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
+│  │ Sandbox Manager │  │ Vercel Workflow │  │     @savoir/config      │  │
+│  │                 │  │                 │  │                         │  │
+│  │ - Lifecycle     │  │ - Durable exec  │  │ - Load savoir.config.ts │  │
+│  │ - KV caching    │  │ - Auto retries  │  │ - Validation            │  │
+│  │ - Command exec  │  │ - Sync sources  │  │ - Normalization         │  │
 │  └────────┬────────┘  └────────┬────────┘  └─────────────────────────┘  │
-│           │                    │                                         │
-│           ▼                    ▼                                         │
-│  ┌─────────────────┐  ┌─────────────────┐                               │
-│  │ Sandbox Manager │  │  Content Syncer │                               │
-│  │                 │  │                 │                               │
-│  │ - Lifecycle     │  │ - Fetch sources │                               │
-│  │ - KV caching    │  │ - Transform     │                               │
-│  │ - Command exec  │  │ - Push to repo  │                               │
-│  └────────┬────────┘  └────────┬────────┘                               │
 └───────────┼────────────────────┼────────────────────────────────────────┘
             │                    │
             ▼                    ▼
@@ -59,9 +60,111 @@ Savoir consists of two main components:
      └────────────┘       └────────────┘
 ```
 
+## Project Structure
+
+```
+savoir/
+├── savoir.config.ts          # Source configuration (root level!)
+├── apps/
+│   └── api/                  # Nitro API server
+│       ├── routes/
+│       │   └── api/
+│       │       ├── index.ts          # GET /api - Health check
+│       │       ├── sources/          # Source endpoints
+│       │       │   └── index.get.ts  # GET /api/sources
+│       │       ├── sync/             # Sync endpoints
+│       │       │   ├── index.post.ts # POST /api/sync
+│       │       │   └── [source].post.ts # POST /api/sync/:source
+│       │       └── sandbox/          # Sandbox endpoints (planned)
+│       │           ├── search.post.ts
+│       │           ├── read.post.ts
+│       │           └── search-and-read.post.ts
+│       ├── workflows/
+│       │   └── sync-docs/    # Vercel Workflow for syncing
+│       └── plugins/
+│           └── config.ts     # Config loader plugin
+├── packages/
+│   ├── config/               # @savoir/config
+│   │   └── src/
+│   │       ├── index.ts      # Public exports
+│   │       ├── types.ts      # Source types
+│   │       ├── define.ts     # defineConfig()
+│   │       ├── loader.ts     # c12-based loading
+│   │       ├── validation.ts # Zod schemas
+│   │       └── normalize.ts  # Default values
+│   ├── sdk/                  # @savoir/sdk
+│   └── logger/               # @savoir/logger
+└── docs/                     # Documentation
+```
+
 ## Component Details
 
-### 1. SDK (`@savoir/sdk`)
+### 1. Configuration (`@savoir/config`)
+
+Sources are configured in `savoir.config.ts` at the project root. This file is visible, easy to edit, and supports multiple formats via [c12](https://github.com/unjs/c12).
+
+#### Supported Formats
+
+- `savoir.config.ts` (recommended)
+- `savoir.config.js`
+- `savoir.config.json`
+- `savoir.config.yaml`
+- `.savoirrc` (JSON)
+
+#### Configuration Schema
+
+```typescript
+// savoir.config.ts
+import { defineConfig } from '@savoir/config'
+
+export default defineConfig({
+  sources: {
+    github: [
+      {
+        id: 'nuxt',
+        label: 'Nuxt',
+        repo: 'nuxt/nuxt',
+        branch: 'main',        // default: 'main'
+        contentPath: 'docs',   // default: 'docs'
+        outputPath: 'nuxt',    // default: same as id
+        additionalSyncs: [
+          { repo: 'nuxt/nuxt.com', contentPath: 'content' },
+        ],
+      },
+      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'v3' },
+      { id: 'ofetch', repo: 'unjs/ofetch', readmeOnly: true },
+    ],
+    youtube: [
+      {
+        id: 'alex-lichter',
+        label: 'Alexander Lichter',
+        channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA',
+        maxVideos: 50,         // default: 50
+      },
+    ],
+  },
+})
+```
+
+#### Package API
+
+```typescript
+// Configuration definition
+export function defineConfig(config: SavoirConfigInput): SavoirConfigInput
+
+// Loading (with c12)
+export async function loadSavoirConfig(options?: { cwd?: string }): Promise<LoadedConfig>
+export function setConfigCwd(cwd: string): void
+
+// Accessors (async - always reload from disk)
+export async function getSources(): Promise<Source[]>
+export async function getGitHubSources(): Promise<GitHubSource[]>
+export async function getYouTubeSources(): Promise<YouTubeSource[]>
+export async function getSourceById(id: string): Promise<Source | undefined>
+export async function getSourcesByType<T>(type: string): Promise<T[]>
+```
+
+### 2. SDK (`@savoir/sdk`)
 
 The SDK provides AI SDK-compatible tools that communicate with the Savoir API.
 
@@ -84,245 +187,145 @@ packages/sdk/
 #### API Design
 
 ```typescript
-// packages/sdk/src/index.ts
 import { tool } from 'ai'
 import { z } from 'zod'
 
 export interface SavoirOptions {
   apiKey: string
   apiUrl: string
-  /** Optional: reuse sandbox across calls */
-  chatId?: string
+  chatId?: string  // Optional: reuse sandbox across calls
 }
 
 export interface SavoirClient {
-  /** Search and read files in one call (recommended) */
-  searchAndRead: ReturnType<typeof tool>
-  /** Search for files matching query */
-  search: ReturnType<typeof tool>
-  /** Read specific files by path */
-  read: ReturnType<typeof tool>
+  searchAndRead: ReturnType<typeof tool>  // Search and read files (recommended)
+  search: ReturnType<typeof tool>         // Search for files
+  read: ReturnType<typeof tool>           // Read specific files
 }
 
-export function createSavoir(options: SavoirOptions): SavoirClient {
-  const client = createApiClient(options)
-
-  return {
-    searchAndRead: tool({
-      description: 'Search documentation and read matching files. Use ONE simple keyword.',
-      inputSchema: z.object({
-        query: z.string().describe('ONE keyword to search'),
-        limit: z.number().optional().describe('Max files (default 5)'),
-      }),
-      execute: async ({ query, limit }) => {
-        return client.searchAndRead(query, limit)
-      },
-    }),
-
-    search: tool({
-      description: 'Search for file paths. Use searchAndRead for most cases.',
-      inputSchema: z.object({
-        query: z.string(),
-        limit: z.number().optional(),
-      }),
-      execute: async ({ query, limit }) => {
-        return client.search(query, limit)
-      },
-    }),
-
-    read: tool({
-      description: 'Read specific files by path.',
-      inputSchema: z.object({
-        paths: z.array(z.string()),
-      }),
-      execute: async ({ paths }) => {
-        return client.read(paths)
-      },
-    }),
-  }
-}
+export function createSavoir(options: SavoirOptions): SavoirClient
 ```
 
-### 2. API (`apps/api`)
+### 3. API (`apps/api`)
 
 A Nitro server providing REST endpoints for sandbox management and content synchronization.
 
-#### Module Structure
+#### Route Structure
 
 ```
-apps/api/
-├── server/
-│   ├── api/
-│   │   ├── sandbox/
-│   │   │   ├── create.post.ts
-│   │   │   ├── [id]/
-│   │   │   │   ├── search.post.ts
-│   │   │   │   ├── read.post.ts
-│   │   │   │   └── search-and-read.post.ts
-│   │   └── sync/
-│   │       ├── index.post.ts
-│   │       └── [source].post.ts
-│   ├── tasks/
-│   │   ├── sync-content.ts      # Scheduled content sync
-│   │   └── cleanup-sandboxes.ts # Cleanup stale sandboxes
-│   ├── middleware/
-│   │   └── auth.ts              # API key validation
-│   └── utils/
-│       ├── sandbox.ts           # Sandbox manager
-│       ├── content-sync.ts      # Content synchronization
-│       └── sources.ts           # Source configuration
-├── nitro.config.ts
-└── package.json
+apps/api/routes/api/
+├── index.ts              # GET /api - Health check
+├── sources/
+│   └── index.get.ts      # GET /api/sources - List sources
+└── sync/
+    ├── index.post.ts     # POST /api/sync - Sync all
+    └── [source].post.ts  # POST /api/sync/:source - Sync one
 ```
 
-### 3. Sandbox Manager
+#### Sync Architecture
 
-Manages the lifecycle of Vercel Sandboxes.
-
-#### Lifecycle States
+Content synchronization uses [Vercel Workflow](https://github.com/vercel/workflow) for durable execution with automatic retries.
 
 ```
-┌─────────┐     create      ┌─────────┐
-│  None   │ ───────────────▶│ Running │
-└─────────┘                 └────┬────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-              ▼                  ▼                  ▼
-       ┌────────────┐     ┌───────────┐     ┌───────────┐
-       │  Timeout   │     │  Stopped  │     │  Failed   │
-       │  Extended  │     │           │     │           │
-       └────────────┘     └───────────┘     └───────────┘
-              │                  │
-              │                  │ recover
-              │                  ▼
-              │           ┌───────────┐
-              └──────────▶│  Reused   │
-                          └───────────┘
+POST /api/sync
+     │
+     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Vercel Workflow                                  │
+│                     (Durable execution engine)                           │
+│                                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │   Step 1    │  │   Step 2    │  │   Step N    │  │  Final Step │     │
+│  │ Sync source │─▶│ Sync source │─▶│    ...      │─▶│   Push to   │     │
+│  │   "nuxt"    │  │   "nitro"   │  │             │  │   GitHub    │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘     │
+│                                                                          │
+│  Features:                                                               │
+│  - Automatic retries on failure                                          │
+│  - Progress tracking via `pnpm workflow:web`                             │
+│  - Durable state (survives server restarts)                              │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 4. Sandbox System (Planned)
+
+The sandbox system uses [Vercel Sandbox Snapshots](https://vercel.com/docs/vercel-sandbox/managing#snapshotting) for instant startup without cloning.
+
+#### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Snapshot Task (Periodic)                         │
+│                        Runs every X hours/days                           │
+│                                                                          │
+│  1. Create sandbox ──▶ 2. Clone snapshot repo ──▶ 3. Take snapshot      │
+│                                                          │               │
+│                                                          ▼               │
+│                                                   ┌─────────────┐        │
+│                                                   │  Snapshot   │        │
+│                                                   │  (7 days)   │        │
+│                                                   └──────┬──────┘        │
+└──────────────────────────────────────────────────────────┼──────────────┘
+                                                           │
+                                                           │ instant start
+                                                           ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         API Sandbox Endpoints                            │
+│                                                                          │
+│  Request ──▶ Start from snapshot ──▶ Search/Read ──▶ Return results     │
+│                  (instant)              (grep/cat)                       │
+│                                                                          │
+│  Benefits:                                                               │
+│  - No clone delay (content already in sandbox)                           │
+│  - Consistent state across all requests                                  │
+│  - Automatic cleanup (sandbox stops after use)                           │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Snapshot Lifecycle
+
+```
+Sync Workflow              Snapshot Task              API Request
+     │                          │                          │
+     │  push to GitHub          │                          │
+     ▼                          │                          │
+┌──────────┐                    │                          │
+│ Snapshot │ ◀──── triggers ────┤                          │
+│   Repo   │                    │                          │
+└──────────┘                    ▼                          │
+                         ┌────────────┐                    │
+                         │  Create    │                    │
+                         │  Sandbox   │                    │
+                         └─────┬──────┘                    │
+                               │ clone repo                │
+                               ▼                          │
+                         ┌────────────┐                    │
+                         │   Take     │                    │
+                         │  Snapshot  │                    │
+                         └─────┬──────┘                    │
+                               │                          │
+                               ▼                          ▼
+                         ┌────────────┐            ┌────────────┐
+                         │  Snapshot  │ ─────────▶ │  Instant   │
+                         │   Ready    │  start     │  Sandbox   │
+                         └────────────┘            └────────────┘
 ```
 
 #### Key Functions
 
 ```typescript
-// apps/api/server/utils/sandbox.ts
+// Snapshot management
+export async function createContentSnapshot(): Promise<Snapshot>
+export async function getLatestSnapshot(): Promise<Snapshot | null>
 
-interface SandboxRecord {
-  sandboxId: string
-  createdAt: number
-  fileTree?: string
-}
-
-// Get or create sandbox for a chat session
-export async function getSandbox(
-  chatId: string,
-  log: LogFn
-): Promise<SandboxContext>
-
-// Recover existing sandbox from KV
-async function recoverSandbox(
-  record: SandboxRecord,
-  log: LogFn
-): Promise<Sandbox | null>
-
-// Create new sandbox with cloned repo
-async function createNewSandbox(log: LogFn): Promise<Sandbox>
-
-// Execute search with ranking
-async function searchWithRanking(
-  sandbox: Sandbox,
-  query: string,
-  limit: number
-): Promise<string[]>
-
-// Batch read multiple files efficiently
-async function batchReadFiles(
-  sandbox: Sandbox,
-  paths: string[]
-): Promise<Array<{ path: string; content: string }>>
+// Sandbox operations (internal to API)
+async function startFromSnapshot(snapshotId: string): Promise<Sandbox>
+async function searchInSandbox(sandbox: Sandbox, query: string, limit: number): Promise<string[]>
+async function readFromSandbox(sandbox: Sandbox, paths: string[]): Promise<FileContent[]>
 ```
 
-### 4. Content Sync
+> **Note:** Snapshots expire after 7 days. The snapshot task should run regularly to ensure a fresh snapshot is always available.
 
-Synchronizes content from various sources to a GitHub snapshot repository.
-
-#### Sync Flow
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                           Nitro Task: sync:content                      │
-│                           (runs on schedule or trigger)                 │
-└─────────────────────────────────────┬──────────────────────────────────┘
-                                      │
-                                      ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                            Load Source Config                           │
-│                         (from sources.ts or API)                        │
-└─────────────────────────────────────┬──────────────────────────────────┘
-                                      │
-              ┌───────────────────────┼───────────────────────┐
-              │                       │                       │
-              ▼                       ▼                       ▼
-       ┌────────────┐         ┌────────────┐         ┌────────────┐
-       │   GitHub   │         │  YouTube   │         │   Other    │
-       │   Fetcher  │         │  Fetcher   │         │  Fetchers  │
-       └─────┬──────┘         └─────┬──────┘         └─────┬──────┘
-             │                      │                      │
-             ▼                      ▼                      ▼
-       ┌────────────┐         ┌────────────┐         ┌────────────┐
-       │ Normalize  │         │ Normalize  │         │ Normalize  │
-       │ to Markdown│         │ to Markdown│         │ to Markdown│
-       └─────┬──────┘         └─────┬──────┘         └─────┬──────┘
-             │                      │                      │
-             └──────────────────────┼──────────────────────┘
-                                    │
-                                    ▼
-                          ┌─────────────────┐
-                          │  Aggregate &    │
-                          │  Structure      │
-                          └────────┬────────┘
-                                   │
-                                   ▼
-                          ┌─────────────────┐
-                          │  Push to GitHub │
-                          │  Snapshot Repo  │
-                          └─────────────────┘
-```
-
-#### Source Types
-
-```typescript
-// apps/api/server/utils/sources.ts
-
-interface BaseSource {
-  id: string
-  label: string
-  type: 'github' | 'youtube' | 'custom'
-}
-
-interface GitHubSource extends BaseSource {
-  type: 'github'
-  repo: string           // e.g., 'nuxt/nuxt'
-  branch: string         // e.g., 'main'
-  contentPath: string    // e.g., 'docs/content'
-  outputPath?: string    // e.g., 'nuxt'
-  readmeOnly?: boolean   // Only fetch README.md
-}
-
-interface YouTubeSource extends BaseSource {
-  type: 'youtube'
-  channelId: string
-  maxVideos?: number
-}
-
-interface CustomSource extends BaseSource {
-  type: 'custom'
-  fetchFn: () => Promise<ContentFile[]>
-}
-
-type Source = GitHubSource | YouTubeSource | CustomSource
-```
-
-## API Endpoints Specification
+## API Endpoints
 
 ### Authentication
 
@@ -332,96 +335,28 @@ All endpoints require an API key in the `Authorization` header:
 Authorization: Bearer <api-key>
 ```
 
-### Sandbox Endpoints
+### Source Endpoints
 
-#### POST /api/sandbox/create
+#### GET /api/sources
 
-Creates or recovers a sandbox for a chat session.
-
-**Request:**
-```json
-{
-  "chatId": "unique-chat-identifier"
-}
-```
+Lists all configured content sources.
 
 **Response:**
 ```json
 {
-  "sandboxId": "sbx_abc123",
-  "fileTree": "docs/\n├── nuxt/ (45 files)\n├── nitro/ (23 files)..."
-}
-```
-
-#### POST /api/sandbox/:id/search-and-read
-
-Combined search and read operation.
-
-**Request:**
-```json
-{
-  "query": "useAsyncData",
-  "limit": 5
-}
-```
-
-**Response:**
-```json
-{
-  "query": "useAsyncData",
-  "files": [
-    {
-      "path": "packages/content/docs/nuxt/composables/use-async-data.md",
-      "content": "# useAsyncData\n\n..."
-    }
-  ]
-}
-```
-
-#### POST /api/sandbox/:id/search
-
-Search for files matching query.
-
-**Request:**
-```json
-{
-  "query": "middleware",
-  "limit": 10
-}
-```
-
-**Response:**
-```json
-{
-  "files": [
-    "packages/content/docs/nuxt/guide/middleware.md",
-    "packages/content/docs/nitro/middleware.md"
-  ]
-}
-```
-
-#### POST /api/sandbox/:id/read
-
-Read specific files.
-
-**Request:**
-```json
-{
-  "paths": [
-    "packages/content/docs/nuxt/guide/middleware.md"
-  ]
-}
-```
-
-**Response:**
-```json
-{
-  "files": [
-    {
-      "path": "packages/content/docs/nuxt/guide/middleware.md",
-      "content": "# Middleware\n\n..."
-    }
-  ]
+  "total": 25,
+  "github": {
+    "count": 23,
+    "sources": [
+      { "id": "nuxt", "label": "Nuxt", "repo": "nuxt/nuxt" }
+    ]
+  },
+  "youtube": {
+    "count": 2,
+    "sources": [
+      { "id": "alex-lichter", "label": "Alexander Lichter" }
+    ]
+  }
 }
 ```
 
@@ -429,45 +364,146 @@ Read specific files.
 
 #### POST /api/sync
 
-Triggers full content synchronization.
+Sync all sources.
+
+**Body (optional):**
+```json
+{
+  "reset": false,
+  "push": true
+}
+```
 
 **Response:**
 ```json
 {
   "status": "started",
-  "sources": 25
+  "message": "Sync workflow started. Use `pnpm workflow:web` to monitor.",
+  "options": { "reset": false, "push": true }
 }
 ```
 
-#### GET /api/sources
+#### POST /api/sync/:source
 
-Lists configured sources.
+Sync a specific source.
+
+**Params:**
+- `source`: Source ID (e.g., `nuxt`, `nitro`)
+
+**Body (optional):**
+```json
+{
+  "reset": false,
+  "push": true
+}
+```
 
 **Response:**
 ```json
 {
-  "sources": [
+  "status": "started",
+  "message": "Sync workflow started for source \"nuxt\". Use `pnpm workflow:web` to monitor.",
+  "source": "nuxt",
+  "options": { "reset": false, "push": true, "sourceFilter": "nuxt" }
+}
+```
+
+### Sandbox Endpoints (Planned)
+
+The API manages sandbox lifecycle internally. Sandboxes start instantly from the pre-built snapshot.
+
+#### POST /api/sandbox/search-and-read
+
+Combined search and read operation (recommended).
+
+**Request:**
+```json
+{
+  "query": "useAsyncData",
+  "limit": 5,
+  "sessionId": "optional-session-id"
+}
+```
+
+**Response:**
+```json
+{
+  "query": "useAsyncData",
+  "files": [
     {
-      "id": "nuxt",
-      "label": "Nuxt",
-      "type": "github",
-      "repo": "nuxt/nuxt"
+      "path": "docs/nuxt/composables/use-async-data.md",
+      "content": "# useAsyncData\n\n..."
     }
   ]
 }
 ```
 
+#### POST /api/sandbox/search
+
+Search for files matching query.
+
+**Request:**
+```json
+{
+  "query": "middleware",
+  "limit": 10,
+  "sessionId": "optional-session-id"
+}
+```
+
+**Response:**
+```json
+{
+  "files": [
+    "docs/nuxt/guide/middleware.md",
+    "docs/nitro/middleware.md"
+  ]
+}
+```
+
+#### POST /api/sandbox/read
+
+Read specific files.
+
+**Request:**
+```json
+{
+  "paths": [
+    "docs/nuxt/guide/middleware.md"
+  ],
+  "sessionId": "optional-session-id"
+}
+```
+
+**Response:**
+```json
+{
+  "files": [
+    {
+      "path": "docs/nuxt/guide/middleware.md",
+      "content": "# Middleware\n\n..."
+    }
+  ]
+}
+```
+
+> **Note:** The `sessionId` is optional and generic - can be from any client (Discord bot, Slack bot, GitHub bot, web chat, etc.). If provided, the API may reuse an existing sandbox for that session.
+
 ## Storage Strategy
 
 ### KV Store
 
-Used for sandbox session management:
+Used for storing the current snapshot ID and optionally sandbox sessions:
 
 ```typescript
-// Key format
-`sandbox:chat:${chatId}` -> SandboxRecord
+// Current snapshot (updated by snapshot task)
+`snapshot:current` -> { snapshotId: string, createdAt: number }
 
-// TTL: 30 minutes (sandbox timeout + buffer)
+// Optional: Active sandbox sessions (if reusing sandboxes across requests)
+`sandbox:session:${sessionId}` -> { sandboxId: string, createdAt: number }
+
+// sessionId is generic - can be from any client (Discord bot, Slack bot, GitHub bot, etc.)
+// TTL: 30 minutes (sandbox timeout)
 ```
 
 ### Snapshot Repository
@@ -475,7 +511,7 @@ Used for sandbox session management:
 Structure:
 
 ```
-content-snapshot-repo/
+{GITHUB_SNAPSHOT_REPO}/
 ├── docs/
 │   ├── nuxt/
 │   │   ├── getting-started/
@@ -485,10 +521,18 @@ content-snapshot-repo/
 │   ├── nitro/
 │   └── ...
 └── youtube/
-    ├── alex-lichter/
-    │   └── nuxt-4-overview-TAoTh4DqH6A.md
-    └── ...
+    └── alex-lichter/
+        └── nuxt-4-overview-TAoTh4DqH6A.md
 ```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_TOKEN` | Yes | GitHub token for API access |
+| `GITHUB_SNAPSHOT_REPO` | Yes | Snapshot repository (owner/repo) |
+| `GITHUB_SNAPSHOT_BRANCH` | No | Branch to push to (default: main) |
+| `SAVOIR_SECRET_KEY` | No | API key for authentication |
 
 ## Error Handling
 
@@ -519,11 +563,17 @@ export class SavoirError extends Error {
 
 ## Performance Considerations
 
-### Sandbox Reuse
+### Snapshot-based Startup
 
-- Sandboxes are cached in KV by `chatId`
-- Timeout extended when < 3 minutes remaining
-- File tree cached to avoid regeneration
+- Sandboxes start instantly from pre-built snapshot (no clone delay)
+- Snapshot contains all synced content ready to search
+- Snapshot is refreshed periodically by the snapshot task
+
+### Session Reuse (Optional)
+
+- Sandboxes can be reused within a session via `sessionId`
+- Avoids startup cost for multiple requests in same conversation
+- Automatic cleanup when session ends or timeout
 
 ### Batch Operations
 
@@ -540,7 +590,7 @@ export class SavoirError extends Error {
 ### API Key Validation
 
 ```typescript
-// apps/api/server/middleware/auth.ts
+// apps/api/middleware/auth.ts
 export default defineEventHandler((event) => {
   const auth = getHeader(event, 'Authorization')
   const apiKey = auth?.replace('Bearer ', '')

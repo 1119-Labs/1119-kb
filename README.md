@@ -41,6 +41,7 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
 | Package | Description |
 |---------|-------------|
 | [`@savoir/sdk`](./packages/sdk) | AI SDK compatible tools for agents |
+| [`@savoir/config`](./packages/config) | Configuration management with multi-format support |
 | [`apps/api`](./apps/api) | Self-hostable sandbox management API |
 
 ## Quick Start
@@ -100,9 +101,33 @@ GITHUB_SNAPSHOT_REPO=your-org/your-content-repo
 SAVOIR_SECRET_KEY=your-secret-key
 ```
 
+## Configuration
+
+Sources are configured in `savoir.config.ts` at the project root:
+
+```typescript
+import { defineConfig } from '@savoir/config'
+
+export default defineConfig({
+  sources: {
+    github: [
+      { id: 'nuxt', repo: 'nuxt/nuxt', contentPath: 'docs' },
+      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'v3' },
+    ],
+    youtube: [
+      { id: 'alex-lichter', channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA' },
+    ],
+  },
+})
+```
+
+Supported formats: `.ts`, `.js`, `.json`, `.yaml`
+
+See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
+
 ## How It Works
 
-1. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via Nitro tasks
+1. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via Vercel Workflow
 2. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a Vercel Sandbox with the snapshot repo cloned
 3. **File-based Search**: The SDK tools execute grep/find commands in the sandbox to search and read content
 4. **AI Integration**: Tools are compatible with the Vercel AI SDK for seamless integration with any LLM
