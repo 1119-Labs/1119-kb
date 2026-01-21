@@ -46,7 +46,9 @@ async function collectAllFiles(
         try {
           const content = await readFile(fullPath, 'utf-8')
           files.push({ path: relPath, content })
-        } catch {}
+        } catch {
+          // Skip unreadable files
+        }
       }
     }
   }
@@ -103,7 +105,9 @@ export async function pushToSnapshot(
           baseTreeSha = commitData.tree.sha
         }
       }
-    } catch {}
+    } catch {
+      // Branch doesn't exist yet, will create new
+    }
 
     const treeItems: GitHubTreeItem[] = []
 

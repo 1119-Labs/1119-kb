@@ -49,14 +49,18 @@ export async function cleanupNonDocFiles(dir: string): Promise<number> {
         try {
           const remaining = await readdir(fullPath)
           if (remaining.length === 0) await rmdir(fullPath)
-        } catch {}
+        } catch {
+          // Ignore cleanup errors
+        }
       } else if (stats.isFile()) {
         if (isAllowedFile(entry)) {
           if (entry.endsWith('.md') || entry.endsWith('.mdx')) mdCount++
         } else {
           try {
             await unlink(fullPath)
-          } catch {}
+          } catch {
+            // Ignore delete errors
+          }
         }
       }
     }
@@ -135,7 +139,9 @@ export async function resetSourceDir(source: GitHubSource, outputDir: string): P
   const targetDir = resolve(outputDir, 'docs', source.outputPath || source.id)
   try {
     await rm(targetDir, { recursive: true, force: true })
-  } catch {}
+  } catch {
+    // Ignore if directory doesn't exist
+  }
 }
 
 export async function collectFiles(dir: string, basePath = ''): Promise<ContentFile[]> {

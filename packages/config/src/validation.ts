@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
-const AdditionalSyncSchema = z.object({
+const additionalSyncSchema = z.object({
   repo: z.string().min(1),
   branch: z.string().optional(),
   contentPath: z.string().optional(),
 })
 
-const GitHubSourceSchema = z.object({
+const gitHubSourceSchema = z.object({
   id: z.string().min(1),
   label: z.string().optional(),
   repo: z.string().regex(/^[\w.-]+\/[\w.-]+$/, 'Must be in format owner/repo'),
@@ -14,10 +14,10 @@ const GitHubSourceSchema = z.object({
   contentPath: z.string().optional(),
   outputPath: z.string().optional(),
   readmeOnly: z.boolean().optional(),
-  additionalSyncs: z.array(AdditionalSyncSchema).optional(),
+  additionalSyncs: z.array(additionalSyncSchema).optional(),
 })
 
-const YouTubeSourceSchema = z.object({
+const youTubeSourceSchema = z.object({
   id: z.string().min(1),
   label: z.string().optional(),
   channelId: z.string().min(1),
@@ -25,22 +25,22 @@ const YouTubeSourceSchema = z.object({
   maxVideos: z.number().int().positive().optional(),
 })
 
-const CustomSourceSchema = z.object({
+const customSourceSchema = z.object({
   id: z.string().min(1),
   label: z.string().optional(),
   fetchFn: z.any(),
 })
 
-const SavoirConfigSchema = z.object({
+const savoirConfigSchema = z.object({
   sources: z.object({
-    github: z.array(GitHubSourceSchema).optional(),
-    youtube: z.array(YouTubeSourceSchema).optional(),
-    custom: z.array(CustomSourceSchema).optional(),
+    github: z.array(gitHubSourceSchema).optional(),
+    youtube: z.array(youTubeSourceSchema).optional(),
+    custom: z.array(customSourceSchema).optional(),
   }).optional(),
 })
 
-export type ValidatedConfig = z.infer<typeof SavoirConfigSchema>
+export type ValidatedConfig = z.infer<typeof savoirConfigSchema>
 
 export function validateConfig(config: unknown): ValidatedConfig {
-  return SavoirConfigSchema.parse(config)
+  return savoirConfigSchema.parse(config)
 }
