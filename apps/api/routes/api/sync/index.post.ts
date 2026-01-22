@@ -6,18 +6,16 @@ import { syncDocumentation } from '~/workflows/sync-docs'
 
 const bodySchema = z
   .object({
-    reset: z.boolean().default(false),
-    push: z.boolean().default(true),
+    sourceFilter: z.string().optional(),
   })
   .optional()
 
 /**
  * POST /api/sync
- * Sync all sources.
+ * Sync all sources using Vercel Sandbox.
  *
  * Body (optional):
- * - reset: boolean - Clear all content before sync (default: false)
- * - push: boolean - Push to snapshot repo after sync (default: true)
+ * - sourceFilter: string - Only sync a specific source
  */
 export default defineHandler(async (event) => {
   const body = await readValidatedBody(event, data => bodySchema.parse(data))
@@ -30,8 +28,7 @@ export default defineHandler(async (event) => {
   }
 
   const options = {
-    reset: body?.reset ?? false,
-    push: body?.push ?? true,
+    sourceFilter: body?.sourceFilter,
   }
 
   await start(syncDocumentation, [syncConfig, options])
@@ -39,6 +36,5 @@ export default defineHandler(async (event) => {
   return {
     status: 'started',
     message: 'Sync workflow started. Use `pnpm workflow:web` to monitor.',
-    options,
   }
 })

@@ -87,7 +87,7 @@ async function storeSnapshotMetadataStep(
   const isProduction = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
 
   if (isProduction) {
-    // Use Upstash Redis in production
+    // eslint-disable-next-line
     const { Redis } = await import('@upstash/redis')
     const redis = new Redis({
       url: process.env.KV_REST_API_URL!,
@@ -95,8 +95,7 @@ async function storeSnapshotMetadataStep(
     })
     await redis.set('snapshot:current', metadata)
     logger.log('snapshot', 'Snapshot metadata stored in Upstash Redis')
-  }
-  else {
+  } else {
     // Use filesystem in development
     const kvDir = join(process.cwd(), '.data', 'kv')
     const filePath = join(kvDir, 'snapshot:current.json')

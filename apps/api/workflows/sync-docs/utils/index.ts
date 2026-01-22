@@ -19,15 +19,3 @@ export {
   getSourceById,
   getSourcesByType,
 } from '@savoir/config'
-
-// GitHub sync functions
-export {
-  syncGitHubSource,
-  resetSourceDir,
-  cleanupNonDocFiles,
-  fetchReadme,
-  collectFiles,
-} from './github.js'
-
-// Snapshot
-export { pushToSnapshot } from './snapshot.js'

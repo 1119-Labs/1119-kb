@@ -1,93 +1,91 @@
+import { useStorage } from 'nitro/storage'
 import { getLogger } from '@savoir/logger'
 import { FatalError } from 'workflow'
-import type { SyncResult, SyncConfig, SyncOptions } from './utils/index.js'
+import type { SnapshotMetadata } from '../../lib/sandbox/types.js'
+import { KV_KEYS } from '../../lib/sandbox/types.js'
+import type { SyncConfig, SyncOptions, SyncResult } from './utils/index.js'
 import {
-  prepareWorkspace,
   getSourcesToSync,
-  syncSingleSource,
-  pushToSnapshotStep,
-  cleanupWorkspace,
-  triggerSnapshotStep,
+  syncAllSourcesInSandbox,
 } from './steps/index.js'
 
 interface SyncWorkflowResult {
   success: boolean
+  snapshotId?: string
   summary: {
     total: number
     success: number
     failed: number
     files: number
   }
-  push?: { success: boolean; commitSha?: string; error?: string } | null
   results: SyncResult[]
 }
 
 /**
- * Workflow: Sync documentation from all configured sources.
+ * Workflow: Sync documentation using Vercel Sandbox.
+ *
+ * All filesystem operations run inside a Vercel Sandbox,
+ * making it compatible with serverless environments.
  */
 export async function syncDocumentation(
   config: SyncConfig,
-  options: SyncOptions = {}
+  options: SyncOptions = {},
 ): Promise<SyncWorkflowResult> {
   'use workflow'
 
-  const { reset = false, push = true, sourceFilter } = options
+  const { sourceFilter } = options
+  const logger = getLogger()
 
-  if (!config.githubToken) {
-    throw new FatalError('GITHUB_TOKEN is not configured')
-  }
   if (!config.snapshotRepo) {
     throw new FatalError('GITHUB_SNAPSHOT_REPO is not configured')
   }
 
-  const syncDir = await prepareWorkspace(reset)
+  // Step 1: Get sources to sync
   const sources = await getSourcesToSync(sourceFilter)
 
   if (sources.length === 0) {
-    await cleanupWorkspace(syncDir)
     throw new FatalError('No sources to sync')
   }
 
-  const results: SyncResult[] = []
-  for (const source of sources) {
-    const result = await syncSingleSource(source, syncDir)
-    results.push(result)
-  }
+  logger.log('sync', `Syncing ${sources.length} sources...`)
 
-  const successCount = results.filter((r) => r.success).length
-  const failCount = results.filter((r) => !r.success).length
+  // Step 2: Sync all sources in sandbox and get snapshot
+  // This is a single step because the Sandbox object is not serializable
+  const { snapshotId, results } = await syncAllSourcesInSandbox(
+    sources,
+    config.snapshotRepo,
+    config.snapshotBranch || 'main',
+    config.githubToken,
+  )
+
+  const successCount = results.filter(r => r.success).length
+  const failCount = results.filter(r => !r.success).length
   const totalFiles = results.reduce((sum, r) => sum + (r.fileCount || 0), 0)
 
-  let pushResult = null
-  if (push && successCount > 0) {
-    pushResult = await pushToSnapshotStep(syncDir, config, successCount, totalFiles)
-
-    // Trigger sandbox snapshot creation after successful push
-    if (pushResult.success) {
-      await triggerSnapshotStep({
-        githubToken: config.githubToken, // For private repos
-        snapshotRepo: config.snapshotRepo,
-        snapshotBranch: config.snapshotBranch,
-      })
-    }
+  // Step 3: Store snapshot metadata in KV
+  const metadata: SnapshotMetadata = {
+    snapshotId,
+    createdAt: Date.now(),
+    sourceRepo: config.snapshotRepo,
   }
 
-  await cleanupWorkspace(syncDir)
+  const kv = useStorage('kv')
+  await kv.setItem(KV_KEYS.CURRENT_SNAPSHOT, metadata)
+  logger.log('sync', 'Snapshot metadata stored in KV')
 
   // Log summary
-  const logger = getLogger()
   const status = failCount === 0 ? '✓' : '✗'
   logger.log('sync', `${status} Done: ${successCount}/${sources.length} sources, ${totalFiles} files`)
 
   return {
-    success: failCount === 0 && (!push || pushResult?.success !== false),
+    success: failCount === 0,
+    snapshotId,
     summary: {
       total: sources.length,
       success: successCount,
       failed: failCount,
       files: totalFiles,
     },
-    push: pushResult,
     results,
   }
 }

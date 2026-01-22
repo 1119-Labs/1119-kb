@@ -8,15 +8,13 @@ export default defineConfig({
         id: 'nuxt',
         label: 'Nuxt',
         repo: 'nuxt/nuxt',
-        additionalSyncs: [
-          { repo: 'nuxt/nuxt.com', contentPath: 'content' },
-        ],
+        additionalSyncs: [{ repo: 'nuxt/nuxt.com', contentPath: 'content' }],
       },
       {
         id: 'nitro',
         label: 'Nitro',
         repo: 'nitrojs/nitro',
-        branch: 'v3',
+        branch: 'main',
       },
 
       // Nuxt Modules
