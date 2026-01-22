@@ -83,8 +83,12 @@ async function save() {
   >
     <template #header>
       <div>
-        <h2 class="text-base font-medium text-highlighted">{{ isEditing ? 'Edit Source' : 'Add Source' }}</h2>
-        <p class="text-sm text-muted mt-0.5">{{ isEditing ? 'Update the source configuration' : 'Configure a new content source' }}</p>
+        <h2 class="text-base font-medium text-highlighted">
+          {{ isEditing ? 'Edit Source' : 'Add Source' }}
+        </h2>
+        <p class="text-sm text-muted mt-0.5">
+          {{ isEditing ? 'Update the source configuration' : 'Configure a new content source' }}
+        </p>
       </div>
     </template>
 
@@ -107,12 +111,16 @@ async function save() {
             <span class="text-red-500">*</span>
           </label>
           <UInput v-model="form.label" placeholder="e.g. Nuxt Documentation" class="w-full" />
-          <p class="text-xs text-muted">A friendly name to identify this source</p>
+          <p class="text-xs text-muted">
+            A friendly name to identify this source
+          </p>
         </div>
 
         <template v-if="form.type === 'github'">
           <div class="border-t border-default pt-4 mt-1">
-            <p class="text-xs font-medium text-muted uppercase tracking-wide mb-4">GitHub Configuration</p>
+            <p class="text-xs font-medium text-muted uppercase tracking-wide mb-4">
+              GitHub Configuration
+            </p>
 
             <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-1.5">
@@ -126,7 +134,9 @@ async function save() {
                   icon="i-simple-icons-github"
                   class="w-full"
                 />
-                <p class="text-xs text-muted">The repository in owner/repo format</p>
+                <p class="text-xs text-muted">
+                  The repository in owner/repo format
+                </p>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
@@ -158,13 +168,19 @@ async function save() {
                   icon="i-lucide-folder"
                   class="w-full"
                 />
-                <p class="text-xs text-muted">Path to the documentation folder</p>
+                <p class="text-xs text-muted">
+                  Path to the documentation folder
+                </p>
               </div>
 
               <div class="flex items-center justify-between py-2 px-3 rounded-lg bg-muted">
                 <div>
-                  <p class="text-sm font-medium text-highlighted">README Only</p>
-                  <p class="text-xs text-muted">Only sync the README.md file</p>
+                  <p class="text-sm font-medium text-highlighted">
+                    README Only
+                  </p>
+                  <p class="text-xs text-muted">
+                    Only sync the README.md file
+                  </p>
                 </div>
                 <USwitch v-model="form.readmeOnly" />
               </div>
@@ -174,7 +190,9 @@ async function save() {
 
         <template v-if="form.type === 'youtube'">
           <div class="border-t border-default pt-4 mt-1">
-            <p class="text-xs font-medium text-muted uppercase tracking-wide mb-4">YouTube Configuration</p>
+            <p class="text-xs font-medium text-muted uppercase tracking-wide mb-4">
+              YouTube Configuration
+            </p>
 
             <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-1.5">
@@ -185,7 +203,9 @@ async function save() {
                   icon="i-simple-icons-youtube"
                   class="w-full"
                 />
-                <p class="text-xs text-muted">The unique channel identifier (starts with UC)</p>
+                <p class="text-xs text-muted">
+                  The unique channel identifier (starts with UC)
+                </p>
               </div>
 
               <div class="flex flex-col gap-1.5">
@@ -196,7 +216,9 @@ async function save() {
                   icon="i-lucide-at-sign"
                   class="w-full"
                 />
-                <p class="text-xs text-muted">The channel's @handle for display</p>
+                <p class="text-xs text-muted">
+                  The channel's @handle for display
+                </p>
               </div>
 
               <div class="flex flex-col gap-1.5">
@@ -209,7 +231,9 @@ async function save() {
                   icon="i-lucide-video"
                   class="w-full"
                 />
-                <p class="text-xs text-muted">Maximum number of videos to sync (default: 50)</p>
+                <p class="text-xs text-muted">
+                  Maximum number of videos to sync (default: 50)
+                </p>
               </div>
             </div>
           </div>

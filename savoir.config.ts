@@ -1,6 +1,14 @@
-import { defineConfig } from '@savoir/config'
-
-export default defineConfig({
+/**
+ * Savoir configuration file
+ *
+ * This file is used as a reference/seed for the sources database.
+ * Run `pnpm --filter @savoir/chat db:seed` to seed the database.
+ *
+ * Sources are stored in SQLite via NuxtHub and can be managed via:
+ * - API: GET/POST/PUT/DELETE /api/sources
+ * - This file: seed task reads this and upserts into DB
+ */
+export default {
   sources: {
     github: [
       // Nuxt Core

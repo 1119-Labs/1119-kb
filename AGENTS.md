@@ -4,7 +4,7 @@
 
 Savoir is a platform for building AI agents with access to real-time knowledge bases. It provides:
 
-- **API** (`apps/api`): A self-hostable Nitro server managing Vercel Sandboxes and content synchronization
+- **Chat App** (`apps/chat`): A unified Nuxt application that includes both the user-facing chat interface and the API for sandbox management and content synchronization
 - **SDK** (`packages/sdk`): AI SDK-compatible tools for integrating knowledge search into agents
 
 The system enables file-based agents that can grep, search, and read from frequently updated documentation sources.
@@ -23,15 +23,22 @@ For detailed technical information, see:
 ```
 savoir/
 ├── apps/
-│   ├── api/                  # Nitro API server
+│   ├── chat/                 # Unified Nuxt application (chat + API)
 │   │   ├── server/
 │   │   │   ├── api/          # API endpoints
 │   │   │   │   ├── sandbox/  # Sandbox management endpoints
-│   │   │   │   └── sync/     # Content sync endpoints
-│   │   │   ├── tasks/        # Nitro scheduled tasks
-│   │   │   └── utils/        # Shared utilities
-│   │   └── nitro.config.ts
-│   ├── chat/                 # Example chat application
+│   │   │   │   ├── sync/     # Content sync endpoints
+│   │   │   │   └── sources/  # Sources CRUD
+│   │   │   ├── lib/
+│   │   │   │   └── sandbox/  # Sandbox manager
+│   │   │   ├── workflows/    # Vercel Workflows
+│   │   │   │   ├── sync-docs/
+│   │   │   │   └── create-snapshot/
+│   │   │   ├── tasks/        # Nitro tasks (seed-sources)
+│   │   │   ├── middleware/   # API auth middleware
+│   │   │   └── db/           # Drizzle schema
+│   │   ├── app/              # Nuxt app (Vue components, pages)
+│   │   └── nuxt.config.ts
 │   └── github-bot/           # Example GitHub bot
 ├── packages/
 │   ├── sdk/                  # @savoir/sdk - AI SDK tools
@@ -39,7 +46,8 @@ savoir/
 │   │       ├── index.ts      # createSavoir() export
 │   │       ├── client.ts     # API client
 │   │       └── tools/        # AI SDK tool definitions
-│   └── cli/                  # CLI utilities
+│   └── logger/               # @savoir/logger - Logging utilities
+├── savoir.config.ts          # Source definitions (for seeding DB)
 └── docs/                     # Architecture documentation
 ```
 
@@ -47,16 +55,16 @@ savoir/
 
 ```
 ┌──────────────┐     ┌─────────────┐     ┌──────────────────┐
-│  AI Agent    │────▶│ @savoir/sdk │────▶│   Savoir API     │
-│  (Your App)  │     │   (tools)   │     │   (Nitro)        │
+│  AI Agent    │────▶│ @savoir/sdk │────▶│   apps/chat      │
+│  (Your App)  │     │   (tools)   │     │   (Nuxt API)     │
 └──────────────┘     └─────────────┘     └────────┬─────────┘
                                                   │
                            ┌──────────────────────┼──────────────────────┐
                            │                      │                      │
                            ▼                      ▼                      ▼
                     ┌────────────┐        ┌────────────┐        ┌────────────┐
-                    │  Sandbox   │        │  Content   │        │   Nitro    │
-                    │  Manager   │        │   Sync     │        │   Tasks    │
+                    │  Sandbox   │        │  Vercel    │        │  NuxtHub   │
+                    │  Manager   │        │  Workflow  │        │   (DB/KV)  │
                     └─────┬──────┘        └─────┬──────┘        └────────────┘
                           │                     │
                           ▼                     ▼
@@ -68,7 +76,7 @@ savoir/
 
 ### Key Components
 
-#### Sandbox Manager
+#### Sandbox Manager (`server/lib/sandbox/`)
 
 Manages Vercel Sandbox lifecycle:
 
@@ -77,14 +85,44 @@ Manages Vercel Sandbox lifecycle:
 - **Extend**: Extends sandbox timeout when running low
 - **Execute**: Runs shell commands (grep, cat, find) for search/read
 
-#### Content Sync
+#### Content Sync (`server/workflows/sync-docs/`)
 
-Aggregates documentation from multiple sources:
+Aggregates documentation from multiple sources using Vercel Workflows:
 
+- Reads sources from database (via Drizzle)
 - Fetches from GitHub repositories (docs, READMEs)
-- Processes YouTube transcripts
 - Normalizes to Markdown format
-- Pushes to snapshot repository
+- Creates snapshot for instant sandbox startup
+
+#### Sources Database
+
+Sources are stored in SQLite (via NuxtHub):
+
+```typescript
+export const sources = sqliteTable('sources', {
+  id: text('id').primaryKey(),
+  type: text('type', { enum: ['github', 'youtube'] }).notNull(),
+
+  // Common fields
+  label: text('label').notNull(),
+
+  // GitHub fields
+  repo: text('repo'),
+  branch: text('branch'),
+  contentPath: text('content_path'),
+  outputPath: text('output_path'),
+  readmeOnly: integer('readme_only', { mode: 'boolean' }),
+
+  // YouTube fields
+  channelId: text('channel_id'),
+  handle: text('handle'),
+  maxVideos: integer('max_videos'),
+
+  // Timestamps
+  createdAt: integer('created_at', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
+})
+```
 
 #### SDK Tools
 
@@ -99,21 +137,16 @@ AI SDK-compatible tools:
 ### Sandbox Management
 
 ```
-POST /api/sandbox/create
-  Body: { chatId: string }
-  Returns: { sandboxId: string, fileTree: string }
+POST /api/sandbox/snapshot
+  Creates a new snapshot from the snapshot repo
 
-POST /api/sandbox/:id/search
-  Body: { query: string, limit?: number }
-  Returns: { files: string[] }
+POST /api/sandbox/search-and-read
+  Body: { query: string, limit?: number, sessionId?: string }
+  Returns: { sessionId: string, matches: [...], files: [...] }
 
-POST /api/sandbox/:id/read
-  Body: { paths: string[] }
-  Returns: { files: Array<{ path: string, content: string }> }
-
-POST /api/sandbox/:id/search-and-read
-  Body: { query: string, limit?: number }
-  Returns: { query: string, files: Array<{ path: string, content: string }> }
+POST /api/sandbox/read
+  Body: { paths: string[], sessionId?: string }
+  Returns: { sessionId: string, files: [...] }
 ```
 
 ### Content Sync
@@ -124,21 +157,34 @@ POST /api/sync
 
 POST /api/sync/:source
   Triggers sync for specific source
+```
 
+### Sources CRUD
+
+```
 GET /api/sources
-  Returns list of configured sources
+  Returns list of sources grouped by type
+
+POST /api/sources
+  Creates a new source
+
+PUT /api/sources/:id
+  Updates a source
+
+DELETE /api/sources/:id
+  Deletes a source
 ```
 
 ## SDK Usage
 
 ```typescript
 import { createSavoir } from '@savoir/sdk'
-import { generateText, stepCountIs } from 'ai'
+import { generateText } from 'ai'
 
 // Initialize client
 const savoir = createSavoir({
   apiKey: process.env.SAVOIR_API_KEY,
-  apiUrl: 'https://api.savoir.example.com'
+  apiUrl: 'https://your-app.nuxt.dev'
 })
 
 // Use tools with AI SDK
@@ -264,9 +310,10 @@ const message: ChatMessage = {
 // ❌ Bad - doesn't work in serverless
 const cache = new Map<string, Data>()
 
-// ✅ Good - use persistent storage (KV, Redis, etc.)
+// ✅ Good - use NuxtHub KV
+const kv = hubKV()
 const cached = await kv.get<Data>('my-key')
-await kv.set('my-key', data, { ttl: 3600 })
+await kv.set('my-key', data)
 ```
 
 ### Error Handling
@@ -339,24 +386,32 @@ export default defineEventHandler(async (event) => {
 
 ## Environment Variables
 
-### API (`apps/api`)
+### Chat App (`apps/chat`)
 
 ```bash
-# Required
-GITHUB_TOKEN=ghp_...              # GitHub token for repo access
-GITHUB_SNAPSHOT_REPO=org/repo     # Snapshot repository
+# Required for sandbox/sync
+NUXT_GITHUB_TOKEN=ghp_...              # GitHub token for repo access
+NUXT_GITHUB_SNAPSHOT_REPO=org/repo     # Snapshot repository
+NUXT_GITHUB_SNAPSHOT_BRANCH=main       # Snapshot branch (default: main)
 
 # Optional
-SAVOIR_SECRET_KEY=...             # API authentication key
-SANDBOX_TIMEOUT=600000            # Sandbox timeout in ms (default: 10min)
-KV_TTL=1800                       # KV cache TTL in seconds (default: 30min)
+NUXT_SAVOIR_SECRET_KEY=...             # API authentication key for /api/sync and /api/sandbox
 ```
 
 ### SDK (`@savoir/sdk`)
 
 ```bash
 SAVOIR_API_KEY=...                # API key for authentication
-SAVOIR_API_URL=https://...        # API base URL
+SAVOIR_API_URL=https://...        # API base URL (your deployed chat app)
+```
+
+## Database
+
+Sources are stored in SQLite via NuxtHub. To seed the database from `savoir.config.ts`:
+
+```bash
+cd apps/chat
+pnpm db:seed
 ```
 
 ## Testing
@@ -381,17 +436,20 @@ pnpm --filter @savoir/sdk test:watch
 ```bash
 # Development
 pnpm install          # Install all dependencies
-pnpm dev              # Start all apps in dev mode
-pnpm dev:api          # Start API only
+pnpm dev              # Start chat app in dev mode
 pnpm build            # Build all packages and apps
+
+# Database
+pnpm --filter @savoir/chat db:generate  # Generate migrations
+pnpm --filter @savoir/chat db:migrate   # Run migrations
+pnpm --filter @savoir/chat db:seed      # Seed sources from savoir.config.ts
+
+# Workflows
+pnpm --filter @savoir/chat workflow:web # Monitor workflow progress
 
 # Linting & Testing
 pnpm lint             # Lint all packages
 pnpm lint:fix         # Fix linting issues
 pnpm test             # Run tests
 pnpm typecheck        # Type check all packages
-
-# Content Sync
-pnpm sync             # Trigger content synchronization
-pnpm sync:source      # Sync specific source
 ```

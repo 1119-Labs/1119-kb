@@ -11,10 +11,13 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "db:generate": "nuxt db generate",
-    "db:migrate": "nuxt db migrate"
+    "db:migrate": "nuxt db migrate",
+    "db:seed": "nuxt task run db:seed-sources",
+    "workflow:web": "npx workflow web",
+    "sync:docs": "curl -X POST http://localhost:3000/api/sync",
+    "snapshot:create": "curl -X POST http://localhost:3000/api/sandbox/snapshot"
   },
   "dependencies": {
-    "@savoir/sdk": "workspace:*",
     "@savoir/logger": "workspace:*",
     "@ai-sdk/gateway": "^3.0.0",
     "@ai-sdk/vue": "^3.0.0",
@@ -28,7 +31,9 @@
     "@upstash/redis": "^1.36.1",
     "@vercel/blob": "^2.0.0",
     "@vercel/functions": "^3.3.6",
-    "@vercel/sandbox": "^1.1.8",
+    "@vercel/sandbox": "^1.2.0",
+    "giget": "^3.1.1",
+    "pathe": "^2.0.3",
     "ai": "^6.0.31",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.0",

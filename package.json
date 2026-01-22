@@ -16,16 +16,15 @@
     "prepare": "turbo build --filter='./packages/*'",
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:api": "pnpm --filter @savoir/api dev",
     "dev:chat": "pnpm --filter @savoir/chat dev",
-    "sync:docs": "pnpm --filter @savoir/api sync:docs",
-    "snapshot:create": "pnpm --filter @savoir/api snapshot:create",
+    "sync:docs": "pnpm --filter @savoir/chat sync:docs",
+    "snapshot:create": "pnpm --filter @savoir/chat snapshot:create",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "automd": "automd",
-    "workflow": "pnpm --filter @savoir/api exec workflow web"
+    "workflow": "pnpm --filter @savoir/chat workflow:web"
   },
   "devDependencies": {
     "@hrcd/eslint-config": "^3.0.3",

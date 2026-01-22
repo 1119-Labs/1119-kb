@@ -55,7 +55,9 @@ const sourceIdentifier = computed(() => {
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
         <div class="flex items-baseline gap-2">
-          <h3 class="font-medium text-[15px] text-highlighted leading-tight">{{ source.label }}</h3>
+          <h3 class="font-medium text-[15px] text-highlighted leading-tight">
+            {{ source.label }}
+          </h3>
           <span class="text-muted/50">·</span>
           <a
             v-if="sourceUrl"

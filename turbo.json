@@ -6,9 +6,9 @@
       "outputs": [".vercel/output/**", ".nuxt/**", ".output/**", "dist/**"],
       "env": [
         "AI_GATEWAY_API_KEY",
-        "GITHUB_TOKEN",
-        "GITHUB_SNAPSHOT_REPO",
-        "GITHUB_SNAPSHOT_BRANCH",
+        "NUXT_GITHUB_TOKEN",
+        "NUXT_GITHUB_SNAPSHOT_REPO",
+        "NUXT_GITHUB_SNAPSHOT_BRANCH",
         "NUXT_SAVOIR_API_URL",
         "NUXT_SAVOIR_SECRET_KEY",
         "NUXT_OAUTH_GITHUB_CLIENT_ID",
@@ -27,7 +27,7 @@
       "persistent": true,
       "env": [
         "AI_GATEWAY_API_KEY",
-        "GITHUB_TOKEN"
+        "NUXT_GITHUB_TOKEN"
       ]
     },
     "lint": {

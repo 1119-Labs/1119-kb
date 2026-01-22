@@ -2,27 +2,61 @@
 
 Savoir aggregates documentation from multiple sources into a unified, searchable knowledge base.
 
-## Configuration
+## Database Storage
 
-Sources are defined in `savoir.config.ts` at the project root:
+Sources are stored in SQLite via NuxtHub. The schema:
 
 ```typescript
-import { defineConfig } from '@savoir/config'
+export const sources = sqliteTable('sources', {
+  id: text('id').primaryKey(),
+  type: text('type', { enum: ['github', 'youtube'] }).notNull(),
 
-export default defineConfig({
+  // Common fields
+  label: text('label').notNull(),
+
+  // GitHub fields
+  repo: text('repo'),
+  branch: text('branch'),
+  contentPath: text('content_path'),
+  outputPath: text('output_path'),
+  readmeOnly: integer('readme_only', { mode: 'boolean' }),
+
+  // YouTube fields
+  channelId: text('channel_id'),
+  handle: text('handle'),
+  maxVideos: integer('max_videos'),
+
+  // Timestamps
+  createdAt: integer('created_at', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
+})
+```
+
+## Seeding Sources
+
+Sources can be seeded from `savoir.config.ts` using the seed task:
+
+```bash
+cd apps/chat
+pnpm db:seed
+```
+
+The config file at the project root:
+
+```typescript
+// savoir.config.ts
+export default {
   sources: {
     github: [
       { id: 'nuxt', repo: 'nuxt/nuxt', contentPath: 'docs' },
-      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'v3' },
+      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'main' },
     ],
     youtube: [
       { id: 'alex-lichter', channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA' },
     ],
   },
-})
+}
 ```
-
-Supported formats: `.ts`, `.js`, `.json`, `.yaml`
 
 ## Source Types
 
@@ -39,11 +73,6 @@ Fetches Markdown documentation from GitHub repositories.
   contentPath?: string // Path to content directory (default: 'docs')
   outputPath?: string  // Output directory in snapshot (default: id)
   readmeOnly?: boolean // Only fetch README.md (default: false)
-  additionalSyncs?: Array<{
-    repo: string
-    branch?: string
-    contentPath?: string
-  }>
 }
 ```
 
@@ -58,16 +87,6 @@ Fetches Markdown documentation from GitHub repositories.
 
 // README only
 { id: 'ofetch', repo: 'unjs/ofetch', readmeOnly: true }
-
-// Multiple repos merged
-{
-  id: 'nuxt',
-  repo: 'nuxt/nuxt',
-  contentPath: 'docs',
-  additionalSyncs: [
-    { repo: 'nuxt/nuxt.com', contentPath: 'content' },
-  ],
-}
 ```
 
 ### YouTube Sources
@@ -84,16 +103,41 @@ Fetches video transcripts from YouTube channels.
 }
 ```
 
-### Custom Sources
+## Managing Sources via API
 
-For sources that don't fit the standard patterns:
+### List Sources
 
-```typescript
-{
-  id: string
-  label?: string
-  fetchFn: () => Promise<Array<{ path: string; content: string }>>
-}
+```bash
+curl http://localhost:3000/api/sources
+```
+
+### Create Source
+
+```bash
+curl -X POST http://localhost:3000/api/sources \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "vue",
+    "type": "github",
+    "label": "Vue.js",
+    "repo": "vuejs/core",
+    "branch": "main",
+    "contentPath": "docs"
+  }'
+```
+
+### Update Source
+
+```bash
+curl -X PUT http://localhost:3000/api/sources/vue \
+  -H "Content-Type: application/json" \
+  -d '{"branch": "v4"}'
+```
+
+### Delete Source
+
+```bash
+curl -X DELETE http://localhost:3000/api/sources/vue
 ```
 
 ## Syncing
@@ -102,23 +146,13 @@ For sources that don't fit the standard patterns:
 
 ```bash
 # Sync all sources
-curl -X POST http://localhost:3000/api/sync
+curl -X POST http://localhost:3000/api/sync \
+  -H "Authorization: Bearer $SAVOIR_SECRET_KEY"
 
 # Sync specific source
-curl -X POST http://localhost:3000/api/sync/nuxt
-
-# With options
-curl -X POST http://localhost:3000/api/sync \
-  -H "Content-Type: application/json" \
-  -d '{"reset": true, "push": true}'
+curl -X POST http://localhost:3000/api/sync/nuxt \
+  -H "Authorization: Bearer $SAVOIR_SECRET_KEY"
 ```
-
-### Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `reset` | boolean | false | Clear content before sync |
-| `push` | boolean | true | Push to snapshot repo after sync |
 
 ## Content Normalization
 
