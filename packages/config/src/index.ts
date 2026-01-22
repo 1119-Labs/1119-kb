@@ -5,7 +5,6 @@ export { defineConfig } from './define'
 export {
   loadSavoirConfig,
   setConfigCwd,
-  setStaticConfig,
   getSources,
   getGitHubSources,
   getYouTubeSources,

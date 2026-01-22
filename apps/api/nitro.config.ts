@@ -5,11 +5,6 @@ export default defineConfig({
 
   modules: ['workflow/nitro'],
 
-  alias: {
-    // Bundle savoir.config.ts for production (c12 can't find it in serverless)
-    '#savoir-config': '../../savoir.config.ts',
-  },
-
   storage: {
     kv: {
       driver: 'fs',
