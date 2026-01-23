@@ -32,17 +32,17 @@
   },
   "dependencies": {
     "@savoir/logger": "workspace:*",
-    "ai": "^6.0.31",
-    "zod": "^4.3.5"
+    "ai": "^6.0.49",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.0.10",
-    "eslint": "^9.28.0",
-    "tsdown": "^0.12.4",
-    "typescript": "^5.8.3"
+    "eslint": "^9.39.2",
+    "tsdown": "^0.20.1",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "ai": ">=6.0.0"
+    "ai": ">=6.0.49"
   },
   "peerDependenciesMeta": {
     "ai": {
