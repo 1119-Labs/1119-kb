@@ -64,10 +64,8 @@ async function triggerSync(sourceId?: string) {
     if (!sourceId) {
       isSyncingAll.value = true
     }
-    await $fetch('/api/admin/sync', {
-      method: 'POST',
-      body: sourceId ? { sourceId } : {},
-    })
+    const endpoint = sourceId ? `/api/sync/${sourceId}` : '/api/sync'
+    await $fetch(endpoint, { method: 'POST' })
     toast.add({
       title: sourceId ? 'Sync started' : 'Full sync started',
       description: 'The sync workflow has been triggered.',
@@ -107,7 +105,7 @@ function handleSaved() {
             </h1>
             <div class="flex items-center gap-1.5">
               <UButton
-                v-if="sources?.github?.length || sources?.youtube?.length"
+                v-if="sources?.github?.count || sources?.youtube?.count"
                 icon="i-lucide-refresh-cw"
                 color="neutral"
                 variant="ghost"
@@ -132,7 +130,7 @@ function handleSaved() {
         </header>
 
         <div
-          v-if="!sources?.github?.length && !sources?.youtube?.length"
+          v-if="!sources?.github?.count && !sources?.youtube?.count"
           class="flex flex-col items-center py-16 border border-dashed border-default rounded-xl"
         >
           <div class="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
@@ -160,14 +158,14 @@ function handleSaved() {
               <h2 class="text-[13px] font-medium text-muted">
                 GitHub
               </h2>
-              <span class="text-[13px] text-muted/60">{{ sources?.github?.length || 0 }}</span>
+              <span class="text-[13px] text-muted/60">{{ sources?.github?.count || 0 }}</span>
             </header>
 
             <div
-              v-if="sources?.github?.length"
+              v-if="sources?.github?.count"
               class="rounded-lg border border-default bg-default divide-y divide-default"
             >
-              <div v-for="source in sources.github" :key="source.id" class="px-4">
+              <div v-for="source in sources.github.sources" :key="source.id" class="px-4">
                 <SourceCard
                   :source
                   @edit="editingSource = source"
@@ -192,14 +190,14 @@ function handleSaved() {
               <h2 class="text-[13px] font-medium text-muted">
                 YouTube
               </h2>
-              <span class="text-[13px] text-muted/60">{{ sources?.youtube?.length || 0 }}</span>
+              <span class="text-[13px] text-muted/60">{{ sources?.youtube?.count || 0 }}</span>
             </header>
 
             <div
-              v-if="sources?.youtube?.length"
+              v-if="sources?.youtube?.count"
               class="rounded-lg border border-default bg-default divide-y divide-default"
             >
-              <div v-for="source in sources.youtube" :key="source.id" class="px-4">
+              <div v-for="source in sources.youtube.sources" :key="source.id" class="px-4">
                 <SourceCard
                   :source
                   @edit="editingSource = source"

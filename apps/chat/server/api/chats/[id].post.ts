@@ -103,8 +103,9 @@ export default defineEventHandler(async (event) => {
     }
 
     const { savoir: savoirConfig } = useRuntimeConfig()
+
     const savoir = createSavoir({
-      apiUrl: savoirConfig.apiUrl,
+      apiUrl: getRequestURL(event).origin,
       apiKey: savoirConfig.apiKey || undefined,
     })
 

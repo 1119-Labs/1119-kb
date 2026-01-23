@@ -23,12 +23,10 @@ jobs:
         with:
           scopes: |
             deps
-            api
             chat
             github-bot
             sdk
-            cli
-            deps
+            logger
             docs
           types: |
             breaking

@@ -2,7 +2,7 @@
 
 Build AI agents with real-time knowledge access.
 
-Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a self-hostable API for sandbox management with an SDK that provides AI SDK-compatible tools.
+Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a unified Nuxt application for the chat interface and API with an SDK that provides AI SDK-compatible tools.
 
 ## Architecture
 
@@ -20,10 +20,10 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
                                   │ API calls
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                          Savoir API                              │
-│                    (Self-hostable Nitro server)                  │
+│                         apps/chat                                │
+│                    (Unified Nuxt Application)                    │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
-│  │   Sandbox   │  │   Content    │  │      Nitro Tasks       │  │
+│  │   Sandbox   │  │   Content    │  │   Vercel Workflows     │  │
 │  │   Manager   │  │     Sync     │  │   (scheduled sync)     │  │
 │  └──────┬──────┘  └──────┬───────┘  └────────────────────────┘  │
 └─────────┼────────────────┼──────────────────────────────────────┘
@@ -41,15 +41,15 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
 | Package | Description |
 |---------|-------------|
 | [`@savoir/sdk`](./packages/sdk) | AI SDK compatible tools for agents |
-| [`@savoir/config`](./packages/config) | Configuration management with multi-format support |
-| [`apps/api`](./apps/api) | Self-hostable sandbox management API |
+| [`@savoir/logger`](./packages/logger) | Logging utilities |
+| [`apps/chat`](./apps/chat) | Unified Nuxt app (chat UI + API) |
 
 ## Quick Start
 
 ### Using the SDK
 
 ```typescript
-import { generateText, stepCountIs } from 'ai'
+import { generateText } from 'ai'
 import { createSavoir } from '@savoir/sdk'
 
 // Initialize Savoir client
@@ -70,7 +70,7 @@ const { text } = await generateText({
 console.log(text)
 ```
 
-### Self-hosting the API
+### Self-hosting
 
 ```bash
 # Clone the repository
@@ -78,84 +78,88 @@ git clone https://github.com/HugoRCD/savoir.git
 cd savoir
 
 # Install dependencies
-pnpm install
+bun install
 
 # Configure environment variables
-cp apps/api/.env.example apps/api/.env
+cp apps/chat/.env.example apps/chat/.env
 # Edit .env with your configuration
 
-# Start the API
-pnpm dev:api
+# Run database migrations
+turbo run db:migrate --filter=@savoir/chat
+
+# Start the app
+bun run dev
 ```
 
 **Required environment variables:**
 
 ```bash
 # GitHub token for cloning snapshot repository
-GITHUB_TOKEN=ghp_...
+NUXT_GITHUB_TOKEN=ghp_...
 
 # Repository containing the content snapshot
-GITHUB_SNAPSHOT_REPO=your-org/your-content-repo
+NUXT_GITHUB_SNAPSHOT_REPO=your-org/your-content-repo
 
 # Optional: API key for securing endpoints
-SAVOIR_SECRET_KEY=your-secret-key
+NUXT_SAVOIR_SECRET_KEY=your-secret-key
 ```
 
 ## Configuration
 
-Sources are configured in `savoir.config.ts` at the project root:
+Sources are stored in the database and can be managed via the API (`/api/sources`). See `savoir.config.ts` at the project root for example source definitions:
+
+The config file format:
 
 ```typescript
-import { defineConfig } from '@savoir/config'
-
-export default defineConfig({
+// savoir.config.ts
+export default {
   sources: {
     github: [
       { id: 'nuxt', repo: 'nuxt/nuxt', contentPath: 'docs' },
-      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'v3' },
+      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'main' },
     ],
     youtube: [
       { id: 'alex-lichter', channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA' },
     ],
   },
-})
+}
 ```
-
-Supported formats: `.ts`, `.js`, `.json`, `.yaml`
 
 See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
 
 ## How It Works
 
-1. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via Vercel Workflow
-2. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a Vercel Sandbox with the snapshot repo cloned
-3. **File-based Search**: The SDK tools execute grep/find commands in the sandbox to search and read content
-4. **AI Integration**: Tools are compatible with the Vercel AI SDK for seamless integration with any LLM
+1. **Sources in Database**: Sources are stored in SQLite via NuxtHub, seeded from `savoir.config.ts`
+2. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via Vercel Workflow
+3. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a Vercel Sandbox with the snapshot repo cloned
+4. **File-based Search**: The SDK tools execute grep/find commands in the sandbox to search and read content
+5. **AI Integration**: Tools are compatible with the Vercel AI SDK for seamless integration with any LLM
 
 ## Development
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
-# Start all apps in dev mode
-pnpm dev
+# Start the app in dev mode
+bun run dev
 
 # Build all packages
-pnpm build
+bun run build
 
 # Run tests
-pnpm test
+bun run test
 
 # Lint and fix
-pnpm lint:fix
+bun run lint:fix
 ```
 
 ## Related Projects
 
 - [Vercel AI SDK](https://ai-sdk.dev) - The AI SDK that Savoir integrates with
 - [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) - Sandboxed execution environment
-- [Nitro](https://v3.nitro.build) - The server framework powering the API
+- [NuxtHub](https://hub.nuxt.com) - The deployment platform for Nuxt
+- [Vercel Workflow](https://github.com/vercel/workflow) - Durable workflow execution
 
 ## License
 

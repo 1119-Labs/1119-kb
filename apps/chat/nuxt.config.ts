@@ -4,7 +4,8 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxtjs/mdc',
     '@nuxthub/core',
-    'nuxt-auth-utils'
+    'nuxt-auth-utils',
+    'workflow/nuxt',
   ],
 
   devtools: { enabled: true },
@@ -47,12 +48,16 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Savoir SDK config
     savoir: {
-      apiUrl: '',
       apiKey: '',
+      secretKey: '',
     },
+    // GitHub config
     github: {
       token: '',
+      snapshotRepo: '',
+      snapshotBranch: 'main',
       appId: '',
       appPrivateKey: '',
       webhookSecret: '',

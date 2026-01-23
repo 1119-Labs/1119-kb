@@ -18,11 +18,10 @@ Here are the available types and scopes:
 - revert (reverts a previous commit) 🔄
 
 ### Scopes
-- api (apps/api - Savoir API server)
-- chat (apps/chat - Chat application)
+- chat (apps/chat - Main application)
 - github-bot (apps/github-bot - GitHub bot)
 - sdk (packages/sdk - @savoir/sdk)
-- cli (packages/cli - CLI utilities)
+- logger (packages/logger - @savoir/logger)
 - deps (dependencies updates)
 - docs (documentation)
 -->

@@ -1,6 +1,11 @@
-import { defineConfig } from '@savoir/config'
-
-export default defineConfig({
+/**
+ * Savoir configuration file
+ *
+ * This file defines available sources as a reference.
+ * Sources are stored in SQLite via NuxtHub and can be managed via the API:
+ * GET/POST/PUT/DELETE /api/sources
+ */
+export default {
   sources: {
     github: [
       // Nuxt Core
