@@ -51,7 +51,7 @@ function sanitizeRepo(repo: string): string | null {
   cleaned = cleaned
     .replace(/status:\s*\d+.*/i, '') // Remove "Status: 200 OK" etc
     .replace(/https?:\/\/.*/i, '') // Remove URLs
-    .replace(/[^a-z0-9_.\/-]/g, '') // Remove invalid characters
+    .replace(/[^a-z0-9_./-]/g, '') // Remove invalid characters
     .replace(/\/+/g, '/') // Collapse multiple slashes
     .replace(/^\/|\/$/g, '') // Trim slashes
 
