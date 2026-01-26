@@ -17,11 +17,6 @@ interface SerializedSource {
   updatedAt: string
 }
 
-definePageMeta({
-  layout: 'admin',
-  middleware: 'admin',
-})
-
 const toast = useToast()
 const overlay = useOverlay()
 
@@ -87,78 +82,77 @@ function handleSaved() {
   refresh()
   editingSource.value = null
 }
+
+const hasSources = computed(() => (sources.value?.github?.count || 0) + (sources.value?.youtube?.count || 0) > 0)
 </script>
 
 <template>
-  <UContainer class="py-10 max-w-xl">
-    <header class="mb-10">
-      <div class="flex items-center justify-between">
-        <h1 class="text-lg font-semibold text-highlighted">
-          Sources
-        </h1>
-        <div class="flex items-center gap-1.5">
-          <UButton
-            v-if="sources?.github?.count || sources?.youtube?.count"
-            icon="i-lucide-refresh-cw"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            :loading="isSyncingAll"
-            @click="triggerSync()"
-          >
-            Sync All
-          </UButton>
-          <UButton
-            icon="i-lucide-plus"
-            size="xs"
-            to="/admin/sources/new"
-          >
-            Add
-          </UButton>
-        </div>
-      </div>
-      <p class="text-[13px] text-muted mt-1">
-        Configure sources for documentation sync
+  <div class="px-6 lg:px-10 py-8 max-w-3xl">
+    <header class="mb-8">
+      <h1 class="text-lg font-medium text-highlighted mb-1">
+        Sources
+      </h1>
+      <p class="text-sm text-muted max-w-lg">
+        Sources are knowledge bases that give the AI context. Connect GitHub repositories for documentation or YouTube channels for video transcripts.
       </p>
     </header>
 
     <div
-      v-if="!sources?.github?.count && !sources?.youtube?.count"
-      class="flex flex-col items-center py-16 border border-dashed border-default rounded-xl"
+      v-if="hasSources"
+      class="flex items-center gap-2 mb-6"
     >
-      <div class="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
-        <UIcon name="i-lucide-layers" class="size-5 text-muted" />
-      </div>
-      <p class="text-sm font-medium text-highlighted mb-1">
-        No sources yet
-      </p>
-      <p class="text-[13px] text-muted mb-4">
-        Add a source to get started
-      </p>
+      <UButton
+        icon="i-lucide-refresh-cw"
+        color="neutral"
+        variant="ghost"
+        size="xs"
+        :loading="isSyncingAll"
+        @click="triggerSync()"
+      >
+        Sync All
+      </UButton>
       <UButton
         icon="i-lucide-plus"
-        size="sm"
-        to="/admin/sources/new"
+        size="xs"
+        to="/admin/new"
       >
         Add Source
       </UButton>
     </div>
 
+    <div
+      v-if="!hasSources"
+      class="flex flex-col items-center py-16 border border-dashed border-default rounded-lg"
+    >
+      <div class="size-10 rounded-lg bg-elevated flex items-center justify-center mb-4">
+        <UIcon name="i-lucide-database" class="size-5 text-muted" aria-hidden="true" />
+      </div>
+      <p class="text-sm font-medium text-highlighted mb-1">
+        No sources yet
+      </p>
+      <p class="text-xs text-muted mb-4 text-center max-w-xs">
+        Add your first source to give the AI knowledge about your favorite tools
+      </p>
+      <UButton
+        icon="i-lucide-plus"
+        size="xs"
+        to="/admin/new"
+      >
+        Add your first source
+      </UButton>
+    </div>
+
     <div v-else class="space-y-8">
       <section>
-        <header class="flex items-center gap-2 mb-2">
-          <UIcon name="i-simple-icons-github" class="size-4 text-muted" />
-          <h2 class="text-[13px] font-medium text-muted">
-            GitHub
-          </h2>
-          <span class="text-[13px] text-muted/60">{{ sources?.github?.count || 0 }}</span>
-        </header>
+        <p class="text-xs text-muted mb-3">
+          GitHub Repositories
+        </p>
 
         <div
           v-if="sources?.github?.count"
-          class="rounded-lg border border-default bg-default divide-y divide-default"
+          class="rounded-lg border border-default divide-y divide-default overflow-hidden"
         >
-          <div v-for="source in sources.github.sources" :key="source.id" class="px-4">
+          <div v-for="source in sources.github.sources" :key="source.id" class="px-4 hover:bg-elevated/50 transition-colors">
             <SourceCard
               :source
               @edit="editingSource = source"
@@ -169,28 +163,26 @@ function handleSaved() {
         </div>
         <UButton
           v-else
+          color="neutral"
           variant="ghost"
-          class="w-full h-24 rounded-lg border border-dashed border-default hover:border-muted"
-          to="/admin/sources/new"
+          class="w-full h-14 border border-dashed border-default hover:border-muted"
+          to="/admin/new"
+          icon="i-lucide-plus"
         >
-          <span class="text-[13px] text-muted">Add a repository</span>
+          Add a GitHub repository
         </UButton>
       </section>
 
       <section>
-        <header class="flex items-center gap-2 mb-2">
-          <UIcon name="i-simple-icons-youtube" class="size-4 text-red-500" />
-          <h2 class="text-[13px] font-medium text-muted">
-            YouTube
-          </h2>
-          <span class="text-[13px] text-muted/60">{{ sources?.youtube?.count || 0 }}</span>
-        </header>
+        <p class="text-xs text-muted mb-3">
+          YouTube Channels
+        </p>
 
         <div
           v-if="sources?.youtube?.count"
-          class="rounded-lg border border-default bg-default divide-y divide-default"
+          class="rounded-lg border border-default divide-y divide-default overflow-hidden"
         >
-          <div v-for="source in sources.youtube.sources" :key="source.id" class="px-4">
+          <div v-for="source in sources.youtube.sources" :key="source.id" class="px-4 hover:bg-elevated/50 transition-colors">
             <SourceCard
               :source
               @edit="editingSource = source"
@@ -201,20 +193,22 @@ function handleSaved() {
         </div>
         <UButton
           v-else
+          color="neutral"
           variant="ghost"
-          class="w-full h-24 rounded-lg border border-dashed border-default hover:border-muted"
-          to="/admin/sources/new"
+          class="w-full h-14 border border-dashed border-default hover:border-muted"
+          to="/admin/new"
+          icon="i-lucide-plus"
         >
-          <span class="text-[13px] text-muted">Add a channel</span>
+          Add a YouTube channel
         </UButton>
       </section>
     </div>
-  </UContainer>
 
-  <SourceModal
-    v-if="editingSource"
-    :source="editingSource"
-    @close="editingSource = null"
-    @saved="handleSaved"
-  />
+    <SourceModal
+      v-if="editingSource"
+      :source="editingSource"
+      @close="editingSource = null"
+      @saved="handleSaved"
+    />
+  </div>
 </template>

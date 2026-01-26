@@ -214,8 +214,8 @@ const items = computed<DropdownMenuItem[][]>(() => {
         children: [
           {
             label: 'Sources',
-            icon: 'i-lucide-book-open',
-            to: '/admin/sources',
+            icon: 'i-lucide-database',
+            to: '/admin',
           },
           {
             label: 'Sync all',

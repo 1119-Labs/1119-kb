@@ -36,7 +36,7 @@ export default defineOAuthGitHubEventHandler({
         existingUser.role = newRole
       }
 
-      await setUserSession(event, { user: existingUser })
+      await setUserSession(event, { user: { ...existingUser, provider: 'github' as const } })
     } else {
       const role = isAdminUser(ghUser.email || '', ghUser.login) ? 'admin' : 'user'
       const [newUser] = await db.insert(schema.users).values({
@@ -49,6 +49,10 @@ export default defineOAuthGitHubEventHandler({
         role,
       }).returning()
 
+      if (!newUser) {
+        throw createError({ statusCode: 500, message: 'Failed to create user' })
+      }
+
       // Migrate anonymous chats to new user
       if (session.user?.id) {
         await db.update(schema.chats)
@@ -56,7 +60,7 @@ export default defineOAuthGitHubEventHandler({
           .where(eq(schema.chats.userId, session.user.id))
       }
 
-      await setUserSession(event, { user: newUser })
+      await setUserSession(event, { user: { ...newUser, provider: 'github' as const } })
     }
 
     return sendRedirect(event, '/')
