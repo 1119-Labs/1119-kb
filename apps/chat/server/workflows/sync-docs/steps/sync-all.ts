@@ -1,6 +1,6 @@
 /** Performs complete sync workflow: create sandbox, sync sources, push to git, and take snapshot */
 
-import { getLogger } from '@savoir/logger'
+import { log } from 'evlog'
 import type { GitHubSource, SyncConfig, SyncSourceResult } from '../types'
 import { createSandbox, generateAuthRepoUrl } from '../../../lib/sandbox/context'
 import { syncSources } from '../../../lib/sandbox/source-sync'
@@ -18,19 +18,17 @@ export async function stepSyncAll(
 ): Promise<SyncAllResult> {
   'use step'
 
-  const logger = getLogger()
-
-  logger.log('sync', `Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
+  log.info('sync', `Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
   const sandbox = await createSandbox(config)
-  logger.log('sync', `Sandbox created: ${sandbox.sandboxId}`)
+  log.info('sync', `Sandbox created: ${sandbox.sandboxId}`)
 
   const results = await syncSources(sandbox, sources)
 
   for (const result of results) {
     if (result.success) {
-      logger.log('sync', `${result.sourceId}: synced ${result.fileCount} files`)
+      log.info('sync', `${result.sourceId}: synced ${result.fileCount} files`)
     } else {
-      logger.log('sync', `${result.sourceId}: failed - ${result.error}`)
+      log.error('sync', `${result.sourceId}: failed - ${result.error}`)
     }
   }
 
@@ -46,11 +44,11 @@ export async function stepSyncAll(
   })
 
   if (pushResult.success && pushResult.hasChanges) {
-    logger.log('sync', '✓ Changes pushed to repository')
+    log.info('sync', '✓ Changes pushed to repository')
   }
 
   const snapshot = await sandbox.snapshot()
-  logger.log('sync', `Snapshot created: ${snapshot.snapshotId}`)
+  log.info('sync', `Snapshot created: ${snapshot.snapshotId}`)
 
   return {
     snapshotId: snapshot.snapshotId,

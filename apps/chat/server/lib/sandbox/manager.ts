@@ -1,5 +1,5 @@
 import { Sandbox } from '@vercel/sandbox'
-import { createError, getLogger } from '@savoir/logger'
+import { createError, log } from 'evlog'
 import type { ActiveSandbox, FileContent, SearchAndReadResult, SearchResult, SandboxManagerConfig, SnapshotMetadata } from './types'
 import { getCurrentSnapshot, setCurrentSnapshot } from './snapshot'
 import { deleteSession, generateSessionId, getSession, setSession, touchSession } from './session'
@@ -43,9 +43,7 @@ function getGitSourceOptions(repoUrl: string, branch: string, githubToken?: stri
 
 /** Creates and initializes sandbox from snapshot ID */
 async function createSandboxFromSnapshot(snapshotId: string): Promise<Sandbox> {
-  const logger = getLogger()
-
-  logger.log('sandbox', `Creating sandbox from snapshot: ${snapshotId}`)
+  log.info('sandbox', `Creating sandbox from snapshot: ${snapshotId}`)
 
   const sandbox = await Sandbox.create({
     source: {
@@ -56,7 +54,7 @@ async function createSandboxFromSnapshot(snapshotId: string): Promise<Sandbox> {
     runtime: 'node24',
   })
 
-  logger.log('sandbox', `Sandbox created: ${sandbox.sandboxId}`)
+  log.info('sandbox', `Sandbox created: ${sandbox.sandboxId}`)
   return sandbox
 }
 
@@ -78,9 +76,8 @@ async function getSandboxById(sandboxId: string): Promise<Sandbox | null> {
 /** Creates sandbox from git repository and returns snapshot ID */
 export async function createSnapshotFromRepo(repoUrl: string, branch: string = 'main'): Promise<string> {
   const config = getConfig()
-  const logger = getLogger()
 
-  logger.log('sandbox', `Creating sandbox from repo: ${repoUrl}#${branch}`)
+  log.info('sandbox', `Creating sandbox from repo: ${repoUrl}#${branch}`)
 
   const sandbox = await Sandbox.create({
     source: getGitSourceOptions(repoUrl, branch, config.githubToken),
@@ -88,18 +85,17 @@ export async function createSnapshotFromRepo(repoUrl: string, branch: string = '
     runtime: 'node24',
   })
 
-  logger.log('sandbox', `Sandbox created: ${sandbox.sandboxId}, taking snapshot...`)
+  log.info('sandbox', `Sandbox created: ${sandbox.sandboxId}, taking snapshot...`)
 
   // Take snapshot (this also stops the sandbox)
   const snapshot = await sandbox.snapshot()
 
-  logger.log('sandbox', `Snapshot created: ${snapshot.snapshotId}`)
+  log.info('sandbox', `Snapshot created: ${snapshot.snapshotId}`)
   return snapshot.snapshotId
 }
 
 /** Returns current snapshot ID or creates one from configured repo */
 async function getOrCreateSnapshot(): Promise<string> {
-  const logger = getLogger()
   const config = getConfig()
 
   // Check if snapshot exists
@@ -128,13 +124,12 @@ async function getOrCreateSnapshot(): Promise<string> {
   }
   await setCurrentSnapshot(metadata)
 
-  logger.log('sandbox', `Snapshot created and saved: ${snapshotId}`)
+  log.info('sandbox', `Snapshot created and saved: ${snapshotId}`)
   return snapshotId
 }
 
 /** Returns active sandbox for session, reusing existing or creating new. Auto-creates snapshot if needed */
 export async function getOrCreateSandbox(sessionId?: string): Promise<ActiveSandbox> {
-  const logger = getLogger()
   const config = getConfig()
 
   // If session ID provided, try to get existing sandbox
@@ -143,7 +138,7 @@ export async function getOrCreateSandbox(sessionId?: string): Promise<ActiveSand
     if (session) {
       const sandbox = await getSandboxById(session.sandboxId)
       if (sandbox) {
-        logger.log('sandbox', `Reusing sandbox ${sandbox.sandboxId} for session ${sessionId}`)
+        log.info('sandbox', `Reusing sandbox ${sandbox.sandboxId} for session ${sessionId}`)
         await touchSession(sessionId, config.sessionTtlMs)
         return { sandbox, session, sessionId }
       }
@@ -177,8 +172,7 @@ export async function search(
   query: string,
   limit: number = 20,
 ): Promise<SearchResult[]> {
-  const logger = getLogger()
-  logger.log('sandbox', `Searching for: ${query}`)
+  log.info('sandbox', `Searching for: ${query}`)
 
   // Use grep for searching (-r recursive, -n line numbers, -i case insensitive, -l list files)
   const result = await sandbox.runCommand({
@@ -204,7 +198,7 @@ export async function search(
   const stderr = await result.stderr()
 
   if (stderr) {
-    logger.log('sandbox', `grep stderr: ${stderr}`)
+    log.error('sandbox', `grep stderr: ${stderr}`)
   }
 
   const lines = stdout.split('\n').filter(Boolean).slice(0, limit)
@@ -222,7 +216,7 @@ export async function search(
     }
   }
 
-  logger.log('sandbox', `Found ${results.length} matches`)
+  log.info('sandbox', `Found ${results.length} matches`)
   return results
 }
 
@@ -231,8 +225,7 @@ export async function read(
   sandbox: Sandbox,
   paths: string[],
 ): Promise<FileContent[]> {
-  const logger = getLogger()
-  logger.log('sandbox', `Reading ${paths.length} files`)
+  log.info('sandbox', `Reading ${paths.length} files`)
 
   const files: FileContent[] = []
 
@@ -250,11 +243,11 @@ export async function read(
         })
       }
     } catch {
-      logger.log('sandbox', `Failed to read file: ${path}`)
+      log.error('sandbox', `Failed to read file: ${path}`)
     }
   }
 
-  logger.log('sandbox', `Read ${files.length} files successfully`)
+  log.info('sandbox', `Read ${files.length} files successfully`)
   return files
 }
 

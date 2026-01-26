@@ -1,4 +1,4 @@
-import { createError } from '@savoir/logger'
+import { createError } from 'evlog'
 import type {
   ReadResponse,
   SavoirConfig,

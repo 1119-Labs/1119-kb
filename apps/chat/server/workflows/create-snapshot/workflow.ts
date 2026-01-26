@@ -5,15 +5,13 @@
  * Returns the snapshot ID - API route handles KV storage.
  */
 
-import { getLogger } from '@savoir/logger'
 import { FatalError } from 'workflow'
+import { log } from 'evlog'
 import type { SnapshotConfig, SnapshotResult } from './types'
 import { stepCreateAndSnapshot } from './steps'
 
 export async function createSnapshot(config: SnapshotConfig): Promise<SnapshotResult> {
   'use workflow'
-
-  const logger = getLogger()
 
   if (!config.snapshotRepo) {
     throw new FatalError('NUXT_GITHUB_SNAPSHOT_REPO is not configured')
@@ -22,7 +20,7 @@ export async function createSnapshot(config: SnapshotConfig): Promise<SnapshotRe
   try {
     const { snapshotId } = await stepCreateAndSnapshot(config)
 
-    logger.log('snapshot', `✓ Workflow completed: ${snapshotId}`)
+    log.info('snapshot', `✓ Workflow completed: ${snapshotId}`)
 
     return {
       success: true,
@@ -31,7 +29,7 @@ export async function createSnapshot(config: SnapshotConfig): Promise<SnapshotRe
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.log('snapshot', `✗ Workflow failed: ${errorMessage}`)
+    log.error('snapshot', `✗ Workflow failed: ${errorMessage}`)
 
     return {
       success: false,

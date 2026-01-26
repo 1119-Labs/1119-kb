@@ -2,7 +2,7 @@ import type { UIMessage, UIMessageStreamWriter } from 'ai'
 import { generateText } from 'ai'
 import { db, schema } from '@nuxthub/db'
 import { eq } from 'drizzle-orm'
-import { getLogger } from '@savoir/logger'
+import { log } from 'evlog'
 
 interface GenerateTitleOptions {
   firstMessage: UIMessage
@@ -16,7 +16,6 @@ interface GenerateTitleOptions {
  */
 export function generateTitle(options: GenerateTitleOptions): void {
   const { firstMessage, chatId, requestId, writer } = options
-  const logger = getLogger()
 
   generateText({
     model: 'google/gemini-3-flash',
@@ -35,8 +34,8 @@ export function generateTitle(options: GenerateTitleOptions): void {
     })
 
     await db.update(schema.chats).set({ title }).where(eq(schema.chats.id, chatId))
-    logger.log('chat', `[${requestId}] Title: ${title}`)
+    log.info('chat', `${requestId} Title: ${title}`)
   }).catch(() => {
-    logger.log('chat', `[${requestId}] Title generation failed`)
+    log.error('chat', `${requestId} Title generation failed`)
   })
 }

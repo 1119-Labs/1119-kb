@@ -1,6 +1,6 @@
 /** Creates sandbox from repository and takes snapshot */
 
-import { getLogger } from '@savoir/logger'
+import { log } from 'evlog'
 import type { SnapshotConfig } from '../types'
 import { createSandbox } from '../../../lib/sandbox/context'
 
@@ -12,14 +12,12 @@ export interface SnapshotResult {
 export async function stepCreateAndSnapshot(config: SnapshotConfig): Promise<SnapshotResult> {
   'use step'
 
-  const logger = getLogger()
-
-  logger.log('snapshot', `Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
+  log.info('snapshot', `Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
   const sandbox = await createSandbox(config, 2 * 60 * 1000)
-  logger.log('snapshot', `Sandbox created: ${sandbox.sandboxId}`)
+  log.info('snapshot', `Sandbox created: ${sandbox.sandboxId}`)
 
   const snapshot = await sandbox.snapshot()
-  logger.log('snapshot', `✓ Snapshot created: ${snapshot.snapshotId}`)
+  log.info('snapshot', `✓ Snapshot created: ${snapshot.snapshotId}`)
 
   return {
     snapshotId: snapshot.snapshotId,

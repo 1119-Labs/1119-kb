@@ -1,5 +1,5 @@
 import type { Sandbox } from '@vercel/sandbox'
-import { createError } from '@savoir/logger'
+import { createError } from 'evlog'
 import type { SyncSourceResult } from '../../workflows/sync-docs/types'
 
 export interface GitConfig {

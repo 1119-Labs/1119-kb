@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { and, eq } from 'drizzle-orm'
 import { createSavoir } from '@savoir/sdk'
-import { getLogger } from '@savoir/logger'
+import { log, useLogger } from 'evlog'
 import { generateTitle } from '../../utils/generate-title'
 
 const SYSTEM_PROMPT = `You are an AI assistant specialized in the Nuxt/Nitro ecosystem.
@@ -53,10 +53,10 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  const logger = getLogger()
+  const requestLog = useLogger(event)
   const requestId = crypto.randomUUID().slice(0, 8)
 
-  const log = logger.request({
+  requestLog.set({
     requestId,
     path: '/api/chats/[id]',
     method: 'POST',
@@ -64,18 +64,18 @@ export default defineEventHandler(async (event) => {
 
   try {
     const session = await getUserSession(event)
-    log.set({ userId: session.user?.id || session.id })
+    requestLog.set({ userId: session.user?.id || session.id })
 
     const { id } = await getValidatedRouterParams(event, z.object({
       id: z.string(),
     }).parse)
-    log.set({ chatId: id })
+    requestLog.set({ chatId: id })
 
     const { model, messages } = await readValidatedBody(event, z.object({
       model: z.string(),
       messages: z.array(z.custom<UIMessage>()),
     }).parse)
-    log.set({ model, messageCount: messages.length })
+    requestLog.set({ model, messageCount: messages.length })
 
     const chat = await db.query.chats.findFirst({
       where: () => and(
@@ -87,11 +87,11 @@ export default defineEventHandler(async (event) => {
       },
     })
     if (!chat) {
-      log.error('Chat not found')
-      log.emit({ outcome: 'error' })
+      requestLog.error(new Error('Chat not found'))
+      requestLog.set({ outcome: 'error' })
       throw createError({ statusCode: 404, statusMessage: 'Chat not found' })
     }
-    log.set({ existingMessages: chat.messages.length })
+    requestLog.set({ existingMessages: chat.messages.length })
 
     const lastMessage = messages[messages.length - 1]
     if (lastMessage?.role === 'user' && messages.length > 1) {
@@ -114,7 +114,7 @@ export default defineEventHandler(async (event) => {
     let totalInputTokens = 0
     let totalOutputTokens = 0
 
-    logger.log('chat', `[${requestId}] Starting agent with ${model}`)
+    log.info('chat', `[${requestId}] Starting agent with ${model}`)
 
     const agent = new ToolLoopAgent({
       model,
@@ -131,12 +131,12 @@ export default defineEventHandler(async (event) => {
         if (stepResult.toolCalls && stepResult.toolCalls.length > 0) {
           toolCallCount += stepResult.toolCalls.length
           const tools = stepResult.toolCalls.map(c => c.toolName).join(', ')
-          logger.log('chat', `[${requestId}] Step ${stepCount}: ${tools}`)
+          log.info('chat', `[${requestId}] Step ${stepCount}: ${tools}`)
         }
       },
 
       onFinish: (result) => {
-        log.set({
+        requestLog.set({
           finishReason: result.finishReason,
           totalInputTokens,
           totalOutputTokens,
@@ -144,7 +144,7 @@ export default defineEventHandler(async (event) => {
           stepCount,
           toolCallCount,
         })
-        logger.log('chat', `[${requestId}] Finished: ${result.finishReason}`)
+        log.info('chat', `[${requestId}] Finished: ${result.finishReason}`)
       },
     })
 
@@ -171,20 +171,18 @@ export default defineEventHandler(async (event) => {
         })))
         const dbDurationMs = Date.now() - dbStartTime
 
-        log.set({
+        requestLog.set({
           outcome: 'success',
           responseMessageCount: responseMessages.length,
           dbInsertMs: dbDurationMs,
         })
-
-        log.emit()
       },
     })
 
     return createUIMessageStreamResponse({ stream })
   } catch (error) {
-    log.error(error instanceof Error ? error : new Error(String(error)))
-    log.emit({ outcome: 'error' })
+    requestLog.error(error instanceof Error ? error : new Error(String(error)))
+    requestLog.set({ outcome: 'error' })
     throw error
   }
 })
