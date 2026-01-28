@@ -1,6 +1,17 @@
 <script setup lang="ts">
+import { motion } from 'motion-v'
+
+interface ToolCall {
+  toolCallId: string
+  toolName: string
+  args: Record<string, unknown>
+  state?: string
+}
+
 const props = defineProps<{
   text?: string
+  toolCalls?: ToolCall[]
+  isLoading?: boolean
 }>()
 
 const messages = [
@@ -13,8 +24,15 @@ const messages = [
   'Almost there',
 ]
 
+const finishedMessage = 'Search complete'
+
 const currentIndex = ref(0)
-const targetText = computed(() => props.text || messages[currentIndex.value])
+const targetText = computed(() => {
+  if (!props.isLoading) {
+    return finishedMessage
+  }
+  return props.text || messages[currentIndex.value]
+})
 const displayedText = ref(targetText.value)
 
 const chars = 'abcdefghijklmnopqrstuvwxyz'
@@ -34,9 +52,11 @@ function scrambleText(from: string, to: string) {
 
       if (i < charProgress - 2) {
         result += to[i] || ''
-      } else if (i < charProgress) {
+      }
+      else if (i < charProgress) {
         result += chars[Math.floor(Math.random() * chars.length)]
-      } else {
+      }
+      else {
         result += from[i] || ''
       }
     }
@@ -45,7 +65,8 @@ function scrambleText(from: string, to: string) {
 
     if (frame < totalFrames) {
       requestAnimationFrame(animate)
-    } else {
+    }
+    else {
       displayedText.value = to
     }
   }
@@ -53,59 +74,37 @@ function scrambleText(from: string, to: string) {
   requestAnimationFrame(animate)
 }
 
-// Matrix animation
-const gridSize = 3
-const totalDots = gridSize * gridSize
-const activeDots = ref<Set<number>>(new Set())
-const animationIndex = ref(0)
-
-// Different patterns for the matrix
-const patterns = [
-  // Spin clockwise
-  [[0], [1], [2], [5], [8], [7], [6], [3]],
-  // Diagonal wave
-  [[0], [1, 3], [2, 4, 6], [5, 7], [8]],
-  // Center pulse
-  [[4], [1, 3, 5, 7], [0, 2, 6, 8], [1, 3, 5, 7], [4]],
-  // Corners then center
-  [[0, 2, 6, 8], [1, 3, 5, 7], [4]],
-  // Row by row
-  [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-  // Snake
-  [[0], [1], [2], [5], [4], [3], [6], [7], [8]],
-]
-
-let patternIndex = 0
-let stepIndex = 0
-let matrixInterval: ReturnType<typeof setInterval> | null = null
 let textInterval: ReturnType<typeof setInterval> | null = null
 
-function nextStep() {
-  const pattern = patterns[patternIndex]
-  if (!pattern) return
-
-  activeDots.value = new Set(pattern[stepIndex])
-  stepIndex++
-
-  if (stepIndex >= pattern.length) {
-    stepIndex = 0
-    patternIndex = (patternIndex + 1) % patterns.length
-  }
-}
-
 watch(targetText, (newText, oldText) => {
-  if (newText !== oldText) {
+  if (newText !== oldText && newText && oldText) {
     scrambleText(oldText, newText)
   }
 })
 
-onMounted(() => {
-  // Matrix animation - faster
-  matrixInterval = setInterval(nextStep, 150)
-  nextStep()
+// Stop text rotation when loading finishes
+watch(() => props.isLoading, (isLoading) => {
+  if (!isLoading && textInterval) {
+    clearInterval(textInterval)
+    textInterval = null
+  }
+})
 
-  // Text rotation
-  if (!props.text) {
+function getToolLabel(toolName: string, args: Record<string, unknown>) {
+  if (toolName === 'search_and_read') {
+    return `Searching "${args?.query || '...'}"`
+  }
+
+  if (toolName === 'read') {
+    return `Reading ${args?.path || '...'}`
+  }
+
+  return toolName
+}
+
+onMounted(() => {
+  // Text rotation only when loading
+  if (!props.text && props.isLoading) {
     textInterval = setInterval(() => {
       currentIndex.value = (currentIndex.value + 1) % messages.length
     }, 3500)
@@ -113,44 +112,51 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (matrixInterval) clearInterval(matrixInterval)
   if (textInterval) clearInterval(textInterval)
 })
 </script>
 
 <template>
-  <div class="flex items-center gap-3 text-sm text-muted">
-    <div class="matrix">
-      <span
-        v-for="i in totalDots"
-        :key="i"
-        class="matrix-dot"
-        :class="{ active: activeDots.has(i - 1) }"
-      />
+  <div class="flex flex-col gap-2">
+    <!-- Main loader with matrix and text -->
+    <div class="flex items-center text-xs text-muted overflow-hidden">
+      <motion.div
+        v-if="isLoading"
+        :initial="{ opacity: 1, width: 'auto' }"
+        :exit="{ opacity: 0, width: 0 }"
+        :transition="{ duration: 0.2 }"
+        class="shrink-0 mr-2"
+      >
+        <ChatMatrix />
+      </motion.div>
+      <motion.span
+        :animate="{ x: 0 }"
+        :transition="{ duration: 0.2 }"
+        class="font-mono tracking-tight"
+      >
+        {{ displayedText }}
+      </motion.span>
     </div>
-    <span class="font-mono tracking-tight">{{ displayedText }}</span>
+
+    <!-- Tool calls displayed below -->
+    <div
+      v-if="toolCalls?.length"
+      class="flex flex-col gap-1"
+      :class="isLoading ? 'pl-[22px]' : 'pl-0'"
+    >
+      <motion.div
+        v-for="tool in toolCalls"
+        :key="`${tool.toolCallId}-${JSON.stringify(tool.args)}`"
+        :initial="{ opacity: 0, x: -4 }"
+        :animate="{ opacity: 1, x: 0 }"
+        :transition="{ duration: 0.15 }"
+        class="flex items-center gap-1.5"
+      >
+        <span class="size-1 rounded-full bg-current opacity-40" />
+        <span class="text-[11px] text-dimmed truncate max-w-[200px]">
+          {{ getToolLabel(tool.toolName, tool.args) }}
+        </span>
+      </motion.div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.matrix {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  width: 18px;
-  height: 18px;
-}
-
-.matrix-dot {
-  width: 4px;
-  height: 4px;
-  background-color: currentColor;
-  opacity: 0.2;
-  transition: opacity 0.1s ease, transform 0.1s ease;
-}
-
-.matrix-dot.active {
-  opacity: 1;
-  transform: scale(1.1);
-}
-</style>

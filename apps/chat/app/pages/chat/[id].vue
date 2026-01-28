@@ -96,6 +96,34 @@ function copy(e: MouseEvent, message: UIMessage) {
   }, 2000)
 }
 
+const lastMessage = computed(() => chat.messages.at(-1))
+const showThinking = computed(() => {
+  if (chat.status !== 'streaming') return false
+  const msg = lastMessage.value
+  if (msg?.role !== 'assistant') return false
+  const parts = msg.parts as Array<{ type: string }> | undefined
+  return !parts?.some(p => p.type === 'text')
+})
+
+interface ToolCallInfo {
+  toolCallId: string
+  toolName: string
+  args: Record<string, unknown>
+  state: string
+}
+
+function getMessageToolCalls(message: UIMessage): ToolCallInfo[] {
+  if (!message?.parts) return []
+  return (message.parts as Array<{ type: string, toolCallId?: string, toolName?: string, input?: Record<string, unknown>, state?: string }>)
+    .filter(p => p.type === 'dynamic-tool')
+    .map(p => ({
+      toolCallId: p.toolCallId || '',
+      toolName: p.toolName || '',
+      args: p.input || {},
+      state: p.state || ''
+    }))
+}
+
 onMounted(() => {
   if (data.value?.messages.length === 1) {
     chat.regenerate()
@@ -121,14 +149,21 @@ onMounted(() => {
           class="lg:pt-(--ui-header-height) pb-4 sm:pb-6"
         >
           <template #indicator>
-            <ChatLoading />
+            <ChatLoading :is-loading="true" />
           </template>
 
           <template #content="{ message }">
             <ChatLoading
               v-if="message.role === 'assistant' && chat.status === 'streaming' && !message.parts.some(p => p.type === 'text' && p.text)"
+              :tool-calls="getMessageToolCalls(message)"
+              :is-loading="true"
             />
-            <template v-for="(part, index) in message.parts.filter(p => p.type !== 'data-sources')" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
+            <ChatLoading
+              v-else-if="message.role === 'assistant' && getMessageToolCalls(message).length > 0"
+              :tool-calls="getMessageToolCalls(message)"
+              :is-loading="false"
+            />
+            <template v-for="(part, index) in message.parts.filter(p => p.type !== 'data-sources' && p.type !== 'dynamic-tool')" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
               <Reasoning
                 v-if="part.type === 'reasoning'"
                 :text="part.text"

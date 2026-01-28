@@ -143,7 +143,6 @@ export default defineEventHandler(async (event) => {
         // Reset timer for next step
         stepStartTime = Date.now()
       },
-
       onFinish: (result) => {
         const totalDurationMs = stepDurations.reduce((a, b) => a + b, 0)
         requestLog.set({
