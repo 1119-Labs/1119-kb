@@ -59,8 +59,8 @@ export interface Savoir {
  * ```
  */
 export function createSavoir(config: SavoirConfig): Savoir {
+  const { onToolCall } = config
   const client = new SavoirClient(config)
-  const onToolCall: ToolCallCallback | undefined = config.onToolCall
 
   return {
     client,
