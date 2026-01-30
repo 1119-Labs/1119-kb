@@ -1,0 +1,29 @@
+{
+  "name": "@savoir/github-bot",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3001",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "^3.0.29",
+    "@savoir/sdk": "workspace:*",
+    "ai": "^6.0.62",
+    "chat": "^4.7.1",
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-to-markdown": "^2.1.2",
+    "micromark-extension-gfm": "^3.0.0",
+    "nuxt": "^4.3.0"
+  },
+  "devDependencies": {
+    "@nuxthub/core": "^0.10.5",
+    "@types/mdast": "^4.0.4",
+    "typescript": "^5.9.3"
+  }
+}
