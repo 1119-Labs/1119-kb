@@ -165,11 +165,12 @@ function truncateOutput(text: string, maxLines = 8): string {
     :transition="{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }"
   >
     <button
-      class="flex items-center gap-2 w-full text-left py-0.5 group rounded -mx-1 px-1"
+      class="flex items-center gap-2 w-full text-left py-0.5 group rounded -mx-1 px-1 outline-none focus-visible:ring-1 focus-visible:ring-muted/30"
       :class="[
         canExpand ? 'cursor-pointer hover:bg-muted/5' : 'cursor-default',
         isExpanded && 'bg-muted/5',
       ]"
+      :tabindex="canExpand ? 0 : -1"
       @click="canExpand && (isExpanded = !isExpanded)"
     >
       <span class="relative flex size-1.5 shrink-0">

@@ -5,7 +5,7 @@ export const agentConfigSchema = z.object({
     .describe('trivial=greeting, simple=single lookup, moderate=multi-search, complex=deep analysis'),
 
   maxSteps: z.number().min(1).max(30)
-    .describe('Agent iterations: 3 trivial, 6 simple, 12 moderate, 20 complex'),
+    .describe('Agent iterations: 4 trivial, 8 simple, 15 moderate, 25 complex'),
 
   model: z.enum([
     'google/gemini-3-flash',
@@ -22,7 +22,7 @@ export type AgentConfig = z.infer<typeof agentConfigSchema>
 export function getDefaultConfig(): AgentConfig {
   return {
     complexity: 'moderate',
-    maxSteps: 12,
+    maxSteps: 15,
     model: 'google/gemini-3-flash',
     reasoning: 'Default fallback configuration',
   }
