@@ -9,7 +9,6 @@ export interface UIChat {
 
 export function useChats(chats: Ref<UIChat[] | undefined>) {
   const groups = computed(() => {
-    // Group chats by date
     const today: UIChat[] = []
     const yesterday: UIChat[] = []
     const lastWeek: UIChat[] = []
@@ -31,7 +30,6 @@ export function useChats(chats: Ref<UIChat[] | undefined>) {
       } else if (chatDate >= oneMonthAgo) {
         lastMonth.push(chat)
       } else {
-        // Format: "January 2023", "February 2023", etc.
         const monthYear = chatDate.toLocaleDateString('en-US', {
           month: 'long',
           year: 'numeric'
@@ -45,21 +43,18 @@ export function useChats(chats: Ref<UIChat[] | undefined>) {
       }
     })
 
-    // Sort older chats by month-year in descending order (newest first)
     const sortedMonthYears = Object.keys(older).sort((a, b) => {
       const dateA = new Date(a)
       const dateB = new Date(b)
       return dateB.getTime() - dateA.getTime()
     })
 
-    // Create formatted groups for navigation
     const formattedGroups = [] as Array<{
       id: string
       label: string
       items: Array<UIChat>
     }>
 
-    // Add groups that have chats
     if (today.length) {
       formattedGroups.push({
         id: 'today',
@@ -92,7 +87,6 @@ export function useChats(chats: Ref<UIChat[] | undefined>) {
       })
     }
 
-    // Add each month-year group
     sortedMonthYears.forEach((monthYear) => {
       if (older[monthYear]?.length) {
         formattedGroups.push({

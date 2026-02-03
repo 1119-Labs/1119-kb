@@ -1,39 +1,24 @@
 import { SavoirClient } from './client'
 import { createBashBatchTool, createBashTool } from './tools'
-import type { SavoirConfig } from './types'
+import type { AgentConfig, SavoirConfig } from './types'
 
-export type { SavoirConfig, ShellResponse, ShellBatchResponse, ShellCommandResult, SyncOptions, SyncResponse, SnapshotResponse, GitHubSource, YouTubeSource, SourcesResponse, SyncSourceResponse, ToolCallInfo, ToolCallCallback, ToolCallState, ToolExecutionResult, CommandResult } from './types'
+export type { SavoirConfig, ShellResponse, ShellBatchResponse, ShellCommandResult, SyncOptions, SyncResponse, SnapshotResponse, GitHubSource, YouTubeSource, SourcesResponse, SyncSourceResponse, ToolCallInfo, ToolCallCallback, ToolCallState, ToolExecutionResult, CommandResult, AgentConfig } from './types'
 export { SavoirError, NetworkError } from './errors'
 export { SavoirClient } from './client'
 
-/**
- * Savoir instance with client and AI SDK tools
- */
 export interface Savoir {
-  /**
-   * HTTP client for direct API access
-   */
+  /** Low-level HTTP client for direct API access */
   client: SavoirClient
-
-  /**
-   * AI SDK tools
-   */
+  /** AI SDK tools for use with generateText/streamText */
   tools: {
-    /** Execute a single bash command in the sandbox */
     bash: ReturnType<typeof createBashTool>
-    /** Execute multiple bash commands in one request (more efficient) */
+    /** Runs multiple commands in one request (more efficient, sandbox is reused) */
     bash_batch: ReturnType<typeof createBashBatchTool>
   }
-
-  /**
-   * Get the current session ID
-   */
   getSessionId: () => string | undefined
-
-  /**
-   * Set the session ID for subsequent requests
-   */
   setSessionId: (sessionId: string) => void
+  /** Fetch admin-defined agent customization settings */
+  getAgentConfig: () => Promise<AgentConfig>
 }
 
 /**
@@ -72,5 +57,6 @@ export function createSavoir(config: SavoirConfig): Savoir {
     },
     getSessionId: () => client.getSessionId(),
     setSessionId: (sessionId: string) => client.setSessionId(sessionId),
+    getAgentConfig: () => client.getAgentConfig(),
   }
 }

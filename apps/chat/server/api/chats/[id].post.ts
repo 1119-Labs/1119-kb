@@ -6,8 +6,9 @@ import { createSavoir } from '@savoir/sdk'
 import { log, useLogger } from 'evlog'
 import { generateTitle } from '../../utils/chat/generate-title'
 import { routeQuestion, buildSystemPromptWithComplexity } from '../../utils/router/route-question'
+import { getAgentConfig, type AgentConfigData } from '../../utils/agent-config'
 
-const SYSTEM_PROMPT = `You are an AI assistant that answers questions based on the available sources.
+const BASE_SYSTEM_PROMPT = `You are an AI assistant that answers questions based on the available sources.
 
 ## CRITICAL: Sources First
 
@@ -46,6 +47,41 @@ Your knowledge may be outdated. ONLY answer based on what you find in the source
 - Use markdown formatting
 - Cite the source file path
 `
+
+function buildDynamicSystemPrompt(agentConfigData: AgentConfigData): string {
+  let prompt = BASE_SYSTEM_PROMPT
+
+  const styleInstructions: Record<AgentConfigData['responseStyle'], string> = {
+    concise: 'Keep your responses brief and to the point.',
+    detailed: 'Provide comprehensive explanations with context.',
+    technical: 'Focus on technical details and include code examples.',
+    friendly: 'Be conversational and approachable in your responses.',
+  }
+  prompt = prompt.replace(
+    '## Response Style\n\n- Be concise and helpful',
+    `## Response Style\n\n- ${styleInstructions[agentConfigData.responseStyle]}`,
+  )
+
+  if (agentConfigData.language && agentConfigData.language !== 'en') {
+    prompt += `\n\n## Language\nRespond in ${agentConfigData.language}.`
+  }
+
+  if (agentConfigData.citationFormat === 'footnote') {
+    prompt += '\n\n## Citations\nPlace all source citations as footnotes at the end of your response.'
+  } else if (agentConfigData.citationFormat === 'none') {
+    prompt += '\n\n## Citations\nDo not include source citations in your response.'
+  }
+
+  if (agentConfigData.searchInstructions) {
+    prompt += `\n\n## Custom Search Instructions\n${agentConfigData.searchInstructions}`
+  }
+
+  if (agentConfigData.additionalPrompt) {
+    prompt += `\n\n## Additional Instructions\n${agentConfigData.additionalPrompt}`
+  }
+
+  return prompt
+}
 
 defineRouteMeta({
   openAPI: {
@@ -141,19 +177,29 @@ export default defineEventHandler(async (event) => {
       },
     })
 
-    const agentConfig = await routeQuestion(messages, requestId)
+    // Get both router config and admin-defined agent config
+    const [routerConfig, agentConfigData] = await Promise.all([
+      routeQuestion(messages, requestId),
+      getAgentConfig(),
+    ])
 
-    log.info('chat', `[${requestId}] Starting agent with ${model} (routed: ${agentConfig.complexity}, ${agentConfig.maxSteps} steps)`)
+    const effectiveMaxSteps = Math.round(routerConfig.maxSteps * agentConfigData.maxStepsMultiplier)
+
+    const effectiveModel = agentConfigData.defaultModel || model
+
+    const dynamicSystemPrompt = buildDynamicSystemPrompt(agentConfigData)
+
+    log.info('chat', `[${requestId}] Starting agent with ${effectiveModel} (routed: ${routerConfig.complexity}, ${effectiveMaxSteps} steps, multiplier: ${agentConfigData.maxStepsMultiplier}x)`)
 
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
         streamWriter = writer
 
         const agent = new ToolLoopAgent({
-          model,
-          instructions: buildSystemPromptWithComplexity(SYSTEM_PROMPT, agentConfig),
+          model: effectiveModel,
+          instructions: buildSystemPromptWithComplexity(dynamicSystemPrompt, routerConfig),
           tools: savoir.tools,
-          stopWhen: stepCountIs(agentConfig.maxSteps),
+          stopWhen: stepCountIs(effectiveMaxSteps),
           onStepFinish: (stepResult) => {
             const stepDurationMs = Date.now() - stepStartTime
             stepDurations.push(stepDurationMs)
@@ -186,9 +232,11 @@ export default defineEventHandler(async (event) => {
               toolCallCount,
               stepDurations,
               totalAgentMs: totalDurationMs,
-              routerComplexity: agentConfig.complexity,
-              routerMaxSteps: agentConfig.maxSteps,
-              routerReasoning: agentConfig.reasoning,
+              routerComplexity: routerConfig.complexity,
+              routerMaxSteps: routerConfig.maxSteps,
+              effectiveMaxSteps,
+              stepsMultiplier: agentConfigData.maxStepsMultiplier,
+              routerReasoning: routerConfig.reasoning,
             })
             log.info('chat', `[${requestId}] Finished: ${result.finishReason} (total: ${totalDurationMs}ms)`)
           },

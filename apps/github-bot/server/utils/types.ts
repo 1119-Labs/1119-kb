@@ -81,13 +81,6 @@ export interface GitHubIssuesPayload {
   }
 }
 
-export interface GitHubAdapterConfig {
-  userName: string
-  webhookSecret: string
-  appId: string
-  appPrivateKey: string
-}
-
 export interface IssueContext {
   number: number
   title: string

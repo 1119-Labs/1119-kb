@@ -4,15 +4,12 @@ import { z } from 'zod'
 const bodySchema = z.object({
   type: z.enum(['github', 'youtube']),
   label: z.string().min(1),
-  // Common output field
   basePath: z.string().optional().default('/docs'),
-  // GitHub fields
   repo: z.string().optional(),
   branch: z.string().optional().default('main'),
   contentPath: z.string().optional(),
   outputPath: z.string().optional(),
   readmeOnly: z.boolean().optional().default(false),
-  // YouTube fields
   channelId: z.string().optional(),
   handle: z.string().optional(),
   maxVideos: z.number().optional().default(50),

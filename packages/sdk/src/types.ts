@@ -1,39 +1,16 @@
-/**
- * Configuration options for creating a Savoir client
- */
 export interface SavoirConfig {
-  /**
-   * Base URL for the Savoir API
-   */
+  /** Base URL of your Savoir API (e.g., 'https://chat.example.com') */
   apiUrl: string
-
-  /**
-   * API key for authentication
-   * Optional if the API doesn't require authentication
-   */
+  /** API key for authentication. Required if the API has SAVOIR_SECRET_KEY configured. */
   apiKey?: string
-
-  /**
-   * Optional session ID for sandbox reuse
-   * When provided, the same sandbox will be reused for multiple requests
-   */
+  /** Reuse an existing sandbox session instead of creating a new one. */
   sessionId?: string
-
-  /**
-   * Optional callback when a tool call is made
-   * Called with tool call info when input is available
-   */
+  /** Callback fired on tool execution (loading/done/error states). */
   onToolCall?: ToolCallCallback
 }
 
-/**
- * Tool call state
- */
 export type ToolCallState = 'loading' | 'done' | 'error'
 
-/**
- * Result of a single command execution
- */
 export interface CommandResult {
   command: string
   stdout: string
@@ -42,79 +19,47 @@ export interface CommandResult {
   success: boolean
 }
 
-/**
- * Tool execution result (available when state is 'done' or 'error')
- */
 export interface ToolExecutionResult {
-  /** Results for each command (single item for bash, multiple for bash_batch) */
   commands: CommandResult[]
-  /** Whether all commands succeeded */
   success: boolean
-  /** Execution duration in milliseconds */
   durationMs: number
-  /** Error message if state is 'error' */
   error?: string
 }
 
-/**
- * Tool call information passed to onToolCall callback
- */
 export interface ToolCallInfo {
   toolCallId: string
   toolName: string
   args: Record<string, unknown>
   state: ToolCallState
-  /** Execution result (only available when state is 'done' or 'error') */
   result?: ToolExecutionResult
 }
 
-/**
- * Callback type for tool call notifications
- */
 export type ToolCallCallback = (info: ToolCallInfo) => void
 
-/**
- * Search result from the Savoir API
- */
 export interface SearchResult {
   path: string
   lineNumber: number
   content: string
 }
 
-/**
- * File content from the Savoir API
- * When from search-and-read, contains context snippets around matches
- */
 export interface FileContent {
   path: string
   content: string
-  /** Number of matches in this file (for context snippets) */
   matchCount?: number
-  /** Total lines in the file (for context snippets) */
   totalLines?: number
 }
 
-/**
- * Response from the search-and-read endpoint
- */
 export interface SearchAndReadResponse {
   sessionId: string
   matches: SearchResult[]
   files: FileContent[]
 }
 
-/**
- * Response from the read endpoint
- */
 export interface ReadResponse {
   sessionId: string
   files: FileContent[]
 }
 
-/**
- * Response from the shell endpoint (single command)
- */
 export interface ShellResponse {
   sessionId: string
   stdout: string
@@ -122,9 +67,6 @@ export interface ShellResponse {
   exitCode: number
 }
 
-/**
- * Single command result in batch response
- */
 export interface ShellCommandResult {
   command: string
   stdout: string
@@ -132,59 +74,42 @@ export interface ShellCommandResult {
   exitCode: number
 }
 
-/**
- * Response from the shell endpoint (batch commands)
- */
 export interface ShellBatchResponse {
   sessionId: string
   results: ShellCommandResult[]
 }
 
-/**
- * Error response from the Savoir API
- */
 export interface ApiErrorResponse {
   statusCode: number
   message: string
   error?: string
 }
 
-/**
- * Source passed for sync
- */
 export interface SyncSource {
   id: string
   type: 'github' | 'youtube'
   label: string
-  // GitHub fields
   repo?: string | null
   branch?: string | null
   contentPath?: string | null
   outputPath?: string | null
   readmeOnly?: boolean | null
-  // YouTube fields
   channelId?: string | null
   handle?: string | null
   maxVideos?: number | null
 }
 
-/**
- * Options for the sync operation
- */
 export interface SyncOptions {
-  /** Clear all content before sync */
+  /** Clear all content before sync (default: false) */
   reset?: boolean
-  /** Push to snapshot repo after sync */
+  /** Push to snapshot repo after sync (default: true) */
   push?: boolean
   /** Sources to sync (passed from chat app DB) */
   sources?: SyncSource[]
-  /** Filter to sync only specific source */
+  /** Filter to sync only a specific source by ID */
   sourceFilter?: string
 }
 
-/**
- * Response from the sync endpoint
- */
 export interface SyncResponse {
   status: 'started'
   message: string
@@ -194,17 +119,11 @@ export interface SyncResponse {
   }
 }
 
-/**
- * Response from the snapshot endpoint
- */
 export interface SnapshotResponse {
   status: 'started'
   message: string
 }
 
-/**
- * GitHub source configuration
- */
 export interface GitHubSource {
   id: string
   label: string
@@ -215,9 +134,6 @@ export interface GitHubSource {
   readmeOnly: boolean
 }
 
-/**
- * YouTube source configuration
- */
 export interface YouTubeSource {
   id: string
   label: string
@@ -226,9 +142,6 @@ export interface YouTubeSource {
   handle: string
 }
 
-/**
- * Response from the sources endpoint
- */
 export interface SourcesResponse {
   total: number
   github: {
@@ -241,9 +154,6 @@ export interface SourcesResponse {
   }
 }
 
-/**
- * Response from the sync source endpoint
- */
 export interface SyncSourceResponse {
   status: 'started'
   message: string
@@ -253,4 +163,20 @@ export interface SyncSourceResponse {
     push: boolean
     sourceFilter: string
   }
+}
+
+/** Admin-defined settings that customize agent behavior (fetched from /api/agent-config/public). */
+export interface AgentConfig {
+  id: string
+  name: string
+  additionalPrompt: string | null
+  responseStyle: 'concise' | 'detailed' | 'technical' | 'friendly'
+  language: string
+  defaultModel: string | null
+  /** Multiplier applied to router-determined maxSteps (0.5-3.0) */
+  maxStepsMultiplier: number
+  temperature: number
+  searchInstructions: string | null
+  citationFormat: 'inline' | 'footnote' | 'none'
+  isActive: boolean
 }

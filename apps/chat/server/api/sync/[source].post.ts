@@ -16,7 +16,6 @@ export default defineEventHandler(async (event) => {
   const { source: sourceId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const config = useRuntimeConfig()
 
-  // Load the specific source from DB
   const dbSource = await db.query.sources.findFirst({
     where: (sources, { eq, and }) => and(
       eq(sources.id, sourceId),

@@ -1,7 +1,7 @@
 import { createGateway } from '@ai-sdk/gateway'
 import { generateText, Output, stepCountIs, ToolLoopAgent } from 'ai'
 import { log } from 'evlog'
-import { createSavoir } from '@savoir/sdk'
+import { createSavoir, type AgentConfig as SavoirAgentConfig } from '@savoir/sdk'
 import type { IssueContext } from './types'
 import { type AgentConfig, agentConfigSchema, getDefaultConfig } from './router-schema'
 
@@ -102,10 +102,6 @@ Once configured, I'll be able to search the documentation and help answer your q
   let toolCallCount = 0
 
   try {
-    const agentConfig = await routeQuestion(question, context)
-
-    log.info('github-bot', `Starting agent for issue #${context?.number || 'unknown'} with ${agentConfig.complexity} complexity`)
-
     const savoir = createSavoir({
       apiUrl: config.savoir.apiUrl,
       apiKey: config.savoir.apiKey || undefined,
@@ -116,11 +112,26 @@ Once configured, I'll be able to search the documentation and help answer your q
       },
     })
 
+    const [routerConfig, savoirConfig] = await Promise.all([
+      routeQuestion(question, context),
+      savoir.getAgentConfig().catch((error) => {
+        log.warn('github-bot', `Failed to fetch agent config: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        return null
+      }),
+    ])
+
+    const effectiveMaxSteps = savoirConfig
+      ? Math.round(routerConfig.maxSteps * savoirConfig.maxStepsMultiplier)
+      : routerConfig.maxSteps
+    const effectiveModel = savoirConfig?.defaultModel || routerConfig.model
+
+    log.info('github-bot', `Starting agent for issue #${context?.number || 'unknown'} with ${routerConfig.complexity} complexity (${effectiveMaxSteps} steps, multiplier: ${savoirConfig?.maxStepsMultiplier || 1}x)`)
+
     const agent = new ToolLoopAgent({
-      model: agentConfig.model,
-      instructions: buildSystemPrompt(context, agentConfig),
+      model: effectiveModel,
+      instructions: buildSystemPrompt(context, routerConfig, savoirConfig),
       tools: savoir.tools,
-      stopWhen: stepCountIs(agentConfig.maxSteps),
+      stopWhen: stepCountIs(effectiveMaxSteps),
       onStepFinish: ({ usage, toolCalls }) => {
         stepCount++
         totalInputTokens += usage.inputTokens || 0
@@ -170,7 +181,7 @@ Please try again later or open a discussion if this persists.`
   }
 }
 
-function buildSystemPrompt(context?: IssueContext, agentConfig?: AgentConfig): string {
+function buildSystemPrompt(context?: IssueContext, agentConfig?: AgentConfig, savoirConfig?: SavoirAgentConfig | null): string {
   const basePrompt = `You are a documentation assistant with bash access to a sandbox containing docs (markdown, JSON, YAML).
 
 ## Speed is Important
@@ -201,6 +212,34 @@ ls docs/ && grep -rl "keyword" docs/ --include="*.md" | head -10
 - Use markdown`
 
   let prompt = basePrompt
+
+  if (savoirConfig) {
+    const styleInstructions: Record<SavoirAgentConfig['responseStyle'], string> = {
+      concise: 'Keep your responses brief and to the point.',
+      detailed: 'Provide comprehensive explanations with context.',
+      technical: 'Focus on technical details and include code examples.',
+      friendly: 'Be conversational and approachable in your responses.',
+    }
+
+    if (savoirConfig.responseStyle !== 'concise') {
+      prompt = prompt.replace(
+        '## Response\n- Be concise and helpful',
+        `## Response\n- ${styleInstructions[savoirConfig.responseStyle]}`,
+      )
+    }
+
+    if (savoirConfig.language && savoirConfig.language !== 'en') {
+      prompt += `\n\n## Language\nRespond in ${savoirConfig.language}.`
+    }
+
+    if (savoirConfig.searchInstructions) {
+      prompt += `\n\n## Custom Search Instructions\n${savoirConfig.searchInstructions}`
+    }
+
+    if (savoirConfig.additionalPrompt) {
+      prompt += `\n\n## Additional Instructions\n${savoirConfig.additionalPrompt}`
+    }
+  }
 
   if (agentConfig) {
     const complexityHints: Record<AgentConfig['complexity'], string> = {

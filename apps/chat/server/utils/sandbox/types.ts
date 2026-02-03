@@ -32,5 +32,6 @@ export const KV_KEYS = {
   CURRENT_SNAPSHOT: 'snapshot:current',
   SNAPSHOT_STATUS_CACHE: 'snapshot:status-cache',
   LAST_SOURCE_SYNC: 'sources:last-sync',
+  AGENT_CONFIG_CACHE: 'agent:config-cache',
   session: (sessionId: string) => `session:${sessionId}`,
 } as const

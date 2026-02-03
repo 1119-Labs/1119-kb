@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, index, uniqueIndex, real } from 'drizzle-orm/sqlite-core'
 import { relations } from 'drizzle-orm'
 
 const timestamps = {
@@ -59,26 +59,32 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const sources = sqliteTable('sources', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   type: text('type', { enum: ['github', 'youtube'] }).notNull(),
-
-  // Common fields
   label: text('label').notNull(),
-
-  // Common output field
   basePath: text('base_path').default('/docs'),
-
-  // GitHub fields
   repo: text('repo'),
   branch: text('branch'),
   contentPath: text('content_path'),
   outputPath: text('output_path'),
   readmeOnly: integer('readme_only', { mode: 'boolean' }).default(false),
-
-  // YouTube fields
   channelId: text('channel_id'),
   handle: text('handle'),
   maxVideos: integer('max_videos').default(50),
-
-  // Metadata
   ...timestamps,
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 }, table => [index('sources_type_idx').on(table.type)])
+
+export const agentConfig = sqliteTable('agent_config', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull().default('default'),
+  additionalPrompt: text('additional_prompt'),
+  responseStyle: text('response_style', { enum: ['concise', 'detailed', 'technical', 'friendly'] }).default('concise'),
+  language: text('language').default('en'),
+  defaultModel: text('default_model'),
+  maxStepsMultiplier: real('max_steps_multiplier').default(1.0),
+  temperature: real('temperature').default(0.7),
+  searchInstructions: text('search_instructions'),
+  citationFormat: text('citation_format', { enum: ['inline', 'footnote', 'none'] }).default('inline'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  ...timestamps,
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+})

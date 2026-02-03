@@ -1,5 +1,6 @@
 import { createError } from 'evlog'
 import type {
+  AgentConfig,
   SavoirConfig,
   ShellBatchResponse,
   ShellResponse,
@@ -11,9 +12,7 @@ import type {
 } from './types'
 import { NetworkError, SavoirError } from './errors'
 
-/**
- * HTTP client for the Savoir API
- */
+/** Low-level HTTP client for the Savoir API. Use `createSavoir()` for the high-level interface with AI SDK tools. */
 export class SavoirClient {
 
   private readonly apiUrl: string
@@ -34,23 +33,14 @@ export class SavoirClient {
     this.sessionId = config.sessionId
   }
 
-  /**
-   * Get the current session ID
-   */
   getSessionId(): string | undefined {
     return this.sessionId
   }
 
-  /**
-   * Set the session ID for subsequent requests
-   */
   setSessionId(sessionId: string): void {
     this.sessionId = sessionId
   }
 
-  /**
-   * Make a GET request to the API
-   */
   private async get<T>(path: string): Promise<T> {
     const url = `${this.apiUrl}${path}`
 
@@ -85,9 +75,6 @@ export class SavoirClient {
     }
   }
 
-  /**
-   * Make a POST request to the API
-   */
   private async post<T>(
     path: string,
     body: Record<string, unknown> = {},
@@ -140,35 +127,23 @@ export class SavoirClient {
     }
   }
 
-  /**
-   * Run a bash command in the sandbox
-   */
   async bash(command: string): Promise<ShellResponse> {
     return await this.post<ShellResponse>('/api/sandbox/shell', {
       command,
     })
   }
 
-  /**
-   * Run multiple bash commands in sequence (batch mode)
-   * More efficient than multiple single calls as sandbox is reused
-   */
+  /** More efficient than multiple single calls as sandbox is reused */
   async bashBatch(commands: string[]): Promise<ShellBatchResponse> {
     return await this.post<ShellBatchResponse>('/api/sandbox/shell', {
       commands,
     })
   }
 
-  /**
-   * Get list of configured sources
-   */
   async getSources(): Promise<SourcesResponse> {
     return await this.get<SourcesResponse>('/api/sources')
   }
 
-  /**
-   * Trigger documentation sync workflow for all sources
-   */
   async sync(options?: SyncOptions): Promise<SyncResponse> {
     return await this.post<SyncResponse>('/api/sync', {
       reset: options?.reset ?? false,
@@ -178,9 +153,6 @@ export class SavoirClient {
     })
   }
 
-  /**
-   * Trigger documentation sync workflow for a specific source
-   */
   async syncSource(sourceId: string, options?: SyncOptions): Promise<SyncSourceResponse> {
     return await this.post<SyncSourceResponse>(`/api/sync/${sourceId}`, {
       reset: options?.reset ?? false,
@@ -188,11 +160,12 @@ export class SavoirClient {
     })
   }
 
-  /**
-   * Trigger snapshot creation workflow
-   */
   async createSnapshot(): Promise<SnapshotResponse> {
     return await this.post<SnapshotResponse>('/api/sandbox/snapshot', {})
+  }
+
+  async getAgentConfig(): Promise<AgentConfig> {
+    return await this.get<AgentConfig>('/api/agent-config/public')
   }
 
 }

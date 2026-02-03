@@ -13,20 +13,17 @@
 export default defineEventHandler((event) => {
   const path = getRequestURL(event).pathname
 
-  // Only protect sync and sandbox routes
   if (!path.startsWith('/api/sync') && !path.startsWith('/api/sandbox')) {
-    return // Let other routes pass through
+    return
   }
 
   const config = useRuntimeConfig()
   const secretKey = config.savoirSecretKey
 
-  // If no secret key configured, skip authentication (dev mode)
   if (!secretKey) {
     return
   }
 
-  // Validate API key
   const authHeader = getHeader(event, 'Authorization')
   const apiKey = authHeader?.replace('Bearer ', '')
 

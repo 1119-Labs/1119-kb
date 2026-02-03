@@ -23,10 +23,8 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, data => bodySchema.parse(data))
   const config = useRuntimeConfig()
 
-  // Load sources from DB
   const dbSources = await db.query.sources.findMany()
 
-  // Filter to GitHub sources and transform
   let sources: GitHubSource[] = dbSources
     .filter(s => s.type === 'github')
     .map(s => ({
@@ -41,7 +39,6 @@ export default defineEventHandler(async (event) => {
       readmeOnly: s.readmeOnly ?? false,
     }))
 
-  // Apply filter if specified
   if (body?.sourceFilter) {
     sources = sources.filter(s => s.id === body.sourceFilter)
     if (sources.length === 0) {
@@ -67,7 +64,6 @@ export default defineEventHandler(async (event) => {
 
   await start(syncDocumentation, [syncConfig, sources])
 
-  // Track last sync time
   await kv.set(KV_KEYS.LAST_SOURCE_SYNC, Date.now())
 
   return {

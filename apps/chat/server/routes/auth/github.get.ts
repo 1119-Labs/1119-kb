@@ -11,7 +11,6 @@ export default defineOAuthGitHubEventHandler({
   async onSuccess(event, { user: ghUser }) {
     const session = await getUserSession(event)
 
-    // Check if user already exists
     const existingUser = await db.query.users.findFirst({
       where: and(
         eq(schema.users.provider, 'github'),
@@ -20,14 +19,12 @@ export default defineOAuthGitHubEventHandler({
     })
 
     if (existingUser) {
-      // Migrate anonymous chats to authenticated user
       if (session.user?.id && session.user.id !== existingUser.id) {
         await db.update(schema.chats)
           .set({ userId: existingUser.id })
           .where(eq(schema.chats.userId, session.user.id))
       }
 
-      // Update role if it changed
       const newRole = isAdminUser(existingUser.email, existingUser.username) ? 'admin' : 'user'
       if (existingUser.role !== newRole) {
         await db.update(schema.users)
@@ -53,7 +50,6 @@ export default defineOAuthGitHubEventHandler({
         throw createError({ statusCode: 500, message: 'Failed to create user' })
       }
 
-      // Migrate anonymous chats to new user
       if (session.user?.id) {
         await db.update(schema.chats)
           .set({ userId: newUser.id })

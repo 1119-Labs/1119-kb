@@ -7,6 +7,11 @@ const navigation = [
     exact: true,
   },
   {
+    label: 'Assistant',
+    icon: 'i-lucide-bot',
+    to: '/admin/agent',
+  },
+  {
     label: 'Sandbox',
     icon: 'i-lucide-box',
     to: '/admin/sandbox',

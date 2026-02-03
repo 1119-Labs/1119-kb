@@ -1,10 +1,6 @@
 import type { ApiErrorResponse } from './types'
 
-/**
- * Error class for Savoir API errors
- */
 export class SavoirError extends Error {
-
   readonly statusCode: number
   readonly error?: string
 
@@ -15,34 +11,20 @@ export class SavoirError extends Error {
     this.error = response.error
   }
 
-  /**
-   * Check if the error is due to invalid authentication
-   */
   isAuthError(): boolean {
     return this.statusCode === 401
   }
 
-  /**
-   * Check if the error is due to rate limiting
-   */
   isRateLimitError(): boolean {
     return this.statusCode === 429
   }
 
-  /**
-   * Check if the error is a server error
-   */
   isServerError(): boolean {
     return this.statusCode >= 500
   }
-
 }
 
-/**
- * Error class for network-related errors
- */
 export class NetworkError extends Error {
-
   readonly cause?: Error
 
   constructor(message: string, cause?: Error) {
@@ -50,5 +32,4 @@ export class NetworkError extends Error {
     this.name = 'NetworkError'
     this.cause = cause
   }
-
 }

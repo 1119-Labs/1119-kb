@@ -32,11 +32,9 @@ Analyze the user's question and determine the appropriate configuration for the 
 Use claude-opus-4.5 only for the most complex cases requiring deep reasoning.`
 
 function extractQuestionFromMessages(messages: UIMessage[]): string {
-  // Get the last user message
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
   if (!lastUserMessage) return ''
 
-  // Extract text from message parts
   const textParts = lastUserMessage.parts
     ?.filter((p): p is { type: 'text', text: string } => p.type === 'text')
     .map(p => p.text)

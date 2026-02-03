@@ -3,9 +3,6 @@ import { z } from 'zod'
 import type { SavoirClient } from '../client'
 import type { ToolCallCallback, ToolExecutionResult, CommandResult } from '../types'
 
-/**
- * Create the bash tool for AI SDK - runs a single command in the sandbox
- */
 export function createBashTool(client: SavoirClient, onToolCall?: ToolCallCallback) {
   return tool({
     description: `Execute a bash command in the documentation sandbox.
@@ -78,9 +75,6 @@ Use standard Unix commands to explore and read files.`,
   })
 }
 
-/**
- * Create the bash_batch tool for AI SDK - runs multiple commands in one API call
- */
 export function createBashBatchTool(client: SavoirClient, onToolCall?: ToolCallCallback) {
   return tool({
     description: `Execute multiple bash commands in the documentation sandbox in a single request.
