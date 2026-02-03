@@ -21,6 +21,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:chat": "turbo run dev --filter=@savoir/chat",
+    "dev:github-bot": "turbo run dev --filter=@savoir/github-bot",
     "sync:docs": "turbo run sync:docs --filter=@savoir/chat",
     "snapshot:create": "turbo run snapshot:create --filter=@savoir/chat",
     "lint": "turbo run lint",
