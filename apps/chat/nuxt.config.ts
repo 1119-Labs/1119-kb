@@ -60,9 +60,6 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       openAPI: true
-    },
-    externals: {
-      inline: ['@libsql/client', 'libsql']
     }
   },
 
@@ -88,10 +85,6 @@ export default defineNuxtConfig({
       appId: '',
       appPrivateKey: '',
       webhookSecret: '',
-    },
-    // YouTube config
-    youtube: {
-      apiKey: '',
     },
     public: {
       github: {
