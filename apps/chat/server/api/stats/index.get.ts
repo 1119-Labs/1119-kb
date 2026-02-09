@@ -1,5 +1,5 @@
 import { db, schema } from '@nuxthub/db'
-import { desc, and, gte, lt, eq, countDistinct } from 'drizzle-orm'
+import { desc, and, gte, lt, eq } from 'drizzle-orm'
 
 /**
  * GET /api/stats
@@ -7,12 +7,16 @@ import { desc, and, gte, lt, eq, countDistinct } from 'drizzle-orm'
  *
  * Query params:
  * - days: number of days to look back (default: 30)
+ * - sources: comma-separated source filter (e.g. web,github-bot)
+ * - models: comma-separated model filter
  */
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const query = getQuery(event)
   const days = Math.min(Math.max(Number(query.days) || 30, 1), 365)
+  const sourcesFilter = typeof query.sources === 'string' && query.sources ? query.sources.split(',') : null
+  const modelsFilter = typeof query.models === 'string' && query.models ? query.models.split(',') : null
 
   // Current period
   const endDate = new Date()
@@ -112,7 +116,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const apiUsageData = await db
+  const apiUsageDataRaw = await db
     .select({
       source: schema.apiUsage.source,
       model: schema.apiUsage.model,
@@ -124,6 +128,31 @@ export default defineEventHandler(async (event) => {
     .from(schema.apiUsage)
     .where(gte(schema.apiUsage.createdAt, startDate))
     .orderBy(desc(schema.apiUsage.createdAt))
+
+  // Collect available sources and models from unfiltered data (for dropdown options)
+  const allSources = new Set<string>(['web'])
+  const allModels = new Set<string>()
+  for (const msg of messagesWithStats) {
+    if (msg.model) allModels.add(msg.model)
+  }
+  for (const usage of apiUsageDataRaw) {
+    allSources.add(usage.source)
+    if (usage.model) allModels.add(usage.model)
+  }
+  const availableSources = Array.from(allSources).sort()
+  const availableModels = Array.from(allModels).sort()
+
+  // Apply filters
+  const filteredMessages = messagesWithStats.filter((msg) => {
+    if (sourcesFilter && !sourcesFilter.includes('web')) return false
+    if (modelsFilter && !modelsFilter.includes(msg.model ?? 'unknown')) return false
+    return true
+  })
+  const apiUsageData = apiUsageDataRaw.filter((usage) => {
+    if (sourcesFilter && !sourcesFilter.includes(usage.source)) return false
+    if (modelsFilter && !modelsFilter.includes(usage.model ?? 'unknown')) return false
+    return true
+  })
 
   let totalMessages = 0
   let totalInputTokens = 0
@@ -164,9 +193,15 @@ export default defineEventHandler(async (event) => {
     totalDurationMs: number
   }>()
 
+  // Daily by source aggregation
+  const dailyBySourceMap = new Map<string, Map<string, { messageCount: number, inputTokens: number, outputTokens: number }>>()
+
+  // Hourly distribution (0-23)
+  const hourlyBuckets: Array<{ messageCount: number, totalTokens: number }> = Array.from({ length: 24 }, () => ({ messageCount: 0, totalTokens: 0 }))
+
   bySourceMap.set('web', { requests: 0, inputTokens: 0, outputTokens: 0, totalDurationMs: 0 })
 
-  for (const msg of messagesWithStats) {
+  for (const msg of filteredMessages) {
     totalMessages++
     totalInputTokens += msg.inputTokens ?? 0
     totalOutputTokens += msg.outputTokens ?? 0
@@ -212,6 +247,20 @@ export default defineEventHandler(async (event) => {
     webStats.outputTokens += msg.outputTokens ?? 0
     webStats.totalDurationMs += msg.durationMs ?? 0
 
+    // Daily by source
+    if (!dailyBySourceMap.has(dateStr)) dailyBySourceMap.set(dateStr, new Map())
+    const daySourceMap = dailyBySourceMap.get(dateStr)!
+    const daySourceStats = daySourceMap.get('web') ?? { messageCount: 0, inputTokens: 0, outputTokens: 0 }
+    daySourceStats.messageCount++
+    daySourceStats.inputTokens += msg.inputTokens ?? 0
+    daySourceStats.outputTokens += msg.outputTokens ?? 0
+    daySourceMap.set('web', daySourceStats)
+
+    // Hourly distribution
+    const hour = msg.createdAt.getUTCHours()
+    hourlyBuckets[hour]!.messageCount++
+    hourlyBuckets[hour]!.totalTokens += (msg.inputTokens ?? 0) + (msg.outputTokens ?? 0)
+
     // Aggregate by user
     const userId = chatUserMap.get(msg.chatId)
     if (userId) {
@@ -248,6 +297,38 @@ export default defineEventHandler(async (event) => {
     modelStats.outputTokens += usage.outputTokens ?? 0
     modelStats.totalDurationMs += usage.durationMs ?? 0
     byModelMap.set(modelKey, modelStats)
+
+    // Also add to dailyMap so the chart includes API usage
+    const dateStr = usage.createdAt.toISOString().split('T')[0]!
+    if (!dailyMap.has(dateStr)) {
+      dailyMap.set(dateStr, new Map())
+    }
+    const dayModelMap = dailyMap.get(dateStr)!
+    const dayModelStats = dayModelMap.get(modelKey) ?? {
+      messageCount: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalDurationMs: 0,
+    }
+    dayModelStats.messageCount++
+    dayModelStats.inputTokens += usage.inputTokens ?? 0
+    dayModelStats.outputTokens += usage.outputTokens ?? 0
+    dayModelStats.totalDurationMs += usage.durationMs ?? 0
+    dayModelMap.set(modelKey, dayModelStats)
+
+    // Daily by source for API usage
+    if (!dailyBySourceMap.has(dateStr)) dailyBySourceMap.set(dateStr, new Map())
+    const daySourceMap2 = dailyBySourceMap.get(dateStr)!
+    const daySourceStats2 = daySourceMap2.get(source) ?? { messageCount: 0, inputTokens: 0, outputTokens: 0 }
+    daySourceStats2.messageCount++
+    daySourceStats2.inputTokens += usage.inputTokens ?? 0
+    daySourceStats2.outputTokens += usage.outputTokens ?? 0
+    daySourceMap2.set(source, daySourceStats2)
+
+    // Hourly distribution for API usage
+    const hour = usage.createdAt.getUTCHours()
+    hourlyBuckets[hour]!.messageCount++
+    hourlyBuckets[hour]!.totalTokens += (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0)
   }
 
   // Calculate previous period totals for trends
@@ -320,18 +401,74 @@ export default defineEventHandler(async (event) => {
     )
     .sort((a, b) => a.date.localeCompare(b.date))
 
+  // Generate all dates in the period for zero-filling
+  const allDates: string[] = []
+  const cursor = new Date(startDate)
+  cursor.setHours(0, 0, 0, 0)
+  const endDay = new Date(endDate)
+  endDay.setHours(0, 0, 0, 0)
+  while (cursor <= endDay) {
+    allDates.push(cursor.toISOString().split('T')[0]!)
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  // Zero-fill the per-model daily array
+  const dailyDates = new Set(daily.map(d => d.date))
+  for (const date of allDates) {
+    if (!dailyDates.has(date)) {
+      daily.push({ date, model: '', messageCount: 0, inputTokens: 0, outputTokens: 0, avgDurationMs: 0 })
+    }
+  }
+  daily.sort((a, b) => a.date.localeCompare(b.date))
+
   // Daily totals for message trend chart
-  const dailyTotals = Array.from(dailyMap.entries())
-    .map(([date, modelMap]) => {
-      let messages = 0
-      let tokens = 0
-      for (const stats of modelMap.values()) {
-        messages += stats.messageCount
-        tokens += stats.inputTokens + stats.outputTokens
-      }
-      return { date, messages, tokens }
-    })
-    .sort((a, b) => a.date.localeCompare(b.date))
+  const dailyTotalsMap = new Map<string, { messages: number, tokens: number }>()
+  for (const [date, modelMap] of dailyMap.entries()) {
+    let messages = 0
+    let tokens = 0
+    for (const stats of modelMap.values()) {
+      messages += stats.messageCount
+      tokens += stats.inputTokens + stats.outputTokens
+    }
+    dailyTotalsMap.set(date, { messages, tokens })
+  }
+
+  // Zero-fill dailyTotals for all dates in the period
+  const dailyTotals = allDates.map(date => {
+    const existing = dailyTotalsMap.get(date)
+    return { date, messages: existing?.messages ?? 0, tokens: existing?.tokens ?? 0 }
+  })
+
+  // Flatten dailyBySource with zero-fill
+  const dailyBySource: Array<{ date: string, source: string, messageCount: number, inputTokens: number, outputTokens: number }> = []
+  const allSourcesInData = new Set<string>()
+  for (const sourceMap of dailyBySourceMap.values()) {
+    for (const src of sourceMap.keys()) allSourcesInData.add(src)
+  }
+  for (const date of allDates) {
+    const sourceMap = dailyBySourceMap.get(date)
+    for (const src of allSourcesInData) {
+      const s = sourceMap?.get(src)
+      dailyBySource.push({
+        date,
+        source: src,
+        messageCount: s?.messageCount ?? 0,
+        inputTokens: s?.inputTokens ?? 0,
+        outputTokens: s?.outputTokens ?? 0,
+      })
+    }
+  }
+
+  // Hourly distribution
+  const hourlyDistribution = hourlyBuckets.map((bucket, hour) => ({
+    hour,
+    messageCount: bucket.messageCount,
+    totalTokens: bucket.totalTokens,
+  }))
+
+  // Estimated cost from byModel using dynamic gateway pricing
+  const pricingMap = await getModelPricingMap()
+  const estimatedCost = computeEstimatedCost(byModel, pricingMap)
 
   const totalFeedback = positiveFeedback + negativeFeedback
   const feedbackScore = totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : null
@@ -366,5 +503,10 @@ export default defineEventHandler(async (event) => {
     topUsers,
     daily,
     dailyTotals,
+    dailyBySource,
+    hourlyDistribution,
+    estimatedCost,
+    availableSources,
+    availableModels,
   }
 })

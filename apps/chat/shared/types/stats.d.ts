@@ -77,6 +77,39 @@ export interface TrendStats {
 }
 
 /**
+ * Daily statistics broken down by source
+ */
+export interface DailyBySource {
+  date: string
+  source: string
+  messageCount: number
+  inputTokens: number
+  outputTokens: number
+}
+
+/**
+ * Hourly activity distribution (UTC)
+ */
+export interface HourlyDistribution {
+  hour: number // 0-23
+  messageCount: number
+  totalTokens: number
+}
+
+/**
+ * Estimated cost breakdown
+ */
+export interface EstimatedCost {
+  total: number
+  byModel: Array<{
+    model: string
+    inputCost: number
+    outputCost: number
+    totalCost: number
+  }>
+}
+
+/**
  * Global stats response (admin)
  */
 export interface GlobalStatsResponse {
@@ -108,4 +141,9 @@ export interface GlobalStatsResponse {
   topUsers: TopUserStats[]
   daily: DailyStats[]
   dailyTotals: DailyTotals[]
+  dailyBySource: DailyBySource[]
+  hourlyDistribution: HourlyDistribution[]
+  estimatedCost: EstimatedCost
+  availableSources: string[]
+  availableModels: string[]
 }

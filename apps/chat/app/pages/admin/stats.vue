@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const toast = useToast()
 
 const periodOptions = [
   { label: '7 days', value: 7 },
@@ -8,16 +7,36 @@ const periodOptions = [
 ]
 
 const selectedPeriod = ref(30)
+const selectedSources = ref<string[]>([])
+const selectedModels = ref<string[]>([])
+const chartMetric = ref<'tokens' | 'messages'>('tokens')
 
 const { data: stats, refresh, status } = await useFetch<GlobalStatsResponse>('/api/stats', {
-  query: computed(() => ({ days: selectedPeriod.value })),
-  watch: [selectedPeriod],
+  query: computed(() => ({
+    days: selectedPeriod.value,
+    sources: selectedSources.value.length > 0 ? selectedSources.value.join(',') : undefined,
+    models: selectedModels.value.length > 0 ? selectedModels.value.join(',') : undefined,
+  })),
+  watch: [selectedPeriod, selectedSources, selectedModels],
 })
 
 // Track if we're refreshing (vs initial load) to avoid flickering
 const isRefreshing = computed(() => status.value === 'pending' && stats.value !== null)
 
-const isComputing = ref(false)
+const hasFilters = computed(() => selectedSources.value.length > 0 || selectedModels.value.length > 0)
+
+function clearFilters() {
+  selectedSources.value = []
+  selectedModels.value = []
+}
+
+const sourceOptions = computed(() =>
+  (stats.value?.availableSources ?? []).map(s => ({ label: s.replace('-', ' '), value: s })),
+)
+
+const modelOptions = computed(() =>
+  (stats.value?.availableModels ?? []).map(m => ({ label: formatModelName(m), value: m })),
+)
 
 function formatNumber(num: number): string {
   return num.toLocaleString()
@@ -38,6 +57,13 @@ function formatDuration(ms: number): string {
 function formatModelName(modelId: string): string {
   const name = modelId.split('/')[1] || modelId
   return name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
+
+function formatCost(amount: number): string {
+  if (amount >= 1) return `$${amount.toFixed(2)}`
+  if (amount >= 0.01) return `$${amount.toFixed(3)}`
+  if (amount === 0) return '$0.00'
+  return `$${amount.toFixed(4)}`
 }
 
 // Feedback score color
@@ -76,65 +102,94 @@ function getTrendIcon(trend: number | null): string {
   return 'i-lucide-minus'
 }
 
-const chartData = computed(() => {
-  if (!stats.value?.daily) return []
+// Source color map
+const sourceColorMap: Record<string, string> = {
+  'web': 'bg-primary',
+  'github-bot': 'bg-emerald-500',
+  'discord-bot': 'bg-violet-500',
+  'sdk': 'bg-amber-500',
+}
 
-  const byDate = new Map<string, { input: number, output: number }>()
+function getSourceColor(source: string): string {
+  return sourceColorMap[source] ?? 'bg-gray-400'
+}
 
-  for (const day of stats.value.daily) {
-    const existing = byDate.get(day.date) ?? { input: 0, output: 0 }
-    existing.input += day.inputTokens
-    existing.output += day.outputTokens
-    byDate.set(day.date, existing)
+// Stacked-by-source chart data
+const chartDataBySource = computed(() => {
+  if (!stats.value?.dailyBySource) return []
+
+  const byDate = new Map<string, Map<string, { tokens: number, messages: number }>>()
+
+  for (const entry of stats.value.dailyBySource) {
+    if (!byDate.has(entry.date)) byDate.set(entry.date, new Map())
+    const sourceMap = byDate.get(entry.date)!
+    const existing = sourceMap.get(entry.source) ?? { tokens: 0, messages: 0 }
+    existing.tokens += entry.inputTokens + entry.outputTokens
+    existing.messages += entry.messageCount
+    sourceMap.set(entry.source, existing)
   }
 
   return Array.from(byDate.entries())
-    .map(([date, tokens]) => ({
-      date: date.slice(5), // MM-DD format
-      fullDate: date, // Keep full date for tooltip
-      input: tokens.input,
-      output: tokens.output,
+    .map(([date, sourceMap]) => ({
+      date: date.slice(5),
+      fullDate: date,
+      sources: Object.fromEntries(sourceMap),
     }))
     .sort((a, b) => a.fullDate.localeCompare(b.fullDate))
 })
 
+const chartSources = computed(() => {
+  const sources = new Set<string>()
+  for (const day of chartDataBySource.value) {
+    for (const src of Object.keys(day.sources)) sources.add(src)
+  }
+  return Array.from(sources).sort()
+})
+
+const chartMax = computed(() => {
+  let max = 0
+  for (const day of chartDataBySource.value) {
+    let total = 0
+    for (const s of Object.values(day.sources)) {
+      total += chartMetric.value === 'tokens' ? s.tokens : s.messages
+    }
+    if (total > max) max = total
+  }
+  return max || 1
+})
+
 // Get evenly spaced date labels for the x-axis (5 labels max)
 const chartDateLabels = computed(() => {
-  if (chartData.value.length === 0) return []
-  if (chartData.value.length <= 5) {
-    return chartData.value.map((d, i) => ({ index: i, label: d.date }))
+  if (chartDataBySource.value.length === 0) return []
+  if (chartDataBySource.value.length <= 5) {
+    return chartDataBySource.value.map((d, i) => ({ index: i, label: d.date }))
   }
 
-  const count = chartData.value.length
-  const step = (count - 1) / 4 // 5 labels: start, 3 middle, end
+  const count = chartDataBySource.value.length
+  const step = (count - 1) / 4
 
   return [0, 1, 2, 3, 4].map(i => {
     const index = Math.round(i * step)
-    return { index, label: chartData.value[index]?.date ?? '' }
+    return { index, label: chartDataBySource.value[index]?.date ?? '' }
   })
 })
 
-async function triggerCompute() {
-  try {
-    isComputing.value = true
-    await $fetch('/api/stats/compute', { method: 'POST' })
-    toast.add({
-      title: 'Stats computation started',
-      description: 'The workflow has been triggered.',
-      icon: 'i-lucide-check',
-    })
-    setTimeout(() => refresh(), 2000)
-  } catch (error) {
-    toast.add({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to compute stats',
-      color: 'error',
-      icon: 'i-lucide-alert-circle',
-    })
-  } finally {
-    isComputing.value = false
+// Peak hours
+const peakHoursData = computed(() => stats.value?.hourlyDistribution ?? [])
+const peakHoursMax = computed(() => {
+  let max = 0
+  for (const h of peakHoursData.value) {
+    if (h.messageCount > max) max = h.messageCount
   }
+  return max || 1
+})
+
+// Model cost lookup from estimatedCost
+function getModelCost(modelId: string): number | null {
+  const entry = stats.value?.estimatedCost?.byModel?.find(m => m.model === modelId)
+  return entry ? entry.totalCost : null
 }
+
 </script>
 
 <template>
@@ -166,29 +221,16 @@ async function triggerCompute() {
               {{ option.label }}
             </UButton>
           </div>
-          <UDropdownMenu
-            :items="[
-              {
-                label: 'Refresh data',
-                icon: 'i-lucide-refresh-cw',
-                onClick: () => refresh(),
-              },
-              {
-                label: 'Recompute stats',
-                icon: 'i-lucide-calculator',
-                description: 'Run workflow (may take a few seconds)',
-                onClick: triggerCompute,
-              },
-            ]"
-          >
+          <UTooltip text="Refresh data">
             <UButton
-              icon="i-lucide-more-vertical"
+              icon="i-lucide-refresh-cw"
               color="neutral"
               variant="ghost"
               size="xs"
-              :loading="status === 'pending' || isComputing"
+              :loading="isRefreshing"
+              @click="refresh()"
             />
-          </UDropdownMenu>
+          </UTooltip>
         </div>
       </div>
     </header>
@@ -202,6 +244,40 @@ async function triggerCompute() {
         class="transition-opacity duration-200"
         :class="isRefreshing ? 'opacity-50 pointer-events-none' : 'opacity-100'"
       >
+        <!-- Filter Bar -->
+        <div v-if="sourceOptions.length > 0 || modelOptions.length > 0" class="flex items-center gap-3 mb-6 flex-wrap">
+          <USelectMenu
+            v-if="sourceOptions.length > 0"
+            v-model="selectedSources"
+            :items="sourceOptions"
+            multiple
+            placeholder="All sources"
+            class="w-44"
+            size="xs"
+            value-key="value"
+          />
+          <USelectMenu
+            v-if="modelOptions.length > 0"
+            v-model="selectedModels"
+            :items="modelOptions"
+            multiple
+            placeholder="All models"
+            class="w-52"
+            size="xs"
+            value-key="value"
+          />
+          <UButton
+            v-if="hasFilters"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            @click="clearFilters"
+          >
+            Clear
+          </UButton>
+        </div>
+
         <!-- KPI Cards with Trends -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <div class="rounded-lg border border-default bg-elevated/50 p-4">
@@ -250,10 +326,13 @@ async function triggerCompute() {
           </div>
           <div class="rounded-lg border border-default bg-elevated/50 p-4">
             <p class="text-xs text-muted mb-1">
-              Models
+              Est. Cost
             </p>
             <p class="text-2xl font-semibold text-highlighted tabular-nums">
-              {{ stats.byModel.length }}
+              {{ formatCost(stats.estimatedCost?.total ?? 0) }}
+            </p>
+            <p class="text-[11px] text-muted mt-1">
+              {{ stats.byModel.length }} model{{ stats.byModel.length !== 1 ? 's' : '' }}
             </p>
           </div>
           <div class="rounded-lg border border-default bg-elevated/50 p-4">
@@ -274,31 +353,51 @@ async function triggerCompute() {
           </div>
         </div>
 
-        <!-- Token Usage Chart -->
+        <!-- Usage Chart (Stacked by Source) -->
         <section class="mb-10">
-          <h2 class="text-sm font-medium text-highlighted mb-3">
-            Token Usage Over Time
-          </h2>
-          <div v-if="chartData.length > 0" class="rounded-lg border border-default bg-elevated/50 p-4 overflow-hidden">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-medium text-highlighted">
+              Usage Over Time
+            </h2>
+            <div class="flex items-center gap-1">
+              <UButton
+                size="xs"
+                :color="chartMetric === 'tokens' ? 'primary' : 'neutral'"
+                :variant="chartMetric === 'tokens' ? 'solid' : 'ghost'"
+                @click="chartMetric = 'tokens'"
+              >
+                Tokens
+              </UButton>
+              <UButton
+                size="xs"
+                :color="chartMetric === 'messages' ? 'primary' : 'neutral'"
+                :variant="chartMetric === 'messages' ? 'solid' : 'ghost'"
+                @click="chartMetric = 'messages'"
+              >
+                Messages
+              </UButton>
+            </div>
+          </div>
+          <div v-if="chartDataBySource.length > 0" class="rounded-lg border border-default bg-elevated/50 p-4 overflow-hidden">
             <div class="h-40 flex items-end gap-0.5 px-4">
               <div
-                v-for="(day, index) in chartData"
+                v-for="(day, index) in chartDataBySource"
                 :key="index"
                 class="flex-1 flex flex-col justify-end group"
               >
                 <UTooltip
-                  :text="`${day.fullDate} — In: ${formatNumber(day.input)} / Out: ${formatNumber(day.output)}`"
+                  :text="`${day.fullDate} — ${chartMetric === 'tokens' ? formatCompactNumber(Object.values(day.sources).reduce((s, v) => s + v.tokens, 0)) + ' tokens' : Object.values(day.sources).reduce((s, v) => s + v.messages, 0) + ' msgs'}`"
                   :content="{ side: 'top', sideOffset: 6 }"
                 >
-                  <div class="w-full flex flex-col gap-px relative before:absolute before:inset-x-0 before:bottom-full before:h-40">
-                    <div
-                      class="w-full bg-primary rounded-t-sm transition-opacity group-hover:opacity-80"
-                      :style="{ height: `${Math.max(2, (day.output / Math.max(...chartData.map(d => d.input + d.output))) * 100)}px` }"
-                    />
-                    <div
-                      class="w-full bg-primary/40 rounded-b-sm transition-opacity group-hover:opacity-80"
-                      :style="{ height: `${Math.max(2, (day.input / Math.max(...chartData.map(d => d.input + d.output))) * 100)}px` }"
-                    />
+                  <div class="w-full flex flex-col-reverse relative before:absolute before:inset-x-0 before:bottom-full before:h-40">
+                    <template v-for="src in chartSources" :key="src">
+                      <div
+                        v-if="day.sources[src]"
+                        class="w-full transition-opacity group-hover:opacity-80 first:rounded-b-sm last:rounded-t-sm"
+                        :class="getSourceColor(src)"
+                        :style="{ height: `${Math.max(1, ((chartMetric === 'tokens' ? day.sources[src].tokens : day.sources[src].messages) / chartMax) * 140)}px` }"
+                      />
+                    </template>
                   </div>
                 </UTooltip>
               </div>
@@ -308,19 +407,15 @@ async function triggerCompute() {
                 v-for="label in chartDateLabels"
                 :key="label.index"
                 class="absolute text-[10px] text-muted transform -translate-x-1/2"
-                :style="{ left: `${(label.index / (chartData.length - 1)) * 100}%` }"
+                :style="{ left: `${(label.index / Math.max(chartDataBySource.length - 1, 1)) * 100}%` }"
               >
                 {{ label.label }}
               </span>
             </div>
             <div class="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-default text-[10px] text-muted">
-              <span class="flex items-center gap-1">
-                <span class="inline-block size-2 rounded bg-primary/40" />
-                Input
-              </span>
-              <span class="flex items-center gap-1">
-                <span class="inline-block size-2 rounded bg-primary" />
-                Output
+              <span v-for="src in chartSources" :key="src" class="flex items-center gap-1">
+                <span class="inline-block size-2 rounded" :class="getSourceColor(src)" />
+                {{ src.replace('-', ' ') }}
               </span>
             </div>
           </div>
@@ -328,6 +423,37 @@ async function triggerCompute() {
             <p class="text-sm text-muted">
               No usage data yet
             </p>
+          </div>
+        </section>
+
+        <!-- Peak Hours -->
+        <section v-if="peakHoursData.some(h => h.messageCount > 0)" class="mb-10">
+          <h2 class="text-sm font-medium text-highlighted mb-3">
+            Peak Hours (UTC)
+          </h2>
+          <div class="rounded-lg border border-default bg-elevated/50 p-4 overflow-hidden">
+            <div class="h-24 flex items-end gap-px px-2">
+              <div
+                v-for="h in peakHoursData"
+                :key="h.hour"
+                class="flex-1 group"
+              >
+                <UTooltip
+                  :text="`${String(h.hour).padStart(2, '0')}:00 — ${h.messageCount} msgs, ${formatCompactNumber(h.totalTokens)} tokens`"
+                  :content="{ side: 'top', sideOffset: 4 }"
+                >
+                  <div
+                    class="w-full bg-primary/60 rounded-t-sm transition-opacity group-hover:bg-primary relative before:absolute before:inset-x-0 before:bottom-full before:h-24"
+                    :style="{ height: `${Math.max(2, (h.messageCount / peakHoursMax) * 80)}px` }"
+                  />
+                </UTooltip>
+              </div>
+            </div>
+            <div class="flex justify-between px-2 mt-1.5">
+              <span v-for="label in ['00', '06', '12', '18', '23']" :key="label" class="text-[10px] text-muted">
+                {{ label }}
+              </span>
+            </div>
           </div>
         </section>
 
@@ -415,7 +541,7 @@ async function triggerCompute() {
                     <td class="px-4 py-2.5">
                       <div class="flex items-center gap-2">
                         <UIcon
-                          :name="source.source === 'web' ? 'i-lucide-globe' : source.source === 'github-bot' ? 'i-simple-icons-github' : 'i-lucide-code'"
+                          :name="source.source === 'web' ? 'i-lucide-globe' : source.source === 'github-bot' ? 'i-simple-icons-github' : source.source === 'discord-bot' ? 'i-simple-icons-discord' : 'i-lucide-code'"
                           class="size-4 text-muted"
                         />
                         <span class="text-highlighted capitalize text-xs">{{ source.source.replace('-', ' ') }}</span>
@@ -453,6 +579,9 @@ async function triggerCompute() {
                     Tokens
                   </th>
                   <th class="text-right font-medium px-3 py-2.5">
+                    Cost
+                  </th>
+                  <th class="text-right font-medium px-3 py-2.5">
                     Avg Response
                   </th>
                   <th class="text-right font-medium px-4 py-2.5">
@@ -471,6 +600,9 @@ async function triggerCompute() {
                   </td>
                   <td class="text-right text-muted tabular-nums px-3 py-2.5">
                     {{ formatCompactNumber(model.inputTokens + model.outputTokens) }}
+                  </td>
+                  <td class="text-right text-muted tabular-nums px-3 py-2.5">
+                    {{ getModelCost(model.model) !== null ? formatCost(getModelCost(model.model)!) : '—' }}
                   </td>
                   <td class="text-right text-muted tabular-nums px-3 py-2.5">
                     {{ formatDuration(model.avgDurationMs) }}

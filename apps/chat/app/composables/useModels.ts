@@ -15,7 +15,7 @@ export function formatModelName(modelId: string): string {
 
 export function useModels() {
   const models = [
-    'moonshotai/kimi-k2-turbo',
+    'moonshotai/kimi-k2.5',
     'anthropic/claude-opus-4.5',
     'openai/gpt-5.1-instant',
     'google/gemini-3-flash',
