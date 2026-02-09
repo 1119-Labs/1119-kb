@@ -45,7 +45,7 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "ai": "^6.0.77",
+    "ai": "^6.0.78",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -55,7 +55,7 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "ai": ">=6.0.77"
+    "ai": ">=6.0.78"
   },
   "peerDependenciesMeta": {
     "ai": {
