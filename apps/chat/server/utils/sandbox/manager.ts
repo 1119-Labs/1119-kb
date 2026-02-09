@@ -110,10 +110,27 @@ async function getOrCreateSnapshot(): Promise<string> {
   return snapshotId
 }
 
+async function findRunningSandbox(snapshotId: string): Promise<Sandbox | null> {
+  try {
+    const result = await Sandbox.list({ limit: 20 })
+    const running = result.json.sandboxes.find(
+      (s: { status: string, sourceSnapshotId?: string }) => s.status === 'running' && s.sourceSnapshotId === snapshotId,
+    )
+    if (running) {
+      return await Sandbox.get({ sandboxId: running.id })
+    }
+    return null
+  }
+  catch {
+    return null
+  }
+}
+
 export async function getOrCreateSandbox(sessionId?: string): Promise<ActiveSandbox> {
   const config = getConfig()
   const startTime = Date.now()
 
+  // 1. Try to reconnect via session ID (fastest path)
   if (sessionId) {
     const session = await getSandboxSession(sessionId)
     if (session) {
@@ -128,6 +145,25 @@ export async function getOrCreateSandbox(sessionId?: string): Promise<ActiveSand
   }
 
   const snapshotId = await getOrCreateSnapshot()
+
+  // 2. Try to find an already running sandbox with the same snapshot
+  const existingSandbox = await findRunningSandbox(snapshotId)
+  if (existingSandbox) {
+    const reusedSessionId = sessionId || generateSessionId()
+    const session = await setSandboxSession(
+      reusedSessionId,
+      {
+        sandboxId: existingSandbox.sandboxId,
+        snapshotId,
+        createdAt: Date.now(),
+      },
+      config.sessionTtlMs,
+    )
+    log.info('sandbox', `Found running sandbox ${existingSandbox.sandboxId}, reusing for session ${reusedSessionId} (${Date.now() - startTime}ms)`)
+    return { sandbox: existingSandbox, session, sessionId: reusedSessionId }
+  }
+
+  // 3. No running sandbox found — create a new one
   const sandbox = await createSandboxFromSnapshot(snapshotId)
 
   const newSessionId = sessionId || generateSessionId()

@@ -1,12 +1,14 @@
 import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, stepCountIs, ToolLoopAgent, type UIMessage } from 'ai'
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
+import { kv } from '@nuxthub/kv'
 import { and, eq } from 'drizzle-orm'
 import { createSavoir } from '@savoir/sdk'
 import { log, useLogger } from 'evlog'
 import { generateTitle } from '../../utils/chat/generate-title'
 import { routeQuestion, buildSystemPromptWithComplexity } from '../../utils/router/route-question'
 import { getAgentConfig, type AgentConfigData } from '../../utils/agent-config'
+import { KV_KEYS } from '../../utils/sandbox/types'
 
 const BASE_SYSTEM_PROMPT = `You are an AI assistant that answers questions based on the available sources.
 
@@ -37,7 +39,7 @@ Your knowledge may be outdated. ONLY answer based on what you find in the source
 
 ## IMPORTANT
 
-- Always provide a text response after searching
+- Do NOT output text between tool calls. Use tools silently, then provide your complete answer only at the end.
 - Use "| head -N" to limit output
 
 ## Response Style
@@ -153,9 +155,16 @@ export default defineEventHandler(async (event) => {
     // Writer reference to be used by onToolCall callback
     let streamWriter: any = null
 
+    // Try to reuse an active sandbox session (shared across all chats)
+    const existingSessionId = await kv.get<string>(KV_KEYS.ACTIVE_SANDBOX_SESSION)
+    if (existingSessionId) {
+      log.info('chat', `[${requestId}] Found active sandbox session ${existingSessionId}`)
+    }
+
     const savoir = createSavoir({
       apiUrl: getRequestURL(event).origin,
       apiKey: savoirConfig.apiKey || undefined,
+      sessionId: existingSessionId || undefined,
       onToolCall: (info) => {
         const resultSummary = info.result
           ? ` [${info.result.success ? 'OK' : 'FAIL'}] (${info.result.durationMs}ms)`
@@ -276,6 +285,12 @@ export default defineEventHandler(async (event) => {
           }),
         })))
         const dbDurationMs = Date.now() - dbStartTime
+
+        // Persist sandbox session for reuse across all chats
+        const currentSessionId = savoir.getSessionId()
+        if (currentSessionId) {
+          await kv.set(KV_KEYS.ACTIVE_SANDBOX_SESSION, currentSessionId)
+        }
 
         requestLog.set({
           outcome: 'success',

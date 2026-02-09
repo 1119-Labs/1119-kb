@@ -235,14 +235,9 @@ watch(() => chat.status, (newStatus, oldStatus) => {
 
           <template #content="{ message }">
             <ChatLoading
-              v-if="message.role === 'assistant' && chat.status === 'streaming' && !message.parts.some(p => p.type === 'text' && p.text)"
+              v-if="message.role === 'assistant' && (chat.status === 'streaming' || getMessageToolCalls(message).length > 0)"
               :tool-calls="getMessageToolCalls(message)"
-              :is-loading="true"
-            />
-            <ChatLoading
-              v-else-if="message.role === 'assistant' && getMessageToolCalls(message).length > 0"
-              :tool-calls="getMessageToolCalls(message)"
-              :is-loading="false"
+              :is-loading="chat.status === 'streaming'"
             />
             <template v-for="(part, index) in message.parts.filter(p => p.type !== 'data-sources' && p.type !== 'data-tool-call')" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
               <Reasoning

@@ -34,4 +34,5 @@ export const KV_KEYS = {
   LAST_SOURCE_SYNC: 'sources:last-sync',
   AGENT_CONFIG_CACHE: 'agent:config-cache',
   session: (sessionId: string) => `session:${sessionId}`,
+  ACTIVE_SANDBOX_SESSION: 'sandbox:active-session',
 } as const
