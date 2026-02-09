@@ -19,7 +19,7 @@ Here are the available types and scopes:
 
 ### Scopes
 - chat (apps/chat - Main application)
-- github-bot (apps/github-bot - GitHub bot)
+- bot (apps/bot - Bot)
 - sdk (packages/sdk - @savoir/sdk)
 - logger (packages/logger - @savoir/logger)
 - deps (dependencies updates)
