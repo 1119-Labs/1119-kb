@@ -31,4 +31,4 @@ logs
 .workflow-data*
 apps/web/.data
 apps/chat/.data
-apps/github-bot/.data
+apps/bot/.data

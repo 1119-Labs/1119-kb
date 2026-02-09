@@ -1,8 +1,7 @@
-import { createGateway } from '@ai-sdk/gateway'
 import { generateText, Output, stepCountIs, ToolLoopAgent } from 'ai'
 import { log } from 'evlog'
 import { createSavoir, type AgentConfig as SavoirAgentConfig } from '@savoir/sdk'
-import type { IssueContext } from './types'
+import type { ThreadContext } from './types'
 import { type AgentConfig, agentConfigSchema, getDefaultConfig } from './router-schema'
 
 const ROUTER_MODEL = 'google/gemini-2.5-flash-lite'
@@ -32,14 +31,18 @@ Analyze the user's question and determine the appropriate configuration for the 
 
 Use claude-opus-4.5 only for the most complex cases requiring deep reasoning.`
 
-function buildRouterInput(question: string, context?: IssueContext): string {
+function buildRouterInput(question: string, context?: ThreadContext): string {
   const parts: string[] = []
 
   if (context) {
-    parts.push(`Repository: ${context.owner}/${context.repo}`)
-    parts.push(`Issue #${context.number}: ${context.title}`)
+    parts.push(`Source: ${context.source}`)
+    if (context.number) {
+      parts.push(`#${context.number}: ${context.title}`)
+    } else {
+      parts.push(`Thread: ${context.title}`)
+    }
     if (context.body) {
-      parts.push(`Issue body: ${context.body.slice(0, 500)}`)
+      parts.push(`Description: ${context.body.slice(0, 500)}`)
     }
     if (context.labels.length) {
       parts.push(`Labels: ${context.labels.join(', ')}`)
@@ -51,13 +54,10 @@ function buildRouterInput(question: string, context?: IssueContext): string {
   return parts.join('\n')
 }
 
-async function routeQuestion(question: string, context?: IssueContext): Promise<AgentConfig> {
-  const config = useRuntimeConfig()
-  const gateway = createGateway({ apiKey: config.savoir.apiKey })
-
+async function routeQuestion(question: string, context?: ThreadContext): Promise<AgentConfig> {
   try {
     const { output } = await generateText({
-      model: gateway(ROUTER_MODEL),
+      model: ROUTER_MODEL,
       output: Output.object({ schema: agentConfigSchema }),
       messages: [
         { role: 'system', content: ROUTER_SYSTEM_PROMPT },
@@ -66,22 +66,22 @@ async function routeQuestion(question: string, context?: IssueContext): Promise<
     })
 
     if (!output) {
-      log.warn('github-bot', 'Router returned no output, using default config')
+      log.warn('bot', 'Router returned no output, using default config')
       return getDefaultConfig()
     }
 
-    log.info('github-bot', `Router decision: ${output.complexity} (${output.model}, ${output.maxSteps} steps) - ${output.reasoning}`)
+    log.info('bot', `Router decision: ${output.complexity} (${output.model}, ${output.maxSteps} steps) - ${output.reasoning}`)
     return output
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    log.error('github-bot', `Router failed: ${errorMessage}, using default config`)
+    log.error('bot', `Router failed: ${errorMessage}, using default config`)
     return getDefaultConfig()
   }
 }
 
 export async function generateAIResponse(
   question: string,
-  context?: IssueContext,
+  context?: ThreadContext,
 ): Promise<string> {
   const config = useRuntimeConfig()
 
@@ -107,7 +107,7 @@ Once configured, I'll be able to search the documentation and help answer your q
       apiKey: config.savoir.apiKey || undefined,
       onToolCall: (info) => {
         if (info.state === 'loading') {
-          log.info('github-bot', `bash: ${JSON.stringify(info.args).slice(0, 150)}`)
+          log.info('bot', `bash: ${JSON.stringify(info.args).slice(0, 150)}`)
         }
       },
     })
@@ -115,7 +115,7 @@ Once configured, I'll be able to search the documentation and help answer your q
     const [routerConfig, savoirConfig] = await Promise.all([
       routeQuestion(question, context),
       savoir.getAgentConfig().catch((error) => {
-        log.warn('github-bot', `Failed to fetch agent config: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        log.warn('bot', `Failed to fetch agent config: ${error instanceof Error ? error.message : 'Unknown error'}`)
         return null
       }),
     ])
@@ -125,7 +125,7 @@ Once configured, I'll be able to search the documentation and help answer your q
       : routerConfig.maxSteps
     const effectiveModel = savoirConfig?.defaultModel || routerConfig.model
 
-    log.info('github-bot', `Starting agent for issue #${context?.number || 'unknown'} with ${routerConfig.complexity} complexity (${effectiveMaxSteps} steps, multiplier: ${savoirConfig?.maxStepsMultiplier || 1}x)`)
+    log.info('bot', `Starting agent for #${context?.number || 'unknown'} with ${routerConfig.complexity} complexity (${effectiveMaxSteps} steps, multiplier: ${savoirConfig?.maxStepsMultiplier || 1}x)`)
 
     const agent = new ToolLoopAgent({
       model: effectiveModel,
@@ -145,8 +145,8 @@ Once configured, I'll be able to search the documentation and help answer your q
     })
 
     const durationMs = Date.now() - startTime
-    log.info('github-bot', `Response generated (${durationMs}ms, ${stepCount} steps, ${toolCallCount} commands)`)
-    log.info('github-bot', `Tokens: ${totalInputTokens} in / ${totalOutputTokens} out`)
+    log.info('bot', `Response generated (${durationMs}ms, ${stepCount} steps, ${toolCallCount} commands)`)
+    log.info('bot', `Tokens: ${totalInputTokens} in / ${totalOutputTokens} out`)
 
     if (!result.text) {
       return `I searched the documentation but couldn't generate a helpful response for:
@@ -163,7 +163,7 @@ Once configured, I'll be able to search the documentation and help answer your q
   } catch (error) {
     const durationMs = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    log.error('github-bot', `Agent failed after ${durationMs}ms: ${errorMessage}`)
+    log.error('bot', `Agent failed after ${durationMs}ms: ${errorMessage}`)
 
     return `Sorry, I encountered an error while processing your question:
 
@@ -181,35 +181,26 @@ Please try again later or open a discussion if this persists.`
   }
 }
 
-function buildSystemPrompt(context?: IssueContext, agentConfig?: AgentConfig, savoirConfig?: SavoirAgentConfig | null): string {
+function buildSystemPrompt(context?: ThreadContext, agentConfig?: AgentConfig, savoirConfig?: SavoirAgentConfig | null): string {
   const basePrompt = `You are a documentation assistant with bash access to a sandbox containing docs (markdown, JSON, YAML).
 
-## Speed is Important
-Minimize the number of commands. Chain commands with \`&&\` when possible.
+## Critical Rule
+ALWAYS search AND read the relevant documentation before responding. NEVER just list files — actually read them and provide a concrete, actionable answer. Use the documentation to give the best possible answer with what you know.
 
 ## Sandbox Structure
 Sources: \`docs/nuxt/\`, \`docs/nuxt-content/\`, \`docs/nuxt-ui/\`, \`docs/nuxt-hub/\`, \`docs/nuxt-image/\`, \`docs/nuxt-studio/\`
 
-## Efficient Pattern
-Do this in ONE command:
-\`\`\`bash
-grep -rl "term" docs/ --include="*.md" | head -5 && cat $(grep -rl "term" docs/ --include="*.md" | head -1)
-\`\`\`
+## Workflow
+1. Search for relevant files: \`grep -rl "term" docs/ --include="*.md" | head -5\`
+2. Read the most relevant ones: \`cat docs/path/to/file.md | head -80\`
+3. Synthesize the information into a clear, complete answer with code examples
 
-Or explore and search together:
-\`\`\`bash
-ls docs/ && grep -rl "keyword" docs/ --include="*.md" | head -10
-\`\`\`
-
-## Tips
-- Chain commands with \`&&\` to reduce round-trips
-- Use \`head -80\` for large files
-- 2-3 well-targeted commands is better than 10 exploratory ones
+Chain commands with \`&&\` when possible. 2-3 well-targeted commands is better than 10 exploratory ones.
 
 ## Response
 - Be concise and helpful
-- Include code examples
-- Use markdown`
+- Include code examples from the documentation
+- Try to give a direct answer`
 
   let prompt = basePrompt
 
@@ -252,19 +243,20 @@ ls docs/ && grep -rl "keyword" docs/ --include="*.md" | head -10
   }
 
   if (context) {
-    prompt += `\n\nIssue #${context.number}: "${context.title}" in ${context.owner}/${context.repo}`
+    const ref = context.number ? `#${context.number}` : 'Thread'
+    prompt += `\n\n${ref}: "${context.title}" in ${context.source} (${context.platform})`
   }
 
   return prompt
 }
 
-function buildUserMessage(question: string, context?: IssueContext): string {
+function buildUserMessage(question: string, context?: ThreadContext): string {
   const cleanQuestion = question.replace(/@[\w-]+(\[bot\])?/gi, '').trim()
   const parts: string[] = []
 
   if (context) {
     if (context.body) {
-      parts.push(`**Issue description:**\n${context.body.slice(0, 1000)}`)
+      parts.push(`**Description:**\n${context.body.slice(0, 1000)}`)
     }
 
     if (context.previousComments?.length) {

@@ -24,7 +24,6 @@ export default defineNuxtConfig({
   // Workaround for prepare:types hook error
   hooks: {
     'prepare:types': (opts) => {
-      // Ensure sharedTsConfig exists to prevent nitro-server error
       opts.sharedTsConfig = opts.sharedTsConfig || { compilerOptions: {} }
     },
   },
