@@ -32,3 +32,5 @@ logs
 apps/web/.data
 apps/chat/.data
 apps/bot/.data
+.vercel
+.env*.local
