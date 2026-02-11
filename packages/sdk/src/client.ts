@@ -18,6 +18,7 @@ export class SavoirClient {
 
   private readonly apiUrl: string
   private readonly apiKey?: string
+  private readonly extraHeaders: Record<string, string>
   private readonly source?: string
   private readonly sourceId?: string
   private sessionId?: string
@@ -32,6 +33,7 @@ export class SavoirClient {
 
     this.apiUrl = config.apiUrl.replace(/\/$/, '')
     this.apiKey = config.apiKey
+    this.extraHeaders = config.headers ?? {}
     this.sessionId = config.sessionId
     this.source = config.source
     this.sourceId = config.sourceId
@@ -48,7 +50,7 @@ export class SavoirClient {
   private async get<T>(path: string): Promise<T> {
     const url = `${this.apiUrl}${path}`
 
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = { ...this.extraHeaders }
 
     if (this.apiKey) {
       headers['Authorization'] = `Bearer ${this.apiKey}`
@@ -86,6 +88,7 @@ export class SavoirClient {
     const url = `${this.apiUrl}${path}`
 
     const headers: Record<string, string> = {
+      ...this.extraHeaders,
       'Content-Type': 'application/json',
     }
 
