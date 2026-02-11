@@ -92,9 +92,11 @@ export default defineEventHandler(async (event) => {
       log.info('chat', `[${requestId}] Found active sandbox session ${existingSessionId}`)
     }
 
+    const cookie = getHeader(event, 'cookie')
     const savoir = createSavoir({
       apiUrl: getRequestURL(event).origin,
       apiKey: savoirConfig.apiKey || undefined,
+      headers: cookie ? { cookie } : undefined,
       sessionId: existingSessionId || undefined,
       onToolCall: (info) => {
         const resultSummary = info.result
