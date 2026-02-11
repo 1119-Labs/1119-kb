@@ -89,6 +89,10 @@ const adminNavigation = [
     { label: 'Statistics', icon: 'i-lucide-bar-chart-3', to: '/admin/stats' },
     { label: 'API Keys', icon: 'i-lucide-key', to: '/admin/api-keys' },
   ],
+  [
+    { label: 'Help', type: 'label' as const },
+    { label: 'Documentation', icon: 'i-lucide-book-open', to: '/admin/docs' },
+  ],
 ]
 
 const chatScrollArea = useTemplateRef('chatScrollArea')
@@ -275,7 +279,7 @@ defineShortcuts({
                       class="group flex items-center gap-1.5 px-2 py-1 rounded-md text-sm overflow-hidden transition-colors"
                       :class="[
                         route.params.id === chat.id
-                          ? 'text-highlighted font-medium bg-linear-to-r from-elevated to-primary/0'
+                          ? 'text-highlighted font-medium bg-linear-to-r from-primary/30 to-primary/0'
                           : 'text-muted hover:bg-linear-to-r from-elevated to-primary/0',
                         chat.generating && 'text-muted!',
                       ]"

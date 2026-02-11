@@ -48,7 +48,7 @@ async function changePassword() {
 }
 
 // Connected accounts
-const { data: accounts, refresh: refreshAccounts, status: accountsStatus } = useLazyAsyncData('user-accounts', () => client!.listAccounts())
+const { data: accounts, refresh: refreshAccounts, status: accountsStatus } = useLazyAsyncData('user-accounts', () => client!.listAccounts(), { server: false })
 const isLinkingGithub = ref(false)
 const isUnlinking = ref(false)
 
@@ -80,7 +80,7 @@ async function unlinkGithub() {
 }
 
 // Sessions
-const { data: sessions, refresh: refreshSessions, status: sessionsStatus } = useLazyAsyncData('user-sessions', () => client!.listSessions())
+const { data: sessions, refresh: refreshSessions, status: sessionsStatus } = useLazyAsyncData('user-sessions', () => client!.listSessions(), { server: false })
 const revokingSession = ref<string | null>(null)
 const isRevokingAll = ref(false)
 
@@ -225,7 +225,7 @@ async function deleteAccount() {
           Connected accounts
         </h2>
         <div class="rounded-lg border border-default divide-y divide-default">
-          <div v-if="accountsStatus === 'pending'" class="flex items-center justify-between px-4 py-3.5">
+          <div v-if="!accounts?.data" class="flex items-center justify-between px-4 py-3.5">
             <div>
               <USkeleton class="h-4 w-28 mb-1" />
               <USkeleton class="h-3 w-48" />
@@ -270,7 +270,7 @@ async function deleteAccount() {
           Active sessions
         </h2>
         <div class="rounded-lg border border-default divide-y divide-default">
-          <div v-if="sessionsStatus === 'pending'" class="px-4 py-3.5">
+          <div v-if="!sessions?.data" class="px-4 py-3.5">
             <div v-for="i in 2" :key="i" class="flex items-center justify-between" :class="i > 1 && 'mt-3 pt-3 border-t border-default'">
               <div>
                 <USkeleton class="h-4 w-32 mb-1" />
