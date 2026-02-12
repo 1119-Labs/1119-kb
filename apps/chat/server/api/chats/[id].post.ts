@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { savoir: savoirConfig } = useRuntimeConfig()
+    const config = useRuntimeConfig()
 
     let stepCount = 0
     let toolCallCount = 0
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     const cookie = getHeader(event, 'cookie')
     const savoir = createSavoir({
       apiUrl: getRequestURL(event).origin,
-      apiKey: savoirConfig.apiKey || undefined,
+      apiKey: config.savoir?.apiKey || undefined,
       headers: cookie ? { cookie } : undefined,
       sessionId: existingSessionId || undefined,
       onToolCall: (info) => {
