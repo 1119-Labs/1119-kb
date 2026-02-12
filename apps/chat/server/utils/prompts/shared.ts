@@ -38,12 +38,35 @@ export function applyAgentConfig(basePrompt: string, config: AgentConfigData): s
 }
 
 export const COMPLEXITY_HINTS: Record<AgentConfig['complexity'], string> = {
-  trivial: 'This is a simple greeting or acknowledgment. Respond briefly without searching.',
-  simple: 'This is a straightforward question. Explore with `ls`, then do a targeted search.',
-  moderate: 'This requires some research. Explore the sources structure first, then search within relevant directories.',
-  complex: 'This is a complex question. Map out the available sources with `ls`, then systematically search relevant areas.',
+  trivial: 'Respond directly without searching.',
+  simple: `One search + one read, then answer:
+1. \`grep -rl "keyword" docs/ --include="*.md" | head -5\`
+2. \`head -100 docs/path/file.md\`
+3. **Answer immediately.**`,
+  moderate: `Search → batch read → answer:
+1. \`find docs/ -maxdepth 2 -type d\` (orient yourself)
+2. \`grep -rl "keyword" docs/relevant-source/ --include="*.md" | head -10\`
+3. \`bash_batch\`: read top 3–5 files with \`head -100\`
+4. **Answer with what you found.**`,
+  complex: `Systematic exploration, then answer:
+1. \`find docs/ -maxdepth 2 -type d\` (map the sources)
+2. Multiple targeted \`grep -rl\` searches across relevant directories
+3. \`bash_batch\`: read files in parallel, use \`grep -n -C3\` for specific sections
+4. Cross-reference sources, then **answer.**`,
 }
 
 export function applyComplexity(prompt: string, agentConfig: AgentConfig): string {
-  return `${prompt}\n\n## Task Complexity: ${agentConfig.complexity}\n${COMPLEXITY_HINTS[agentConfig.complexity]}`
+  const maxToolCalls = Math.max(1, agentConfig.maxSteps - 2)
+  return `${prompt}\n\n## Step Budget
+You have **${agentConfig.maxSteps} steps** total. Each tool call = 1 step. Your final text answer = 1 step.
+**Use at most ${maxToolCalls} tool calls, then STOP and answer with what you found.** Never exhaust all steps on searching — always reserve the last step to provide your answer.
+
+## Task Complexity: ${agentConfig.complexity}
+${COMPLEXITY_HINTS[agentConfig.complexity]}`
+}
+
+export function applyTemporalContext(prompt: string): string {
+  const now = new Date()
+  const [date] = now.toISOString().split('T')
+  return prompt.replace('{{TEMPORAL_CONTEXT}}', `Current date: ${date}. Documentation may reference older or newer versions — always check what's in the sandbox.`)
 }

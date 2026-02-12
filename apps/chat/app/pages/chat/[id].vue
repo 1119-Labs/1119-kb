@@ -300,15 +300,10 @@ watch(() => chat.status, (newStatus, oldStatus) => {
               :tool-calls="getMessageToolCalls(message)"
               :is-loading="chat.status === 'streaming'"
             />
-            <template v-for="(part, index) in getContentParts(message)" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
-              <Reasoning
-                v-if="part.type === 'reasoning'"
-                :text="part.text"
-                :is-streaming="part.state !== 'done'"
-              />
+            <template v-for="(part, index) in getContentParts(message)" :key="`${message.id}-${part.type}-${index}`">
               <!-- Markdown only for assistant (XSS prevention) -->
               <MDCCached
-                v-else-if="part.type === 'text' && message.role === 'assistant'"
+                v-if="part.type === 'text' && message.role === 'assistant'"
                 :value="part.text"
                 :cache-key="`${message.id}-${index}`"
                 :components
