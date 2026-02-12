@@ -93,6 +93,12 @@ export async function generateAIResponse(
       instructions: buildBotSystemPrompt(context, routerConfig, savoirConfig),
       tools: savoir.tools,
       stopWhen: stepCountIs(effectiveMaxSteps),
+      prepareStep: ({ stepNumber }) => {
+        // Remove tools on the last step to force text output
+        if (stepNumber >= effectiveMaxSteps - 1) {
+          return { activeTools: [] }
+        }
+      },
     })
 
     const result = await agent.generate({

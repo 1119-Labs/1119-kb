@@ -161,6 +161,12 @@ export default defineEventHandler(async (event) => {
           instructions: isAdminChat ? dynamicSystemPrompt : applyComplexity(dynamicSystemPrompt, routerConfig),
           tools: effectiveTools,
           stopWhen: stepCountIs(effectiveMaxSteps),
+          prepareStep: isAdminChat ? undefined : ({ stepNumber }) => {
+            // Remove tools on the last step to force text output
+            if (stepNumber >= effectiveMaxSteps - 1) {
+              return { activeTools: [] }
+            }
+          },
           onStepFinish: (stepResult) => {
             const stepDurationMs = Date.now() - stepStartTime
             stepDurations.push(stepDurationMs)
