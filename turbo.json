@@ -1,9 +1,5 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": [
-    "AI_GATEWAY_API_KEY",
-    "NUXT_GITHUB_TOKEN"
-  ],
   "tasks": {
     "transit": {
       "dependsOn": ["^transit"]
@@ -13,14 +9,26 @@
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
       "outputs": [".vercel/output/**", ".nuxt/**", ".output/**", "dist/**"],
       "env": [
+        "NUXT_PUBLIC_SITE_URL",
+        "NUXT_PUBLIC_GITHUB_BOT_TRIGGER",
+        "NUXT_ADMIN_USERS",
+        "NUXT_GITHUB_TOKEN",
         "NUXT_GITHUB_SNAPSHOT_REPO",
         "NUXT_GITHUB_SNAPSHOT_BRANCH",
-        "NUXT_SAVOIR_API_URL",
-        "NUXT_SAVOIR_SECRET_KEY",
+        "NUXT_GITHUB_APP_ID",
+        "NUXT_GITHUB_APP_PRIVATE_KEY",
+        "NUXT_GITHUB_WEBHOOK_SECRET",
+        "NUXT_GITHUB_REPLY_TO_NEW_ISSUES",
+        "NUXT_DISCORD_BOT_TOKEN",
+        "NUXT_DISCORD_PUBLIC_KEY",
+        "NUXT_DISCORD_APPLICATION_ID",
+        "NUXT_DISCORD_MENTION_ROLE_IDS",
+        "NUXT_YOUTUBE_API_KEY",
+        "REDIS_URL",
+        "AI_GATEWAY_API_KEY",
         "BETTER_AUTH_SECRET",
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
-        "NUXT_YOUTUBE_API_KEY",
         "TURSO_DATABASE_URL",
         "TURSO_AUTH_TOKEN",
         "DATABASE_URL_UNPOOLED",
