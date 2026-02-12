@@ -79,27 +79,27 @@ const chatQuickChats = [
 
 const adminQuickChats = [
   {
-    label: 'Show me the usage statistics for the last 7 days',
+    label: 'Chart the daily token usage by model over the last 30 days',
     icon: 'i-lucide-bar-chart-3'
   },
   {
-    label: 'List all registered users and their activity',
+    label: 'Show app health: error rate, latency p95, and slowest endpoints',
+    icon: 'i-lucide-activity'
+  },
+  {
+    label: 'Are there any production errors in the last 24h? Show the trend',
+    icon: 'i-lucide-alert-triangle'
+  },
+  {
+    label: 'Chart active users and message volume over the last 14 days',
     icon: 'i-lucide-users'
   },
   {
-    label: 'What sources are currently configured?',
-    icon: 'i-lucide-database'
+    label: 'What are the top 10 most-hit endpoints and their avg latency?',
+    icon: 'i-lucide-zap'
   },
   {
-    label: 'Show me the most recent chat conversations',
-    icon: 'i-lucide-message-circle'
-  },
-  {
-    label: 'What is the current agent configuration?',
-    icon: 'i-lucide-bot'
-  },
-  {
-    label: 'How many tokens have been consumed today?',
+    label: 'Show usage stats for the last 7 days with a cost breakdown chart',
     icon: 'i-lucide-coins'
   }
 ]

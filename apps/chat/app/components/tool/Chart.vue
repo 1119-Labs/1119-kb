@@ -36,7 +36,7 @@ const formatValue = (value: string | number | undefined): string => {
 </script>
 
 <template>
-  <div class="w-full md:min-w-[600px] max-w-3xl h-[380px]">
+  <div class="w-full md:min-w-[600px] max-w-3xl h-[380px] my-4">
     <template v-if="invocation.state === 'output-available'">
       <div v-if="invocation.output.title" class="flex items-center gap-3 mb-4">
         <UIcon name="i-lucide-line-chart" class="size-5 text-primary shrink-0" />

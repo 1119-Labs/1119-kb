@@ -10,7 +10,7 @@ export const runSqlTool = tool({
   description: `Execute a read-only SQL SELECT query against the application database.
 Use this for custom queries when the other tools don't provide the data you need.
 ONLY SELECT statements are allowed. No INSERT, UPDATE, DELETE, DROP, or ALTER.
-Available tables: chats, messages, sources, agent_config, api_usage, usage_stats, user, session, account.`,
+Available tables: chats, messages, sources, agent_config, api_usage, usage_stats, user, session, account, evlog_events.`,
   inputSchema: z.object({
     query: z.string().describe('SQL SELECT query to execute'),
   }),

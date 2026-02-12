@@ -169,6 +169,20 @@ function getAssistantActions(message: UIMessage) {
   ]
 }
 
+/**
+ * Build a stable v-for key. For tool-invocation parts (e.g. tool-chart) the
+ * AI SDK mutates `part.state` on the raw (non-proxied) object. Vue caches
+ * reactive proxies per raw reference, so the ToolChart component would receive
+ * the same proxy and skip re-rendering. Including `state` in the key forces
+ * Vue to recreate the component when the tool transitions (e.g. call → output).
+ */
+function partKey(messageId: string, part: { type: string, [k: string]: unknown }, index: number): string {
+  if (part.type.startsWith('tool-')) {
+    return `${messageId}-${part.type}-${index}-${part.state ?? ''}`
+  }
+  return `${messageId}-${part.type}-${index}`
+}
+
 function getMessageToolCalls(message: UIMessage): ToolCall[] {
   if (!message?.parts) return []
   return (message.parts as Array<{ type: string, data?: ToolCall }>)
@@ -300,7 +314,7 @@ watch(() => chat.status, (newStatus, oldStatus) => {
               :tool-calls="getMessageToolCalls(message)"
               :is-loading="chat.status === 'streaming'"
             />
-            <template v-for="(part, index) in getContentParts(message)" :key="`${message.id}-${part.type}-${index}`">
+            <template v-for="(part, index) in getContentParts(message)" :key="partKey(message.id, part, index)">
               <!-- Markdown only for assistant (XSS prevention) -->
               <MDCCached
                 v-if="part.type === 'text' && message.role === 'assistant'"

@@ -6,7 +6,7 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     '@onmax/nuxt-better-auth',
     'workflow/nuxt',
-    'evlog/nuxt',
+    '@evlog/nuxthub',
     'nuxt-charts',
   ],
 
@@ -22,6 +22,7 @@ export default defineNuxtConfig({
   },
 
   evlog: {
+    retention: '7d',
     env: {
       service: 'savoir',
       version: '0.1.0',

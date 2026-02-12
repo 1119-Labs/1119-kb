@@ -79,9 +79,9 @@ export function createAgent({
     },
     prepareStep: ({ stepNumber }) => {
       if (isAdminMode) return
-      // Remove tools on the last step to force text output
-      if (stepNumber >= maxSteps - 1) {
-        return { activeTools: [] }
+      // Force text output on the last 2 steps by removing all tools
+      if (stepNumber >= maxSteps - 2) {
+        return { toolChoice: 'none' as const, activeTools: [] }
       }
     },
     onStepFinish,
