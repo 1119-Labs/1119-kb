@@ -10,24 +10,8 @@ const props = defineProps<{
 const isExpanded = ref(false)
 const displayedLabel = ref('')
 
-const adminToolLabels: Record<string, { loading: string, done: string }> = {
-  query_stats: { loading: 'Querying usage statistics', done: 'Queried usage statistics' },
-  list_users: { loading: 'Listing users', done: 'Listed users' },
-  list_sources: { loading: 'Listing sources', done: 'Listed sources' },
-  query_chats: { loading: 'Querying chats', done: 'Queried chats' },
-  run_sql: { loading: 'Running SQL query', done: 'Ran SQL query' },
-  get_agent_config: { loading: 'Fetching agent config', done: 'Fetched agent config' },
-  chart: { loading: 'Generating chart', done: 'Generated chart' },
-}
-
 const fullLabel = computed(() => {
   const { toolName, args, state } = props.tool
-
-  const adminLabel = adminToolLabels[toolName]
-  if (adminLabel) {
-    return state === 'loading' ? adminLabel.loading : adminLabel.done
-  }
-
   const commands = args?.commands as string[] || (args?.command ? [args.command as string] : [])
 
   if (toolName === 'search_and_read') {
@@ -74,8 +58,8 @@ function summarizeCommand(cmd: string): string {
     return `ls ${dirName}`
   }
 
-  const [cmdName] = firstPart.split(/\s+/)
-  return cmdName || 'command'
+  // For non-shell commands (e.g. admin tool labels), return the full text
+  return firstPart.length > 60 ? `${firstPart.slice(0, 60)}…` : firstPart || 'command'
 }
 
 let typewriterTimeout: ReturnType<typeof setTimeout> | null = null
@@ -118,6 +102,14 @@ watch(() => props.tool.state, (newState, oldState) => {
   if (newState === 'loading' && oldState !== 'loading') {
     startExpand()
   } else if (newState === 'done' && oldState === 'loading') {
+    // If loading was too brief for the 150ms expand timer to fire, expand now
+    if (!isExpanded.value) {
+      isExpanded.value = true
+    }
+    startCollapse()
+  } else if (newState === 'done' && oldState === undefined) {
+    // Tool arrived with loading+done batched in the same tick (fast admin tools)
+    isExpanded.value = true
     startCollapse()
   }
 }, { immediate: true })
@@ -200,14 +192,15 @@ function truncateOutput(text: string, maxLines = 8): string {
 
     <AnimatePresence>
       <motion.div
-        v-if="isExpanded && commandsToShow.length"
+        v-if="isExpanded && canExpand"
+        key="expanded"
         :initial="{ height: 0, opacity: 0 }"
         :animate="{ height: 'auto', opacity: 1 }"
         :exit="{ height: 0, opacity: 0 }"
         :transition="{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }"
         class="overflow-hidden"
       >
-        <div class="ml-2.5 pl-1.5 border-l border-muted/15 mt-0.5 mb-1 space-y-1">
+        <div v-if="commandsToShow.length" class="ml-2.5 pl-1.5 border-l border-muted/15 mt-0.5 mb-1 space-y-1">
           <div
             v-for="(cmd, idx) in commandsToShow"
             :key="idx"

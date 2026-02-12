@@ -187,7 +187,7 @@ function getMessageToolCalls(message: UIMessage): ToolCall[] {
   if (!message?.parts) return []
   return (message.parts as Array<{ type: string, data?: ToolCall }>)
     .filter(p => p.type === 'data-tool-call')
-    .map(p => p.data!)
+    .map(p => ({ ...p.data! }))
     .filter(Boolean)
 }
 

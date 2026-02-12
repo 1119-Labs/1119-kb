@@ -20,6 +20,25 @@ defineRouteMeta({
   },
 })
 
+/** Build a human-readable label for an admin tool call (used as `command`). */
+function adminToolLabel(toolName: string, args: Record<string, unknown>): string {
+  switch (toolName) {
+    case 'run_sql': {
+      const q = String(args?.query || '').trim()
+      return q.length > 80 ? `${q.slice(0, 80)}…` : q || 'SQL query'
+    }
+    case 'query_stats': return 'Query stats'
+    case 'list_users': return 'List users'
+    case 'list_sources': return 'List sources'
+    case 'query_chats': return 'Query chats'
+    case 'get_agent_config': return 'Get agent config'
+    case 'query_logs': return 'Query logs'
+    case 'log_stats': return 'Log stats'
+    case 'query_errors': return 'Query errors'
+    default: return toolName.replace(/_/g, ' ')
+  }
+}
+
 export default defineEventHandler(async (event) => {
   const requestLog = useLogger(event)
   const requestId = crypto.randomUUID().slice(0, 8)
@@ -124,13 +143,79 @@ export default defineEventHandler(async (event) => {
     let routingResult: RoutingResult | undefined
     let effectiveModel = model
 
+    // Wrap admin tools to emit loading/done events using the same format as SDK tools.
+    // Exclude 'chart' which has its own native UI via tool-chart parts.
+    const wrappedAdminTools = isAdminChat
+      ? Object.fromEntries(
+        Object.entries(adminTools).map(([name, t]) => {
+          if (name === 'chart') return [name, t]
+          return [
+            name,
+            {
+              ...(t as Record<string, unknown>),
+              execute: (args: Record<string, unknown>, options: { toolCallId: string }) => {
+                const label = adminToolLabel(name, args)
+
+                // Emit loading event (same shape as SDK tools)
+                if (streamWriter) {
+                  streamWriter.write({
+                    type: 'data-tool-call',
+                    id: options.toolCallId,
+                    data: {
+                      toolCallId: options.toolCallId,
+                      toolName: name,
+                      args: { command: label },
+                      state: 'loading',
+                    },
+                  })
+                }
+
+                const start = Date.now()
+                const promise = (t as any).execute(args, options) as Promise<unknown>
+
+                // Emit done event with result as stdout (same shape as SDK tools)
+                return promise.then((output: unknown) => {
+                  if (streamWriter) {
+                    streamWriter.write({
+                      type: 'data-tool-call',
+                      id: options.toolCallId,
+                      data: {
+                        toolCallId: options.toolCallId,
+                        toolName: name,
+                        args: { command: label },
+                        state: 'done',
+                        result: {
+                          success: true,
+                          durationMs: Date.now() - start,
+                          commands: [
+                            {
+                              command: label,
+                              stdout: JSON.stringify(output, null, 2),
+                              stderr: '',
+                              exitCode: 0,
+                              success: true,
+                            },
+                          ],
+                        },
+                      },
+                    })
+                  }
+                  return output
+                })
+              },
+            },
+          ]
+        }),
+      )
+      : undefined
+
     const agent = createAgent({
       tools: savoir.tools,
       route: () => routeQuestion(messages, requestId),
       buildPrompt: (routerConfig, agentConfig) => applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig),
       resolveModel: (_, agentConfig) => agentConfig.defaultModel || model,
-      admin: isAdminChat
-        ? { tools: adminTools, systemPrompt: ADMIN_SYSTEM_PROMPT }
+      admin: wrappedAdminTools
+        ? { tools: wrappedAdminTools, systemPrompt: ADMIN_SYSTEM_PROMPT }
         : undefined,
       onRouted: (routed) => {
         routingResult = routed
@@ -153,26 +238,8 @@ export default defineEventHandler(async (event) => {
           const tools = stepResult.toolCalls.map((c: { toolName: string }) => c.toolName).join(', ')
           log.info('chat', `[${requestId}] Step ${stepCount}: ${tools} (${stepDurationMs}ms)`)
 
-          // Emit tool call events for admin tools (SDK tools handle this via onToolCall)
-          if (isAdminChat && streamWriter) {
-            for (const tc of stepResult.toolCalls) {
-              streamWriter.write({
-                type: 'data-tool-call',
-                id: tc.toolCallId,
-                data: {
-                  toolCallId: tc.toolCallId,
-                  toolName: tc.toolName,
-                  args: tc.args,
-                  state: 'done',
-                  result: {
-                    success: true,
-                    durationMs: stepDurationMs,
-                    commands: [],
-                  },
-                },
-              })
-            }
-          }
+          // Admin tool call events (loading + done) are emitted from the tool wrapper itself,
+          // so no additional emission is needed here.
         } else {
           log.info('chat', `[${requestId}] Step ${stepCount}: response (${stepDurationMs}ms)`)
         }

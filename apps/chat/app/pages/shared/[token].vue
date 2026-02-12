@@ -100,7 +100,7 @@ definePageMeta({
             class="pt-4 sm:pt-6 pb-4 sm:pb-6"
           >
             <template #content="{ message }">
-              <template v-for="(part, index) in message.parts.filter(p => p.type !== 'data-sources')" :key="`${message.id}-${part.type}-${index}`">
+              <template v-for="(part, index) in message.parts.filter(p => p.type !== 'data-sources')" :key="`${message.id}-${part.type}-${index}-${part.type.startsWith('tool-') ? (part as any).state ?? '' : ''}`">
                 <Reasoning
                   v-if="part.type === 'reasoning'"
                   :text="part.text"

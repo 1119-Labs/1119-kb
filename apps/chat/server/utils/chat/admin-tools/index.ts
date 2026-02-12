@@ -4,6 +4,9 @@ import { listSourcesTool } from './list-sources'
 import { queryChatsTool } from './query-chats'
 import { runSqlTool } from './run-sql'
 import { getAgentConfigTool } from './get-agent-config'
+import { queryLogsTool } from './query-logs'
+import { logStatsTool } from './log-stats'
+import { queryErrorsTool } from './query-errors'
 import { chartTool } from '~~/shared/utils/tools/chart'
 
 export const adminTools = {
@@ -13,5 +16,8 @@ export const adminTools = {
   query_chats: queryChatsTool,
   run_sql: runSqlTool,
   get_agent_config: getAgentConfigTool,
+  query_logs: queryLogsTool,
+  log_stats: logStatsTool,
+  query_errors: queryErrorsTool,
   chart: chartTool,
 }
