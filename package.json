@@ -4,13 +4,12 @@
   "type": "module",
   "description": "Monorepo for Savoir",
   "author": "HugoRCD",
-  "funding": "https://github.com/sponsors/HugoRCD",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HugoRCD/savoir.git"
+    "url": "git+https://github.com/vercel-labs/savoir.git"
   },
   "bugs": {
-    "url": "https://github.com/HugoRCD/savoir/issues"
+    "url": "https://github.com/vercel-labs/savoir/issues"
   },
   "workspaces": [
     "apps/*",

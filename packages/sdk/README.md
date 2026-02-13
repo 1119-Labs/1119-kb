@@ -1,6 +1,6 @@
 # @savoir/sdk
 
-SDK for [Savoir](https://github.com/HugoRCD/savoir) - AI agents with real-time knowledge base access.
+SDK for [Savoir](https://github.com/vercel-labs/savoir) - AI agents with real-time knowledge base access.
 
 Provides [AI SDK](https://ai-sdk.dev) compatible tools to query documentation in a sandboxed environment.
 
@@ -20,8 +20,8 @@ Set the following environment variables:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SAVOIR_API_URL` | Yes | Base URL of your Savoir API (e.g., `https://chat.savoir.dev`) |
-| `SAVOIR_API_KEY` | No | API key for authentication. Required if the API has `SAVOIR_SECRET_KEY` configured. |
+| `SAVOIR_API_URL` | Yes | Base URL of your Savoir API |
+| `SAVOIR_API_KEY` | No | API key for authentication ([Better Auth](https://www.better-auth.com) API key). |
 
 ## Quick Start
 
@@ -71,6 +71,8 @@ const savoir = createSavoir({
 | `apiUrl` | `string` | Yes | Base URL of your Savoir API |
 | `apiKey` | `string` | No | API key for authentication |
 | `sessionId` | `string` | No | Reuse an existing sandbox session |
+| `source` | `string` | No | Usage source identifier (e.g. `'github-bot'`). Defaults to `'sdk'`. |
+| `sourceId` | `string` | No | Tracking ID (e.g. `'issue-123'`). Can be overridden per `reportUsage()` call. |
 | `onToolCall` | `function` | No | Callback fired on tool execution (loading/done/error) |
 
 #### Returns
@@ -85,6 +87,7 @@ interface Savoir {
   getSessionId(): string | undefined
   setSessionId(sessionId: string): void
   getAgentConfig(): Promise<AgentConfig>
+  reportUsage(result: GenerateResult, options?: ReportUsageOptions): Promise<void>
 }
 ```
 
@@ -92,7 +95,7 @@ interface Savoir {
 
 #### `bash`
 
-Execute a single bash command in the documentation sandbox.
+Execute a single bash command in the documentation [sandbox](https://vercel.com/docs/vercel-sandbox).
 
 ```ts
 const { text } = await generateText({
@@ -104,7 +107,7 @@ const { text } = await generateText({
 
 #### `bash_batch`
 
-Execute multiple bash commands in a single request. More efficient than multiple single calls as the sandbox is reused between commands.
+Execute multiple bash commands in a single request. More efficient than multiple single calls as the [sandbox](https://vercel.com/docs/vercel-sandbox) is reused between commands.
 
 ```ts
 const { text } = await generateText({
@@ -141,6 +144,9 @@ await client.sync({ reset: false, push: true })
 
 // Get agent configuration
 const config = await client.getAgentConfig()
+
+// Report usage from an AI SDK generate result
+await client.reportUsage(result, { startTime: Date.now() })
 ```
 
 ## Error Handling
@@ -202,6 +208,8 @@ import type {
   SyncResponse,
   SourcesResponse,
   AgentConfig,
+  GenerateResult,
+  ReportUsageOptions,
   ToolCallInfo,
   ToolCallCallback,
   ToolCallState,

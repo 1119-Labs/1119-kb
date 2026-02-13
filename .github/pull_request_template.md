@@ -19,9 +19,7 @@ Here are the available types and scopes:
 
 ### Scopes
 - chat (apps/chat - Main application)
-- bot (apps/bot - Bot)
 - sdk (packages/sdk - @savoir/sdk)
-- logger (packages/logger - @savoir/logger)
 - deps (dependencies updates)
 - docs (documentation)
 -->

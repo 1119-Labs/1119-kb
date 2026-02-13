@@ -2,47 +2,35 @@
 
 The Savoir GitHub bot responds to mentions in GitHub issues, using your knowledge base to provide answers directly in the conversation.
 
-## Create a GitHub App
+> If you haven't created your GitHub App yet, follow the [GitHub App Setup](/admin/docs/getting-started#github-app-setup) in the Getting Started guide first. The same app handles both OAuth login and the bot.
 
-1. Go to **GitHub Settings → Developer settings → GitHub Apps → New GitHub App**
-2. Fill in the following:
-   - **App name**: e.g. `savoir-bot`
-   - **Homepage URL**: your Savoir instance URL
-   - **Webhook URL**: `https://savoir.example.com/api/webhooks/github`
-   - **Webhook secret**: a random string (save it for later)
+## Prerequisites
 
-### Permissions
+Make sure your GitHub App is configured with:
 
-Set the following repository permissions:
+- **Webhook URL** pointing to `<your-url>/api/webhooks/github`
+- **Webhook secret** set and matching your `NUXT_GITHUB_WEBHOOK_SECRET`
+- **Repository permissions**: Issues (Read & Write), Metadata (Read-only)
+- **Events**: Issues, Issue comments
 
-| Permission | Access |
-|------------|--------|
-| Issues | Read & Write |
-| Metadata | Read-only |
-
-### Events
-
-Subscribe to these events:
-
-- **Issues** — to detect new issues
-- **Issue comments** — to detect mentions in comments
+For the full setup, see [Getting Started > GitHub App Setup](/admin/docs/getting-started#github-app-setup).
 
 ## Environment Variables
 
-Add the following to your `.env` file:
-
 | Variable | Description |
 |----------|-------------|
-| `NUXT_GITHUB_APP_ID` | The App ID from your GitHub App settings |
-| `NUXT_GITHUB_APP_PRIVATE_KEY` | The private key (PEM format, can be base64-encoded) |
+| `NUXT_PUBLIC_GITHUB_BOT_TRIGGER` | The mention trigger for the bot (e.g. `@savoir-bot`). This must match the GitHub App name. |
+| `NUXT_GITHUB_APP_ID` | The App ID from your [GitHub App settings](https://github.com/settings/apps) |
+| `NUXT_GITHUB_APP_PRIVATE_KEY` | The private key (PEM format). Generate one from your app's settings page. Can be base64-encoded. |
 | `NUXT_GITHUB_WEBHOOK_SECRET` | The webhook secret you set when creating the app |
-| `NUXT_SAVOIR_API_KEY` | A Savoir admin API key for the bot to authenticate with |
 
 ## Install the App
 
-1. From your GitHub App settings, click **Install App**
+1. From your [GitHub App settings](https://github.com/settings/apps), click **Install App**
 2. Select the repositories where the bot should be active
 3. Confirm the installation
+
+The app uses [installation access tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation) to interact with repositories -- no personal access token needed for the bot.
 
 ## Trigger the Bot
 
@@ -53,8 +41,29 @@ Mention the bot in any issue comment:
 ```
 
 The bot will:
-1. Receive the webhook event
-2. Query the Savoir knowledge base
+1. React with an "eyes" emoji to indicate it's processing
+2. Search the Savoir knowledge base using the same AI agent as the chat
 3. Post a reply in the same issue thread
+4. React with a "thumbs up" emoji when done
 
 The bot only responds when explicitly mentioned. It ignores its own comments to prevent loops.
+
+## Auto-Reply to New Issues
+
+You can optionally configure the bot to reply to **all** new issues automatically, without requiring a mention. Set in `nuxt.config.ts`:
+
+```typescript
+runtimeConfig: {
+  github: {
+    replyToNewIssues: true,
+  },
+}
+```
+
+When enabled, the bot will respond to every new issue opened in repositories where the GitHub App is installed.
+
+## How It Works Under the Hood
+
+The bot is built on the [Vercel Chat SDK](https://github.com/vercel-labs/chat) with a custom GitHub adapter. It uses the [Octokit](https://github.com/octokit/rest.js) library with [GitHub App authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) to interact with the GitHub API.
+
+Each response goes through the same AI agent pipeline as the chat interface, using [Vercel AI SDK](https://ai-sdk.dev) tools to search the knowledge base in a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox).

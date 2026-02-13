@@ -6,8 +6,8 @@ This document describes the technical architecture of Savoir, a platform for bui
 
 Savoir consists of two main components:
 
-1. **Chat App** (`apps/chat`): A unified Nuxt application that provides both the chat interface and the API for sandbox management, content synchronization, and source management
-2. **SDK** (`packages/sdk`): A client library providing AI SDK-compatible tools
+1. **Chat App** (`apps/chat`): A unified [Nuxt](https://nuxt.com) application that provides the chat interface, API, bot integrations, sandbox management, and content synchronization
+2. **SDK** (`packages/sdk`): A client library providing [AI SDK](https://ai-sdk.dev)-compatible tools (`bash`, `bash_batch`)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -20,13 +20,13 @@ Savoir consists of two main components:
 │  │                                                                    │  │
 │  │  const savoir = createSavoir({ apiKey, apiUrl })                   │  │
 │  │  const { text } = await generateText({                             │  │
-│  │    model: 'google/gemini-3-flash',                                 │  │
-│  │    tools: { ...savoir.tools }                                      │  │
+│  │    model: yourModel,                                               │  │
+│  │    tools: savoir.tools  // bash, bash_batch                        │  │
 │  │  })                                                                │  │
 │  └────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────┘
                                      │
-                                     │ HTTPS (API Key auth)
+                                     │ HTTPS (Better Auth session or API key)
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                            apps/chat                                     │
@@ -35,21 +35,22 @@ Savoir consists of two main components:
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
 │  │ /api/sandbox/*  │  │   /api/sync/*   │  │    /api/sources/*       │  │
 │  │                 │  │                 │  │                         │  │
-│  │ - snapshot      │  │ - POST /sync    │  │ - GET /sources          │  │
-│  │ - search-and-   │  │ - POST /sync/:s │  │ - POST /sources         │  │
-│  │   read          │  │                 │  │ - PUT /sources/:id      │  │
-│  │ - read          │  │                 │  │ - DELETE /sources/:id   │  │
+│  │ - shell (bash)  │  │ - POST /sync    │  │ - GET /sources          │  │
+│  │ - snapshot      │  │ - POST /sync/:s │  │ - POST /sources         │  │
+│  │                 │  │                 │  │ - PUT /sources/:id      │  │
+│  │                 │  │                 │  │ - DELETE /sources/:id   │  │
 │  └────────┬────────┘  └────────┬────────┘  └────────────┬────────────┘  │
 │           │                    │                        │               │
 │           ▼                    ▼                        ▼               │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
 │  │ Sandbox Manager │  │ Vercel Workflow │  │      NuxtHub DB         │  │
 │  │                 │  │                 │  │                         │  │
-│  │ - Lifecycle     │  │ - Durable exec  │  │ - SQLite (sources)      │  │
-│  │ - KV caching    │  │ - Auto retries  │  │ - KV (sessions)         │  │
-│  │ - Command exec  │  │ - Sync sources  │  │ - Blob (uploads)        │  │
-│  └────────┬────────┘  └────────┬────────┘  └─────────────────────────┘  │
-└───────────┼────────────────────┼────────────────────────────────────────┘
+│  │ - Lifecycle     │  │ - Durable exec  │  │ - SQLite (sources,      │  │
+│  │ - KV caching    │  │ - Auto retries  │  │   chats, messages,      │  │
+│  │ - Command exec  │  │ - Sync sources  │  │   agent_config, stats)  │  │
+│  └────────┬────────┘  └────────┬────────┘  │ - KV (sessions, cache)  │  │
+│           │                    │            │ - Blob (uploads)        │  │
+└───────────┼────────────────────┼────────────┴─────────────────────────┘  │
             │                    │
             ▼                    ▼
      ┌────────────┐       ┌────────────┐
@@ -63,52 +64,45 @@ Savoir consists of two main components:
 
 ```
 savoir/
-├── savoir.config.ts          # Source definitions (for seeding DB)
 ├── apps/
 │   └── chat/                 # Unified Nuxt application
 │       ├── app/              # Vue app (components, pages, composables)
+│       ├── shared/           # Shared types (tool-call, snapshot)
 │       ├── server/
 │       │   ├── api/          # API routes
-│       │   │   ├── sandbox/  # Sandbox endpoints
-│       │   │   │   ├── snapshot.post.ts
-│       │   │   │   ├── search-and-read.post.ts
-│       │   │   │   └── read.post.ts
+│       │   │   ├── sandbox/  # Sandbox endpoints (shell, snapshot)
 │       │   │   ├── sync/     # Sync endpoints
-│       │   │   │   ├── index.post.ts
-│       │   │   │   └── [source].post.ts
-│       │   │   └── sources/  # Sources CRUD
-│       │   ├── lib/
-│       │   │   └── sandbox/  # Sandbox manager library
-│       │   │       ├── types.ts          # Type definitions
-│       │   │       ├── context.ts        # Sandbox creation
-│       │   │       ├── session.ts        # Session management (KV)
-│       │   │       ├── snapshot.ts       # Snapshot operations (KV)
-│       │   │       ├── manager.ts        # High-level sandbox API
-│       │   │       ├── git.ts            # Git operations in sandbox
-│       │   │       ├── source-sync.ts    # Content sync helpers
-│       │   │       └── index.ts          # Public exports
+│       │   │   ├── sources/  # Sources CRUD
+│       │   │   ├── chats/    # Chat CRUD + AI streaming
+│       │   │   ├── agent-config/  # Agent configuration
+│       │   │   ├── stats/    # Usage statistics
+│       │   │   ├── webhooks/ # Bot webhooks (GitHub, Discord)
+│       │   │   ├── upload/   # File uploads
+│       │   │   ├── messages/ # Message feedback
+│       │   │   ├── shared/   # Shared (public) chats
+│       │   │   ├── snapshot/ # Snapshot status/sync
+│       │   │   ├── admin/    # Admin API keys
+│       │   │   └── discord/  # Discord gateway
+│       │   ├── db/           # Drizzle schema + migrations
+│       │   ├── utils/
+│       │   │   ├── sandbox/  # Sandbox manager library
+│       │   │   ├── bot/      # Bot framework (adapters, AI, types)
+│       │   │   ├── chat/     # Chat helpers + admin tools
+│       │   │   ├── router/   # Complexity router (schema, route-question)
+│       │   │   ├── prompts/  # System prompts (chat, bot, router, shared)
+│       │   │   └── image/    # Image processing
 │       │   ├── workflows/    # Vercel Workflows
 │       │   │   ├── sync-docs/
-│       │   │   └── create-snapshot/
-│       │   ├── tasks/        # Nitro tasks
-│       │   │   └── seed-sources.ts
-│       │   ├── middleware/   # API auth
-│       │   │   └── api-auth.ts
-│       │   ├── db/           # Drizzle schema
-│       │   │   └── schema.ts
-│       │   └── plugins/      # Nitro plugins
-│       │       └── logger.ts
+│       │   │   ├── create-snapshot/
+│       │   │   └── compute-stats/
+│       │   └── auth.config.ts  # Better Auth config
 │       └── nuxt.config.ts
-├── shared/
-│   └── types/
-│       └── snapshot.ts       # SnapshotSyncStatus type
 ├── packages/
-│   ├── sdk/                  # @savoir/sdk
-│   │   └── src/
-│   │       ├── index.ts      # Public exports
-│   │       ├── client.ts     # HTTP client
-│   │       └── tools/        # AI SDK tool definitions
-│   └── logger/               # @savoir/logger
+│   └── sdk/                  # @savoir/sdk
+│       └── src/
+│           ├── index.ts      # Public exports
+│           ├── client.ts     # HTTP client (SavoirClient)
+│           └── tools/        # AI SDK tool definitions (bash, bash_batch)
 └── docs/                     # Documentation
 ```
 
@@ -116,7 +110,7 @@ savoir/
 
 ### 1. Sources (Database)
 
-Sources are stored in SQLite via NuxtHub. They can be managed via the API or seeded from `savoir.config.ts`.
+Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com) and managed through the admin interface.
 
 #### Database Schema
 
@@ -125,6 +119,7 @@ export const sources = sqliteTable('sources', {
   id: text('id').primaryKey(),
   type: text('type', { enum: ['github', 'youtube'] }).notNull(),
   label: text('label').notNull(),
+  basePath: text('base_path').default('/docs'),
 
   // GitHub fields
   repo: text('repo'),
@@ -145,27 +140,25 @@ export const sources = sqliteTable('sources', {
 
 ### 2. SDK (`@savoir/sdk`)
 
-The SDK provides AI SDK-compatible tools that communicate with the Savoir API.
+The SDK provides [AI SDK](https://ai-sdk.dev)-compatible tools that communicate with the Savoir API via `POST /api/sandbox/shell`.
 
 #### API Design
 
 ```typescript
-import { tool } from 'ai'
-import { z } from 'zod'
+import { createSavoir } from '@savoir/sdk'
 
-export interface SavoirOptions {
-  apiKey: string
-  apiUrl: string
-  chatId?: string  // Optional: reuse sandbox across calls
-}
+const savoir = createSavoir({
+  apiUrl: 'https://your-savoir-instance.com',
+  apiKey: 'your-api-key', // Better Auth API key
+  sessionId: 'optional',  // Reuse sandbox session
+  onToolCall: (info) => {}, // Tool execution callback
+})
 
-export interface SavoirClient {
-  searchAndRead: ReturnType<typeof tool>  // Search and read files (recommended)
-  search: ReturnType<typeof tool>         // Search for files
-  read: ReturnType<typeof tool>           // Read specific files
-}
-
-export function createSavoir(options: SavoirOptions): SavoirClient
+// Returns:
+// savoir.tools.bash       - Execute single bash command in sandbox
+// savoir.tools.bash_batch - Execute multiple commands in one request
+// savoir.client           - Low-level SavoirClient for direct API access
+// savoir.getAgentConfig() - Fetch agent configuration
 ```
 
 ### 3. Sandbox System
@@ -195,277 +188,211 @@ The sandbox system uses [Vercel Sandbox Snapshots](https://vercel.com/docs/verce
                                                            │ instant start
                                                            ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         API Sandbox Endpoints                            │
+│                         API: POST /api/sandbox/shell                     │
 │                                                                          │
-│  Request ──▶ Start from snapshot ──▶ Search/Read ──▶ Return results     │
-│                  (instant)              (grep/cat)                       │
+│  Request ──▶ Start from snapshot ──▶ Execute bash ──▶ Return results    │
+│                  (instant)            (grep/cat/find)                    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4. Content Sync
+#### Allowed Commands
 
-Content synchronization uses [Vercel Workflow](https://github.com/vercel/workflow) for durable execution with automatic retries.
+The sandbox only permits read-only commands: `find`, `ls`, `tree`, `grep`, `cat`, `head`, `tail`, `wc`, `sort`, `uniq`, `diff`, `echo`, `stat`, `file`, `du`, `basename`, `dirname`, `realpath`, `xargs`.
 
-```
-POST /api/sync
-     │
-     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Vercel Workflow                                  │
-│                     (Durable execution engine)                           │
-│                                                                          │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                       stepSyncAll                                 │  │
-│  │                                                                   │  │
-│  │  1. Create sandbox from snapshot                                 │  │
-│  │  2. Sync all sources (GitHub repos, etc.)                        │  │
-│  │  3. Git commit and push changes                                  │  │
-│  │  4. Take new snapshot                                            │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                                                                          │
-│  Features:                                                               │
-│  - Automatic retries on failure                                          │
-│  - Progress tracking via `bun run workflow:web`                          │
-│  - Durable state (survives server restarts)                              │
-│  - All operations in single step (avoids serialization issues)           │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+Blocked: `rm`, `curl`, `wget`, `git`, `ssh`, `sudo`, command substitution, redirects, interpreters.
+
+### 4. AI Agent (Router + Model Selection)
+
+Savoir uses a complexity-based router to select the appropriate model and step count for each question.
+
+#### Router Flow
+
+1. User sends a message
+2. `routeQuestion()` sends the question to a lightweight model (`google/gemini-2.5-flash-lite`) with the `agentConfigSchema`
+3. The router classifies the question by complexity and returns:
+   - `complexity`: trivial | simple | moderate | complex
+   - `maxSteps`: 4 | 8 | 15 | 25
+   - `model`: flash for trivial/simple, sonnet for moderate, opus for complex
+   - `reasoning`: brief explanation
+4. Admin agent config (from DB) can override the model and multiply max steps
+5. The `ToolLoopAgent` runs with the selected model and tools
+
+#### Agent Configuration (Admin)
+
+Stored in the `agent_config` table, configurable via `/admin/agent`:
+
+| Field | Description |
+|-------|-------------|
+| `additionalPrompt` | Extra instructions appended to system prompt |
+| `responseStyle` | concise, detailed, technical, friendly |
+| `language` | Response language (e.g. `en`) |
+| `defaultModel` | Override the router's model selection |
+| `maxStepsMultiplier` | Multiplier for router's maxSteps |
+| `temperature` | Model temperature (0-1) |
+| `searchInstructions` | Custom search tips for the agent |
+| `citationFormat` | inline, footnote, none |
+
+### 5. Content Sync
+
+Content synchronization uses [Vercel Workflow](https://useworkflow.dev) for durable execution with automatic retries.
+
+### 6. Bot Integrations
+
+#### GitHub Bot
+
+- Uses `SavoirGitHubAdapter` via the [Vercel Chat SDK](https://github.com/vercel-labs/chat)
+- Responds to mentions in issues and PRs
+- Can optionally reply to new issues (`replyToNewIssues` config)
+- Webhook: `POST /api/webhooks/github`
+
+#### Discord Bot
+
+- Uses [`@chat-adapter/discord`](https://github.com/vercel-labs/chat)
+- Responds to mentions and continues conversations in threads
+- Webhook: `POST /api/webhooks/discord`
+
+Both bots use the same AI agent pipeline (router + tools) as the chat interface but with internal sandbox access (no HTTP round-trip).
 
 ## API Endpoints
 
 ### Authentication
 
-Authentication is optional for `/api/sandbox/*` and `/api/sync/*` endpoints. If `SAVOIR_SECRET_KEY` is configured, these endpoints require an API key:
+Authentication uses [Better Auth](https://www.better-auth.com) with the [`@onmax/nuxt-better-auth`](https://github.com/onmax/nuxt-better-auth) module:
+- **Email/password** and **GitHub OAuth** sign-in (via a [GitHub App](https://docs.github.com/en/apps), scope `user:email`)
+- **API keys** via Better Auth's [`apiKey` plugin](https://www.better-auth.com/docs/plugins/api-key) (supports `Authorization: Bearer <key>` and `x-api-key` headers)
+- **Admin role** granted to users whose email or username matches `NUXT_ADMIN_USERS`
 
-```
-Authorization: Bearer <api-key>
-```
+### Sandbox
 
-If not configured, the API is open (useful for local development).
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/sandbox/shell` | User/API key | Execute bash command(s) in sandbox |
+| POST | `/api/sandbox/snapshot` | Admin | Create a new snapshot |
 
-### Sandbox Endpoints
+### Chats
 
-#### POST /api/sandbox/snapshot
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/chats` | User | List user's chats |
+| POST | `/api/chats` | User | Create a new chat |
+| GET | `/api/chats/:id` | User | Get chat with messages |
+| POST | `/api/chats/:id` | User | Stream AI response |
+| DELETE | `/api/chats/:id` | User | Delete chat |
+| PATCH | `/api/chats/:id/share` | User | Toggle sharing |
 
-Create a new snapshot from the documentation repository.
+### Sources
 
-**Response:**
-```json
-{
-  "status": "started",
-  "message": "Snapshot workflow started."
-}
-```
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/sources` | Public | List all sources |
+| POST | `/api/sources` | Admin | Create source |
+| PUT | `/api/sources/:id` | Admin | Update source |
+| DELETE | `/api/sources/:id` | Admin | Delete source |
 
-#### POST /api/sandbox/search-and-read
+### Sync
 
-Combined search and read operation (recommended).
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/sync` | Admin | Sync all sources |
+| POST | `/api/sync/:source` | Admin | Sync specific source |
 
-**Request:**
-```json
-{
-  "query": "useAsyncData",
-  "limit": 20,
-  "sessionId": "optional-session-id"
-}
-```
+### Snapshot
 
-**Response:**
-```json
-{
-  "sessionId": "sess_1234567890_abc123",
-  "matches": [
-    { "path": "docs/nuxt/composables/use-async-data.md", "lineNumber": 10, "content": "..." }
-  ],
-  "files": [
-    { "path": "docs/nuxt/composables/use-async-data.md", "content": "# useAsyncData\n\n..." }
-  ]
-}
-```
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/snapshot/status` | Admin | Current vs latest snapshot |
+| POST | `/api/snapshot/sync` | Admin | Sync to latest snapshot |
 
-#### POST /api/sandbox/read
+### Agent Config
 
-Read specific files by path.
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/agent-config` | Admin | Get agent configuration |
+| PUT | `/api/agent-config` | Admin | Update agent configuration |
+| POST | `/api/agent-config/reset` | Admin | Reset to defaults |
+| GET | `/api/agent-config/public` | User/API key | Get active config (for SDK/bots) |
 
-**Request:**
-```json
-{
-  "paths": ["docs/nuxt/guide/middleware.md"],
-  "sessionId": "optional-session-id"
-}
-```
+### Stats
 
-**Response:**
-```json
-{
-  "sessionId": "sess_1234567890_abc123",
-  "files": [
-    { "path": "docs/nuxt/guide/middleware.md", "content": "# Middleware\n\n..." }
-  ]
-}
-```
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/stats` | Admin | Global usage stats |
+| GET | `/api/stats/me` | User | User's own stats |
+| POST | `/api/stats/usage` | User/API key | Report usage (SDK/bots) |
+| POST | `/api/stats/compute` | Admin | Recompute stats |
 
-### Sync Endpoints
+### Other
 
-#### POST /api/sync
-
-Sync all sources.
-
-**Response:**
-```json
-{
-  "status": "started",
-  "message": "Sync workflow started."
-}
-```
-
-#### POST /api/sync/:source
-
-Sync a specific source.
-
-**Response:**
-```json
-{
-  "status": "started",
-  "message": "Sync workflow started for source \"nuxt\".",
-  "source": "nuxt"
-}
-```
-
-### Snapshot Endpoints
-
-#### GET /api/snapshot/status
-
-Get current vs latest snapshot status. Returns whether the sandbox needs to sync to a newer snapshot. Admin only.
-
-**Response:**
-```json
-{
-  "currentSnapshotId": "snap_abc123",
-  "latestSnapshotId": "snap_def456",
-  "needsSync": true,
-  "latestCreatedAt": 1706400000000
-}
-```
-
-#### POST /api/snapshot/sync
-
-Sync sandbox to the latest Vercel snapshot. Admin only.
-
-**Response:**
-```json
-{
-  "status": "synced",
-  "snapshotId": "snap_def456"
-}
-```
-
-### Sources Endpoints
-
-#### GET /api/sources
-
-List all sources grouped by type.
-
-**Response:**
-```json
-{
-  "github": [...],
-  "youtube": [...]
-}
-```
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/webhooks/:platform` | Platform | Bot webhooks (GitHub, Discord) |
+| PUT | `/api/upload/:chatId` | User | Upload file to chat |
+| DELETE | `/api/upload/...pathname` | User | Delete uploaded file |
+| PATCH | `/api/messages/:id/feedback` | User | Set feedback (positive/negative) |
+| GET | `/api/shared/:token` | Public | Get shared chat (ISR cached) |
 
 ## Storage Strategy
 
-### NuxtHub SQLite
+### [NuxtHub](https://hub.nuxt.com) SQLite
 
-Used for persistent data:
+Used for persistent data (via [Drizzle ORM](https://orm.drizzle.team)):
 
-```typescript
-// Sources table
-sources: { id, type, label, repo, branch, ... }
-
-// Users, chats, messages tables for chat app
+```
+chats          - Chat sessions (id, title, userId, mode, sharing)
+messages       - Chat messages (role, parts, feedback, model, tokens)
+sources        - Content sources (GitHub repos, YouTube channels)
+agent_config   - AI agent configuration (admin-managed)
+api_usage      - External API usage tracking (bots, SDK)
+usage_stats    - Aggregated daily usage statistics
+user/session/account - Better Auth managed tables
 ```
 
-### NuxtHub KV
+### [NuxtHub KV](https://hub.nuxt.com/docs/features/kv)
 
 Used for caching and session management:
 
-```typescript
-// Current snapshot (updated by sync workflow)
-`snapshot:current` -> { snapshotId: string, createdAt: number }
-
-// Active sandbox sessions
-`session:${sessionId}` -> { sandboxId: string, snapshotId: string, ... }
-
-// Snapshot status cache (1 min TTL)
-`snapshot:status-cache` -> { latestSnapshotId: string, latestCreatedAt: number, cachedAt: number }
-
-// Last source sync timestamp
-`sources:last-sync` -> number (timestamp)
+```
+snapshot:current        - Current snapshot ID and creation timestamp
+session:{sessionId}     - Active sandbox sessions
+snapshot:status-cache   - Snapshot status cache (1 min TTL)
+sources:last-sync       - Last sync timestamp
+agent-config:active     - Cached active agent config (60s TTL)
 ```
 
-### Snapshot Repository
+### [NuxtHub Blob](https://hub.nuxt.com/docs/features/blob)
 
-Structure:
+Used for file uploads (images, PDFs, CSVs attached to chats).
+
+### Snapshot Repository
 
 ```
 {GITHUB_SNAPSHOT_REPO}/
 ├── docs/
 │   ├── nuxt/
 │   │   ├── getting-started/
-│   │   │   └── installation.md
 │   │   └── composables/
-│   │       └── use-async-data.md
 │   ├── nitro/
 │   └── ...
 └── youtube/
     └── alex-lichter/
-        └── nuxt-4-overview-TAoTh4DqH6A.md
 ```
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NUXT_GITHUB_TOKEN` | Yes | GitHub token for API access |
-| `NUXT_GITHUB_SNAPSHOT_REPO` | Yes | Snapshot repository (owner/repo) |
-| `NUXT_GITHUB_SNAPSHOT_BRANCH` | No | Branch to use (default: main) |
-| `NUXT_SAVOIR_SECRET_KEY` | No | API key for authentication |
+See [ENVIRONMENT.md](./ENVIRONMENT.md) for the complete list.
 
 ## Security
 
-### API Key Validation (Optional)
+### Authentication
 
-Authentication is **optional** and only enforced if `NUXT_SAVOIR_SECRET_KEY` is set.
-
-- If `NUXT_SAVOIR_SECRET_KEY` is not set → API is open (useful for development)
-- If `NUXT_SAVOIR_SECRET_KEY` is set → `/api/sync/*` and `/api/sandbox/*` require `Authorization: Bearer <key>`
-
-```typescript
-// apps/chat/server/middleware/api-auth.ts
-export default defineEventHandler((event) => {
-  const path = getRequestURL(event).pathname
-
-  if (!path.startsWith('/api/sync') && !path.startsWith('/api/sandbox')) {
-    return
-  }
-
-  const config = useRuntimeConfig()
-  if (!config.savoirSecretKey) return
-
-  const authHeader = getHeader(event, 'Authorization')
-  const apiKey = authHeader?.replace('Bearer ', '')
-
-  if (apiKey !== config.savoirSecretKey) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
-  }
-})
-```
+- Better Auth handles user sessions, OAuth, and API keys
+- API keys support both `Authorization: Bearer <key>` and `x-api-key` headers
+- Admin role is automatically assigned based on `NUXT_ADMIN_USERS`
 
 ### Sandbox Isolation
 
-- Each sandbox runs in isolated Vercel environment
-- No network access from within sandbox
-- Read-only filesystem (cloned repo)
-- Commands limited to grep, cat, find, ls
+- Each sandbox runs in an isolated Vercel environment
+- No network access from within the sandbox
+- Read-only filesystem (cloned snapshot repo)
+- Commands limited to read-only operations (grep, cat, find, ls, etc.)
+- Blocked: destructive commands, network tools, interpreters, redirects

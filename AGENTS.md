@@ -17,13 +17,11 @@ AI agents with real-time knowledge base access.
 
 ```
 savoir/
-├── apps/chat/          # Nuxt app (chat UI + API)
+├── apps/chat/          # Nuxt app (chat UI + API + bots)
 │   ├── app/            # Vue components, pages
-│   └── server/         # API, workflows, sandbox
-├── packages/
-│   ├── sdk/            # @savoir/sdk - AI SDK tools
-│   └── logger/         # @savoir/logger
-└── savoir.config.ts    # Source definitions
+│   └── server/         # API, workflows, sandbox, bot adapters
+└── packages/
+    └── sdk/            # @savoir/sdk - AI SDK tools (bash, bash_batch)
 ```
 
 ## Documentation
@@ -31,5 +29,4 @@ savoir/
 - [Architecture](docs/ARCHITECTURE.md) - System design, API specs, components
 - [Sources](docs/SOURCES.md) - Content sources configuration
 - [Coding Guidelines](docs/CODING-GUIDELINES.md) - Code style, patterns
-- [Logging](docs/LOGGING.md) - @savoir/logger usage
 - [Environment](docs/ENVIRONMENT.md) - Environment variables

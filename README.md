@@ -2,7 +2,7 @@
 
 Build AI agents with real-time knowledge access.
 
-Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a unified Nuxt application for the chat interface and API with an SDK that provides AI SDK-compatible tools.
+Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a unified [Nuxt](https://nuxt.com) application for the chat interface and API with an SDK that provides [AI SDK](https://ai-sdk.dev)-compatible tools.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                          @savoir/sdk                             │
-│              AI SDK compatible tools (searchAndRead, etc.)       │
+│              AI SDK compatible tools (bash, bash_batch)          │
 └─────────────────────────────────┬───────────────────────────────┘
                                   │ API calls
                                   ▼
@@ -40,9 +40,8 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
 
 | Package | Description |
 |---------|-------------|
-| [`@savoir/sdk`](./packages/sdk) | AI SDK compatible tools for agents |
-| [`@savoir/logger`](./packages/logger) | Logging utilities |
-| [`apps/chat`](./apps/chat) | Unified Nuxt app (chat UI + API) |
+| [`@savoir/sdk`](./packages/sdk) | [AI SDK](https://ai-sdk.dev) compatible tools for agents |
+| [`apps/chat`](./apps/chat) | Unified [Nuxt](https://nuxt.com) app (chat UI + API + bots) |
 
 ## Quick Start
 
@@ -52,19 +51,16 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
 import { generateText } from 'ai'
 import { createSavoir } from '@savoir/sdk'
 
-// Initialize Savoir client
 const savoir = createSavoir({
+  apiUrl: process.env.SAVOIR_API_URL!,
   apiKey: process.env.SAVOIR_API_KEY,
-  apiUrl: process.env.SAVOIR_API_URL || 'https://savoir.example.com'
 })
 
-// Use with AI SDK
 const { text } = await generateText({
-  model: 'google/gemini-3-flash',
-  prompt: 'Tell me the latest developments in Nuxt',
-  tools: {
-    ...savoir.tools,
-  }
+  model: yourModel, // any AI SDK compatible model
+  tools: savoir.tools, // bash and bash_batch tools
+  maxSteps: 10,
+  prompt: 'How do I configure authentication in Nuxt?',
 })
 
 console.log(text)
@@ -74,7 +70,7 @@ console.log(text)
 
 ```bash
 # Clone the repository
-git clone https://github.com/HugoRCD/savoir.git
+git clone https://github.com/vercel-labs/savoir.git
 cd savoir
 
 # Install dependencies
@@ -84,9 +80,6 @@ bun install
 cp apps/chat/.env.example apps/chat/.env
 # Edit .env with your configuration
 
-# Run database migrations
-turbo run db:migrate --filter=@savoir/chat
-
 # Start the app
 bun run dev
 ```
@@ -94,46 +87,51 @@ bun run dev
 **Required environment variables:**
 
 ```bash
-# GitHub token for cloning snapshot repository
-NUXT_GITHUB_TOKEN=ghp_...
+# Authentication
+BETTER_AUTH_SECRET=your-secret        # Secret for signing sessions/tokens
+GITHUB_CLIENT_ID=...                  # GitHub OAuth app client ID
+GITHUB_CLIENT_SECRET=...              # GitHub OAuth app client secret
 
-# Repository containing the content snapshot
-NUXT_GITHUB_SNAPSHOT_REPO=your-org/your-content-repo
+# AI
+AI_GATEWAY_API_KEY=...                # Vercel AI Gateway API key
 
-# Optional: API key for securing endpoints
-NUXT_SAVOIR_SECRET_KEY=your-secret-key
+# Admin
+NUXT_ADMIN_USERS=user1,user2          # Comma-separated admin emails/usernames
+
+# Sandbox
+NUXT_GITHUB_TOKEN=ghp_...             # GitHub token for repo access
+NUXT_GITHUB_SNAPSHOT_REPO=org/repo    # Snapshot repository (owner/repo)
+
+# Site
+NUXT_PUBLIC_SITE_URL=https://...      # Public URL of your instance
 ```
+
+See [ENVIRONMENT.md](./docs/ENVIRONMENT.md) for the full list of environment variables.
 
 ## Configuration
 
-Sources are stored in the database and can be managed via the API (`/api/sources`). See `savoir.config.ts` at the project root for example source definitions:
+Sources are managed through the **admin interface** at `/admin`. You can add GitHub repositories and YouTube channels as knowledge sources, then trigger a sync from the UI.
 
-The config file format:
-
-```typescript
-// savoir.config.ts
-export default {
-  sources: {
-    github: [
-      { id: 'nuxt', repo: 'nuxt/nuxt', contentPath: 'docs' },
-      { id: 'nitro', repo: 'nitrojs/nitro', branch: 'main' },
-    ],
-    youtube: [
-      { id: 'alex-lichter', channelId: 'UCqFPgMzGbLjd-MX-h3Z5aQA' },
-    ],
-  },
-}
-```
+Sources can also be listed programmatically via the SDK (`savoir.client.getSources()`).
 
 See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
 
 ## How It Works
 
-1. **Sources in Database**: Sources are stored in SQLite via NuxtHub, seeded from `savoir.config.ts`
-2. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via Vercel Workflow
-3. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a Vercel Sandbox with the snapshot repo cloned
-4. **File-based Search**: The SDK tools execute grep/find commands in the sandbox to search and read content
-5. **AI Integration**: Tools are compatible with the Vercel AI SDK for seamless integration with any LLM
+1. **Sources in Database**: Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com), managed through the admin interface
+2. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via [Vercel Workflow](https://useworkflow.dev)
+3. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) with the snapshot repo cloned
+4. **File-based Search**: The SDK `bash` and `bash_batch` tools execute grep/find/cat commands in the sandbox to search and read content
+5. **AI Integration**: Tools are compatible with the [Vercel AI SDK](https://ai-sdk.dev) for seamless integration with any LLM
+
+## Bots
+
+Savoir includes built-in bot integrations powered by the [Vercel Chat SDK](https://github.com/vercel-labs/chat):
+
+- **GitHub Bot**: Responds to mentions in GitHub issues and PRs. Uses a [GitHub App](https://docs.github.com/en/apps) for authentication and webhooks.
+- **Discord Bot**: Responds to mentions and continues conversations in threads. Uses the [Discord API](https://discord.com/developers/docs).
+
+Both bots use the same AI agent and knowledge base as the chat interface.
 
 ## Development
 
@@ -154,12 +152,16 @@ bun run test
 bun run lint:fix
 ```
 
-## Related Projects
+## Built With
 
-- [Vercel AI SDK](https://ai-sdk.dev) - The AI SDK that Savoir integrates with
-- [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) - Sandboxed execution environment
-- [NuxtHub](https://hub.nuxt.com) - The deployment platform for Nuxt
-- [Vercel Workflow](https://github.com/vercel/workflow) - Durable workflow execution
+- [Nuxt](https://nuxt.com) - Full-stack Vue framework
+- [NuxtHub](https://hub.nuxt.com) - Database, KV, and blob storage
+- [Vercel AI SDK](https://ai-sdk.dev) - AI model integration and tool system
+- [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) - Isolated execution environment
+- [Vercel Workflow](https://useworkflow.dev) - Durable workflow execution
+- [Better Auth](https://www.better-auth.com) - Authentication framework
+- [Drizzle ORM](https://orm.drizzle.team) - Type-safe database queries
+- [Vercel Chat SDK](https://github.com/vercel-labs/chat) - Bot framework for GitHub and Discord
 
 ## License
 

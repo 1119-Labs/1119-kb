@@ -6,12 +6,12 @@
   "author": "Hugo Richard",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hugorichard/savoir.git",
+    "url": "git+https://github.com/vercel-labs/savoir.git",
     "directory": "packages/sdk"
   },
-  "homepage": "https://github.com/hugorichard/savoir/tree/main/packages/sdk#readme",
+  "homepage": "https://github.com/vercel-labs/savoir/tree/main/packages/sdk#readme",
   "bugs": {
-    "url": "https://github.com/hugorichard/savoir/issues"
+    "url": "https://github.com/vercel-labs/savoir/issues"
   },
   "keywords": [
     "savoir",

@@ -1,11 +1,13 @@
 # Savoir SDK
 
-The `@savoir/sdk` package provides a TypeScript client for interacting with Savoir programmatically.
+The [`@savoir/sdk`](https://github.com/vercel-labs/savoir/tree/main/packages/sdk) package provides a TypeScript client for interacting with Savoir programmatically. It exposes [AI SDK](https://ai-sdk.dev)-compatible tools that let any AI model search and read your knowledge base.
 
 ## Installation
 
 ```bash
-pnpm add @savoir/sdk
+npm install @savoir/sdk
+# or
+bun add @savoir/sdk
 ```
 
 ## Configuration
@@ -14,90 +16,151 @@ pnpm add @savoir/sdk
 import { createSavoir } from '@savoir/sdk'
 
 const savoir = createSavoir({
-  apiUrl: 'https://savoir.example.com',
-  apiKey: 'sk_live_...'
+  apiUrl: process.env.SAVOIR_API_URL!,
+  apiKey: process.env.SAVOIR_API_KEY!, // Better Auth API key
 })
 ```
 
+You'll need an API key to authenticate. See [API Keys](/admin/docs/api-keys) for how to create one.
+
+### Config Options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `apiUrl` | `string` | Yes | Base URL of your Savoir API |
+| `apiKey` | `string` | No | API key for authentication. See [API Keys](/admin/docs/api-keys). |
+| `sessionId` | `string` | No | Reuse an existing [sandbox](https://vercel.com/docs/vercel-sandbox) session |
+| `source` | `string` | No | Usage source identifier (e.g. `'github-bot'`). Defaults to `'sdk'`. |
+| `sourceId` | `string` | No | Tracking ID (e.g. `'issue-123'`) |
+| `onToolCall` | `function` | No | Callback fired on tool execution (loading/done/error) |
+
 ## AI SDK Tools
 
-The SDK exposes tools compatible with the [AI SDK](https://sdk.vercel.ai). Use them with `generateText` or `streamText` to give any AI model access to your Savoir knowledge base.
+The SDK exposes tools compatible with the [Vercel AI SDK](https://ai-sdk.dev). Use them with [`generateText`](https://ai-sdk.dev/docs/ai-sdk-core/generating-text) or [`streamText`](https://ai-sdk.dev/docs/ai-sdk-core/streaming-text) to give any AI model access to your Savoir knowledge base.
 
 ```typescript
 import { generateText } from 'ai'
 import { createSavoir } from '@savoir/sdk'
 
 const savoir = createSavoir({
-  apiUrl: 'https://savoir.example.com',
-  apiKey: 'sk_live_...'
+  apiUrl: process.env.SAVOIR_API_URL!,
+  apiKey: process.env.SAVOIR_API_KEY!,
 })
 
 const { text } = await generateText({
-  model: yourModel,
-  tools: {
-    bash: savoir.tools.bash,
-    bash_batch: savoir.tools.bash_batch,
-  },
-  prompt: 'How do I configure authentication?'
+  model: yourModel, // any AI SDK compatible model
+  tools: savoir.tools,
+  maxSteps: 10,
+  prompt: 'How do I configure authentication?',
 })
 ```
+
+The `model` can be any [AI SDK provider](https://ai-sdk.dev/providers) -- OpenAI, Anthropic, Google, Mistral, or the [Vercel AI Gateway](https://ai-sdk.dev).
 
 ### Available Tools
 
 | Tool | Description |
 |------|-------------|
-| `bash` | Execute a single query against the knowledge base |
-| `bash_batch` | Execute multiple queries in a single request |
+| `bash` | Execute a single bash command in the documentation [sandbox](https://vercel.com/docs/vercel-sandbox) |
+| `bash_batch` | Execute multiple commands in a single request (more efficient) |
+
+The AI model uses these tools to run `grep`, `find`, `cat`, `head`, etc. against the aggregated documentation in the sandbox. See [How It Works](/admin/docs/getting-started#how-it-works) for the full flow.
 
 ## Client Methods
 
-You can also use the client directly for lower-level operations:
+The `savoir.client` property exposes the low-level `SavoirClient` for direct API access:
 
 ```typescript
+// Execute bash command
+const result = await savoir.client.bash('grep -rl "useAsyncData" docs/')
+console.log(result.stdout)
+
+// Execute multiple commands
+const batchResult = await savoir.client.bashBatch([
+  'find docs/ -name "*.md" | head -10',
+  'cat docs/nuxt/getting-started/installation.md',
+])
+
 // List all indexed sources
-const sources = await savoir.getSources()
+const sources = await savoir.client.getSources()
 
-// Get the current agent configuration
-const config = await savoir.getAgentConfig()
+// Trigger sync (runs as a Vercel Workflow)
+await savoir.client.sync({ reset: false, push: true })
 
-// Report token usage from an external integration
-await savoir.reportUsage({
-  source: 'my-bot',
-  model: 'openai/gpt-4o',
-  inputTokens: 500,
-  outputTokens: 200,
-  durationMs: 1200
+// Get agent configuration
+const config = await savoir.client.getAgentConfig()
+```
+
+## Reporting Usage
+
+After generating a response, report token usage for analytics (visible in the [admin stats panel](/admin/stats)):
+
+```typescript
+const startTime = Date.now()
+
+const result = await generateText({
+  model: yourModel,
+  tools: savoir.tools,
+  maxSteps: 10,
+  prompt: 'How do I use Nuxt middleware?',
+})
+
+// reportUsage accepts any AI SDK generate result
+await savoir.reportUsage(result, {
+  startTime, // auto-computes durationMs
+  sourceId: 'my-integration', // optional tracking ID
 })
 ```
+
+The `reportUsage` method automatically extracts `totalUsage` (input/output tokens) and `response.modelId` from the [AI SDK result](https://ai-sdk.dev/docs/ai-sdk-core/generating-text#generatetext).
 
 ## Full Example
 
 ```typescript
 import { generateText } from 'ai'
-import { openai } from '@ai-sdk/openai'
 import { createSavoir } from '@savoir/sdk'
 
 const savoir = createSavoir({
-  apiUrl: process.env.SAVOIR_URL!,
-  apiKey: process.env.SAVOIR_API_KEY!
+  apiUrl: process.env.SAVOIR_API_URL!,
+  apiKey: process.env.SAVOIR_API_KEY!,
+  source: 'my-app',
 })
 
 async function ask(question: string) {
-  const { text, usage } = await generateText({
-    model: openai('gpt-4o'),
+  const startTime = Date.now()
+
+  const result = await generateText({
+    model: yourModel,
     tools: savoir.tools,
-    maxSteps: 5,
-    prompt: question
+    maxSteps: 10,
+    prompt: question,
   })
 
-  await savoir.reportUsage({
-    source: 'my-app',
-    model: 'openai/gpt-4o',
-    inputTokens: usage.promptTokens,
-    outputTokens: usage.completionTokens,
-    durationMs: 0
-  })
+  await savoir.reportUsage(result, { startTime })
 
-  return text
+  return result.text
+}
+```
+
+## Error Handling
+
+```typescript
+import { SavoirError, NetworkError } from '@savoir/sdk'
+
+try {
+  await savoir.client.bash('some-command')
+} catch (error) {
+  if (error instanceof SavoirError) {
+    console.log(error.statusCode) // HTTP status code
+    console.log(error.message)
+
+    if (error.isAuthError()) { /* 401 */ }
+    if (error.isRateLimitError()) { /* 429 */ }
+    if (error.isServerError()) { /* 5xx */ }
+  }
+  if (error instanceof NetworkError) {
+    console.log(error.message)
+    console.log(error.cause) // Original error
+  }
 }
 ```

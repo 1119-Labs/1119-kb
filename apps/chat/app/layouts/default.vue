@@ -90,11 +90,17 @@ const adminNavigation = [
     { label: 'API Keys', icon: 'i-lucide-key', to: '/admin/api-keys' },
   ],
   [
-    { label: 'Help', type: 'label' as const },
-    { label: 'Documentation', icon: 'i-lucide-book-open', to: '/admin/docs' },
+    { label: 'Documentation', type: 'label' as const },
+    { label: 'Getting Started', icon: 'i-lucide-rocket', to: '/admin/docs/getting-started' },
+    { label: 'API Keys', icon: 'i-lucide-key', to: '/admin/docs/api-keys' },
+    { label: 'SDK', icon: 'i-lucide-code', to: '/admin/docs/sdk' },
+    { label: 'GitHub Bot', icon: 'i-simple-icons-github', to: '/admin/docs/github-bot' },
+    { label: 'Discord Bot', icon: 'i-simple-icons-discord', to: '/admin/docs/discord-bot' },
+    { label: 'Admin Mode', icon: 'i-lucide-shield', to: '/admin/docs/admin-mode' },
   ],
 ]
 
+const adminContentArea = useTemplateRef<HTMLElement>('adminContentArea')
 const chatScrollArea = useTemplateRef('chatScrollArea')
 const showTopFade = ref(false)
 const showBottomFade = ref(true)
@@ -153,6 +159,12 @@ function shareChat(chat: { id: string, isPublic: boolean, shareToken: string | n
     shareToken: chat.shareToken
   })
 }
+
+watch(() => route.fullPath, () => {
+  nextTick(() => {
+    adminContentArea.value?.scrollTo({ top: 0 })
+  })
+})
 
 defineShortcuts({
   c: () => {
@@ -350,7 +362,7 @@ defineShortcuts({
             <div class="flex-1" />
             <UColorModeButton />
           </div>
-          <div class="flex-1 overflow-y-auto">
+          <div ref="adminContentArea" class="flex-1 overflow-y-auto">
             <slot />
           </div>
         </template>
