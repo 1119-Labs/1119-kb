@@ -10,6 +10,10 @@ Use standard Unix commands to explore and read files.`,
     inputSchema: z.object({
       command: z.string().describe('Bash command to execute'),
     }),
+    inputExamples: [
+      { input: { command: 'find docs/ -maxdepth 2 -type d' } },
+      { input: { command: 'grep -rl "useAsyncData" docs/ --include="*.md" | head -5' } },
+    ],
     onInputAvailable: ({ toolCallId, input }) => {
       onToolCall?.({
         toolCallId,
@@ -84,6 +88,10 @@ Maximum 10 commands per batch.`,
     inputSchema: z.object({
       commands: z.array(z.string()).min(1).max(10).describe('Array of bash commands to execute'),
     }),
+    inputExamples: [
+      { input: { commands: ['head -80 docs/getting-started.md', 'head -80 docs/installation.md'] } },
+      { input: { commands: ['grep -rl "routing" docs/ --include="*.md" | head -5', 'cat docs/api/reference.md'] } },
+    ],
     onInputAvailable: ({ toolCallId, input }) => {
       onToolCall?.({
         toolCallId,

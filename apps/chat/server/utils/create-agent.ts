@@ -1,8 +1,33 @@
 import { stepCountIs, ToolLoopAgent } from 'ai'
+import type { ModelMessage } from '@ai-sdk/provider-utils'
+import { log } from 'evlog'
 import type { AgentConfig } from './router/schema'
 import { DEFAULT_MODEL } from './router/schema'
 import type { AgentConfigData } from './agent-config'
 import { getAgentConfig } from './agent-config'
+
+/**
+ * Ensure all tool-call `input` fields in messages are valid JSON objects.
+ * The Anthropic API rejects requests where `input` is a string instead of an object.
+ * This can happen when the AI SDK carries forward a raw JSON string from a previous step.
+ */
+function sanitizeToolCallInputs(messages: ModelMessage[]): ModelMessage[] {
+  for (const message of messages) {
+    if (message.role !== 'assistant' || !Array.isArray(message.content)) continue
+    for (const part of message.content) {
+      if (part.type === 'tool-call' && typeof part.input === 'string') {
+        log.warn('agent', `Sanitizing tool-call input for ${part.toolName}: input was a string, parsing to object`)
+        try {
+          part.input = JSON.parse(part.input)
+        }
+        catch {
+          part.input = {}
+        }
+      }
+    }
+  }
+  return messages
+}
 
 export interface RoutingResult {
   routerConfig: AgentConfig
@@ -77,7 +102,9 @@ export function createAgent({
         stopWhen: stepCountIs(effectiveMaxSteps),
       }
     },
-    prepareStep: ({ stepNumber }) => {
+    prepareStep: ({ stepNumber, messages }) => {
+      sanitizeToolCallInputs(messages)
+
       if (isAdminMode) return
       // Force text output on the last step by removing all tools
       if (stepNumber >= maxSteps - 1) {
