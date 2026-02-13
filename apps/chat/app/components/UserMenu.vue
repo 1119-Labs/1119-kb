@@ -49,7 +49,7 @@ const items = computed<DropdownMenuItem[][]>(() => {
   <UDropdownMenu
     :items
     :content="{ align: 'center', collisionPadding: 12 }"
-    :ui="{ content: [collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)', 'min-w-48'].join(' ') }"
+    :ui="{ content: 'min-w-48' }"
     size="xs"
   >
     <UButton
@@ -64,7 +64,6 @@ const items = computed<DropdownMenuItem[][]>(() => {
       :size
       color="neutral"
       variant="ghost"
-      block
       :square="collapsed"
       class="data-[state=open]:bg-elevated transition-colors"
       :ui="{

@@ -184,9 +184,22 @@ defineShortcuts({
       class="border-e-0"
     >
       <template #header="{ collapsed }">
-        <div v-if="!collapsed" class="flex items-center gap-1.5 w-full">
-          <div class="flex-1 min-w-0">
-            <UserMenu v-if="loggedIn" size="xs" />
+        <template v-if="isAdminRoute">
+          <UButton
+            v-if="!collapsed"
+            icon="i-lucide-chevron-left"
+            label="Back to app"
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            to="/"
+            class="self-start"
+          />
+        </template>
+
+        <template v-else>
+          <div v-if="!collapsed" class="flex items-center justify-between w-full">
+            <UserMenu v-if="loggedIn" size="sm" />
             <UButton
               v-else
               label="Sign in"
@@ -194,24 +207,22 @@ defineShortcuts({
               color="neutral"
               variant="soft"
               size="xs"
-              block
               @click="navigateTo('/login')"
             />
+            <UDashboardSearchButton collapsed size="xs" />
           </div>
-          <UDashboardSearchButton collapsed size="xs" />
-        </div>
 
-        <template v-if="!collapsed">
-          <UserStats v-if="loggedIn && !isAdminRoute" />
+          <template v-if="!collapsed">
+            <UserStats v-if="loggedIn" />
 
-          <UButton
-            v-if="!isAdminRoute"
-            label="New chat"
-            variant="soft"
-            block
-            to="/"
-            @click="open = false"
-          />
+            <UButton
+              label="New chat"
+              variant="soft"
+              block
+              to="/"
+              @click="open = false"
+            />
+          </template>
         </template>
       </template>
 
@@ -227,14 +238,13 @@ defineShortcuts({
           </div>
 
           <template v-if="collapsed">
-            <UserMenu v-if="loggedIn" collapsed />
-            <UTooltip v-else text="Sign in">
+            <UTooltip text="Back to app">
               <UButton
-                icon="i-lucide-log-in"
+                icon="i-lucide-chevron-left"
+                variant="ghost"
                 color="neutral"
-                variant="soft"
                 square
-                @click="navigateTo('/login')"
+                to="/"
               />
             </UTooltip>
             <UDashboardSearchButton collapsed />
@@ -284,15 +294,15 @@ defineShortcuts({
                     v-for="chat in group.items"
                     :key="chat.id"
                     :items="chatContextItems(chat)"
-                    size="xs"
+                    size="sm"
                   >
                     <NuxtLink
                       :to="chat.to"
                       class="group flex items-center gap-1.5 px-2 py-1 rounded-md text-sm overflow-hidden transition-colors"
                       :class="[
                         route.params.id === chat.id
-                          ? 'text-highlighted font-medium bg-linear-to-r from-primary/30 to-primary/0'
-                          : 'text-muted hover:bg-linear-to-r from-elevated to-primary/0',
+                          ? 'text-highlighted bg-linear-to-r from-elevated to-elevated/0 brightness-125'
+                          : 'text-muted hover:bg-linear-to-r from-elevated to-elevated/0',
                         chat.generating && 'text-muted!',
                       ]"
                       @click="open = false"
@@ -350,16 +360,7 @@ defineShortcuts({
 
       <div class="flex-1 flex rounded-xl ring ring-default bg-muted shadow-sm min-w-0 overflow-hidden" :class="(isAdminRoute || isSettingsRoute) && 'flex-col'">
         <template v-if="isAdminRoute || isSettingsRoute">
-          <div class="shrink-0 flex items-center gap-1.5 sm:px-4 h-12">
-            <UButton
-              icon="i-lucide-arrow-left"
-              label="Back"
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              to="/"
-            />
-            <div class="flex-1" />
+          <div class="shrink-0 flex items-center justify-end sm:px-4 h-12">
             <UColorModeButton />
           </div>
           <div ref="adminContentArea" class="flex-1 overflow-y-auto">
