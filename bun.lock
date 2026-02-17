@@ -18,7 +18,7 @@
         "@chat-adapter/discord": "^4.9.0",
         "@chat-adapter/state-memory": "^4.9.0",
         "@chat-adapter/state-redis": "^4.9.0",
-        "@evlog/nuxthub": "^0.0.1-alpha.15",
+        "@evlog/nuxthub": "^1.0.0",
         "@googleapis/youtube": "^31.0.0",
         "@iconify-json/logos": "^1.2.10",
         "@iconify-json/lucide": "^1.2.89",
@@ -421,7 +421,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.4.1", "", { "dependencies": { "@eslint/core": "^0.17.0", "levn": "^0.4.1" } }, "sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA=="],
 
-    "@evlog/nuxthub": ["@evlog/nuxthub@0.0.1-alpha.15", "", { "dependencies": { "@nuxthub/core": "^0.10.6", "evlog": "^1.7.0" }, "peerDependencies": { "drizzle-orm": ">=0.45.1" } }, "sha512-ggIdGo2jAwHrKfBelJtkON9kxnUlzRbDgTijuYAFAgX9WK6yDo+Vk5cfV4VDiR923BWcKgCpa4RPwyo1w5WPZg=="],
+    "@evlog/nuxthub": ["@evlog/nuxthub@1.0.0", "", { "peerDependencies": { "@nuxthub/core": "^0.10.6", "drizzle-orm": ">=0.45.1", "evlog": "^1.9.0" } }, "sha512-JIVSpH8Ymt0lMN6ahdm3+wSsEdb8EI0CdiFg6eLxYfLcC6DhjWn/M9gOH7nwAPH476qiamWB4rRxxqvIVwVBNA=="],
 
     "@floating-ui/core": ["@floating-ui/core@1.7.4", "", { "dependencies": { "@floating-ui/utils": "^0.2.10" } }, "sha512-C3HlIdsBxszvm5McXlB8PeOEWfBhcGBTZGkGlWc2U0KFY5IwG5OQEuQ8rq52DZmcHDlPLd+YFBK+cZcytwIFWg=="],
 

@@ -117,7 +117,7 @@ export default defineNuxtConfig({
       apiKey: '',
     },
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || '',
+      siteUrl: '',
       github: {
         botTrigger: '',
       },
