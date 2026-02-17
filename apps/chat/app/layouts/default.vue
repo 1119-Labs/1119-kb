@@ -335,7 +335,9 @@ defineShortcuts({
         </template>
       </template>
 
-      <template #footer />
+      <template #footer="{ collapsed }">
+        <InstallBotCard v-if="!collapsed && !isAdminRoute" />
+      </template>
     </UDashboardSidebar>
 
     <UDashboardSearch

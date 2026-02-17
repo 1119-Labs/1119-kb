@@ -14,7 +14,7 @@ export default defineAppConfig({
       slots: {
         header: 'h-auto flex-col items-stretch gap-1.5 p-2',
         body: 'p-2 gap-1 overflow-hidden',
-        footer: 'p-0 h-0 min-h-0',
+        footer: 'p-0',
         toggle: '-ms-1.5'
       }
     },

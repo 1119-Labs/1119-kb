@@ -108,6 +108,8 @@ async function revokeOtherSessions() {
   }
 }
 
+const { dismissed: botDismissed, githubUrl: botGithubUrl, discordUrl: botDiscordUrl, hasAny: hasAnyBot, resetDismiss: resetBotDismiss } = useInstallBot()
+
 const deleteAccountModal = overlay.create(LazyModalConfirm, {
   props: {
     title: 'Delete account',
@@ -312,6 +314,66 @@ async function deleteAccount() {
               size="xs"
               :loading="isRevokingAll"
               @click="revokeOtherSessions"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section v-if="hasAnyBot">
+        <h2 class="text-[10px] text-muted uppercase tracking-wide mb-3 font-pixel">
+          Integrations
+        </h2>
+        <div class="rounded-lg border border-default divide-y divide-default">
+          <div v-if="botGithubUrl" class="flex items-center justify-between gap-4 px-4 py-3">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-simple-icons-github" class="size-5 text-highlighted" />
+              <div>
+                <p class="text-sm text-highlighted">
+                  GitHub Bot
+                </p>
+                <p class="text-xs text-muted">
+                  Get AI answers directly on your GitHub issues and PRs.
+                </p>
+              </div>
+            </div>
+            <UButton
+              label="Install"
+              icon="i-lucide-arrow-up-right"
+              trailing
+              size="xs"
+              :to="botGithubUrl"
+              target="_blank"
+            />
+          </div>
+          <div v-if="botDiscordUrl" class="flex items-center justify-between gap-4 px-4 py-3">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-simple-icons-discord" class="size-5 text-highlighted" />
+              <div>
+                <p class="text-sm text-highlighted">
+                  Discord Bot
+                </p>
+                <p class="text-xs text-muted">
+                  Add AI answers to your Discord server.
+                </p>
+              </div>
+            </div>
+            <UButton
+              label="Install"
+              icon="i-lucide-arrow-up-right"
+              trailing
+              size="xs"
+              :to="botDiscordUrl"
+              target="_blank"
+            />
+          </div>
+          <div v-if="botDismissed" class="px-4 py-3">
+            <UButton
+              label="Show sidebar suggestion"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              icon="i-lucide-eye"
+              @click="resetBotDismiss"
             />
           </div>
         </div>

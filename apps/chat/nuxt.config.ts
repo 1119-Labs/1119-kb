@@ -120,7 +120,9 @@ export default defineNuxtConfig({
       siteUrl: '',
       github: {
         botTrigger: '',
+        appSlug: '',
       },
+      discordBotUrl: '',
     },
   }
 })
