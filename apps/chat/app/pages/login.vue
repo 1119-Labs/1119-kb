@@ -73,7 +73,7 @@ async function onSubmit() {
 
 function onGitHub() {
   githubLoading.value = true
-  signIn.social({ provider: 'github' })
+  signIn.social({ provider: 'github', callbackURL: '/' })
 }
 </script>
 
