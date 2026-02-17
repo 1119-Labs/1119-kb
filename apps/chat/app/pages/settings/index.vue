@@ -125,7 +125,7 @@ async function deleteAccount() {
   try {
     await client!.deleteUser()
     await signOut()
-    navigateTo('/login')
+    await navigateTo('/login', { replace: true, external: true })
   } catch (e: any) {
     toast.add({ title: 'Error', description: e?.data?.message || e?.message || 'Failed to delete account', color: 'error', icon: 'i-lucide-alert-circle' })
     isDeletingAccount.value = false

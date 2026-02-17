@@ -10,7 +10,7 @@
   --color-primary-100: #C2CDF3;
   --color-primary-200: #99ABEA;
   --color-primary-300: #6B85E0;
-  --color-primary-400: #4766D8;
+  --color-primary-400: #1444d4;
   --color-primary-500: #0035D0;
   --color-primary-600: #002EB8;
   --color-primary-700: #00259E;
@@ -22,6 +22,8 @@
 :root {
   --ui-container: var(--container-3xl);
   --ui-radius: 0.15rem;
+
+  overscroll-behavior: none;
 }
 
 html {
