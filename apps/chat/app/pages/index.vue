@@ -94,7 +94,7 @@ const adminQuickChats = [
   },
   {
     label: 'Chart active users and message volume over the last 14 days',
-    icon: 'i-lucide-users'
+    icon: 'i-custom-users'
   },
   {
     label: 'What are the top 10 most-hit endpoints and their avg latency?',

@@ -89,7 +89,7 @@ const adminNavigation = [
     { label: 'Statistics', icon: 'i-custom-chart', to: '/admin/stats' },
     { label: 'Logs', icon: 'i-custom-terminal', to: '/admin/logs' },
     { label: 'API Keys', icon: 'i-custom-api-access', to: '/admin/api-keys' },
-    { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
+    { label: 'Users', icon: 'i-custom-users', to: '/admin/users' },
   ],
   [
     { label: 'Documentation', type: 'label' as const },
