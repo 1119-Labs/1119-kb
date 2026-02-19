@@ -23,7 +23,7 @@
     "@chat-adapter/discord": "^4.9.0",
     "@chat-adapter/state-memory": "^4.9.0",
     "@chat-adapter/state-redis": "^4.9.0",
-    "@evlog/nuxthub": "^1.0.0",
+    "@evlog/nuxthub": "^1.1.0",
     "@googleapis/youtube": "^31.0.0",
     "@iconify-json/logos": "^1.2.10",
     "@iconify-json/lucide": "^1.2.89",
