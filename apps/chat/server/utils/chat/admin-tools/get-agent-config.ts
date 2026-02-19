@@ -1,11 +1,8 @@
-import type { UIToolInvocation } from 'ai'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { eq } from 'drizzle-orm'
 import { preview, cmd } from './_preview'
-
-export type GetAgentConfigUIToolInvocation = UIToolInvocation<typeof getAgentConfigTool>
 
 export const getAgentConfigTool = tool({
   description: `Get the current agent configuration (system prompt customizations, response style, language, model settings).

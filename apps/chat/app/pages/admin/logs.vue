@@ -276,7 +276,7 @@ async function investigateErrors() {
           <template v-else-if="stats">
             <div>
               <p class="text-2xl font-medium text-highlighted tabular-nums">
-                {{ stats.totalCount.toLocaleString() }}
+                {{ (stats.totalCount ?? 0).toLocaleString() }}
               </p>
               <p class="text-sm text-muted mt-0.5">
                 total log entries
@@ -328,13 +328,11 @@ async function investigateErrors() {
         </div>
       </section>
 
-      <!-- Clean up -->
       <section>
         <h2 class="text-[10px] text-muted uppercase tracking-wide mb-3 font-pixel">
           Clean up
         </h2>
         <div class="rounded-lg border border-default p-4 space-y-4">
-          <!-- Level filter -->
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-sm text-muted shrink-0">Level:</span>
             <div class="flex flex-wrap gap-1.5">
@@ -358,7 +356,6 @@ async function investigateErrors() {
             </div>
           </div>
 
-          <!-- Time unit toggle -->
           <div class="flex items-center gap-3">
             <span class="text-sm text-muted shrink-0">Delete older than:</span>
             <div class="flex rounded-md border border-default overflow-hidden">
@@ -374,7 +371,6 @@ async function investigateErrors() {
             </div>
           </div>
 
-          <!-- Presets + custom -->
           <div class="flex flex-wrap items-center gap-2">
             <UButton
               v-for="preset in activePresets"
@@ -399,9 +395,8 @@ async function investigateErrors() {
             </div>
           </div>
 
-          <!-- Preview result -->
           <div
-            v-if="previewCount !== null && activeValue"
+            v-if="previewCount !== null && previewCount !== undefined && activeValue"
             class="flex items-center justify-between gap-4 rounded-md bg-elevated px-4 py-3"
           >
             <div>

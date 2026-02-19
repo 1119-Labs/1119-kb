@@ -1,11 +1,8 @@
-import type { UIToolInvocation } from 'ai'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { eq, gte, and, count } from 'drizzle-orm'
 import { preview, cmd } from './_preview'
-
-export type QueryStatsUIToolInvocation = UIToolInvocation<typeof queryStatsTool>
 
 export const queryStatsTool = tool({
   description: `Query usage statistics for the application. Returns message counts, token usage, model usage, and active users over a given period.

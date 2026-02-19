@@ -1,11 +1,8 @@
-import type { UIToolInvocation } from 'ai'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { desc, eq, and, sql } from 'drizzle-orm'
 import { preview, cmd } from './_preview'
-
-export type QueryChatsUIToolInvocation = UIToolInvocation<typeof queryChatsTool>
 
 export const queryChatsTool = tool({
   description: `Query recent chats to understand what users are asking about.

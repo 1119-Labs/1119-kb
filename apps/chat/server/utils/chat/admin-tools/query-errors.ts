@@ -1,11 +1,8 @@
-import type { UIToolInvocation } from 'ai'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { and, gte, eq, or, like, isNotNull, count, max, sql, desc } from 'drizzle-orm'
 import { preview, cmd } from './_preview'
-
-export type QueryErrorsUIToolInvocation = UIToolInvocation<typeof queryErrorsTool>
 
 const e = schema.evlogEvents
 

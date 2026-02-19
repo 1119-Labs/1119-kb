@@ -1,11 +1,8 @@
-import type { UIToolInvocation } from 'ai'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { db } from '@nuxthub/db'
 import { sql } from 'drizzle-orm'
 import { cmd, preview } from './_preview'
-
-export type RunSqlUIToolInvocation = UIToolInvocation<typeof runSqlTool>
 
 export const runSqlTool = tool({
   description: `Execute a read-only SQL SELECT query against the PostgreSQL (PGlite) database.

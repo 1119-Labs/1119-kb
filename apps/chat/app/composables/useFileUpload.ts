@@ -22,7 +22,6 @@ function fileToInput(file: File): HTMLInputElement {
 
 export function useFileUploadWithStatus(chatId: string) {
   const files = shallowRef<FileWithStatus[]>([])
-  const toast = useToast()
   const { showError } = useErrorToast()
   const { loggedIn } = useUserSession()
 
