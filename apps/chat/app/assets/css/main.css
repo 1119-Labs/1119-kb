@@ -23,7 +23,7 @@
   --ui-container: var(--container-3xl);
   --ui-radius: 0.15rem;
 
-  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 
 html {

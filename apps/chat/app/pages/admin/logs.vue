@@ -128,7 +128,6 @@ const deleteModal = overlay.create(LazyModalConfirm, {
 
 async function runPreview() {
   if (!activeValue.value) return
-  previewCount.value = null
   isPreviewing.value = true
   try {
     const query: Record<string, string> = { before: cutoffDate.value! }
@@ -397,7 +396,8 @@ async function investigateErrors() {
 
           <div
             v-if="previewCount !== null && previewCount !== undefined && activeValue"
-            class="flex items-center justify-between gap-4 rounded-md bg-elevated px-4 py-3"
+            class="flex items-center justify-between gap-4 rounded-md bg-elevated px-4 py-3 transition-opacity duration-200"
+            :class="isPreviewing ? 'opacity-50' : 'opacity-100'"
           >
             <div>
               <p class="text-sm">
@@ -423,7 +423,7 @@ async function investigateErrors() {
             <span v-else class="text-xs text-muted italic">Nothing to delete</span>
           </div>
 
-          <div v-else-if="isPreviewing" class="flex items-center gap-2 text-sm text-muted">
+          <div v-else-if="isPreviewing && previewCount === null" class="flex items-center gap-2 text-sm text-muted">
             <UIcon name="i-lucide-loader-circle" class="size-3.5 animate-spin" />
             Counting logs…
           </div>
