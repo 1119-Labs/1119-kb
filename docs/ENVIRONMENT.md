@@ -1,5 +1,7 @@
 # Environment Variables
 
+> Back to [README](../README.md) | See also: [Architecture](./ARCHITECTURE.md), [Customization](./CUSTOMIZATION.md)
+
 All environment variables for the Savoir project, organized by category.
 
 ## Core

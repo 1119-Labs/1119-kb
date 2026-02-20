@@ -1,8 +1,10 @@
 # @savoir/sdk
 
-SDK for [Savoir](https://github.com/vercel-labs/savoir) - AI agents with real-time knowledge base access.
+SDK for [Savoir](https://github.com/vercel-labs/savoir) — AI agents with up-to-date knowledge base access.
 
-Provides [AI SDK](https://ai-sdk.dev) compatible tools to query documentation in a sandboxed environment.
+Provides [AI SDK](https://ai-sdk.dev) compatible tools to query content in a sandboxed environment.
+
+> See also: [Main README](../../README.md), [Architecture](../../docs/ARCHITECTURE.md), [Environment Variables](../../docs/ENVIRONMENT.md)
 
 ## Installation
 

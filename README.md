@@ -2,7 +2,7 @@
   <br>
   <b>Savoir</b>
   <br>
-  <i>Build AI agents with real-time knowledge access.</i>
+  <i>Build AI agents with up-to-date knowledge access.</i>
   <br>
   <br>
 </p>
@@ -13,17 +13,17 @@
 
 ---
 
-Open-source infrastructure to build AI agents powered by real-time file-based knowledge. Plug any source — GitHub repos, YouTube transcripts, custom APIs — and deploy as a chat app, a GitHub bot, a Discord bot, or all at once.
+Open-source infrastructure to build AI agents powered by up-to-date file-based knowledge. Plug any source — GitHub repos, YouTube transcripts, custom APIs — and deploy as a chat app, a GitHub bot, a Discord bot, or all at once.
 
 ## Features
 
 ### File-Based Search — No Embeddings Needed
 
-No vector database. No chunking pipeline. No embedding model. Savoir agents use `grep`, `find`, and `cat` inside isolated sandboxes to search across all your sources. Results are deterministic, explainable, and instant. Zero infrastructure overhead.
+No vector database. No chunking pipeline. No embedding model. Savoir agents use `grep`, `find`, and `cat` inside [isolated sandboxes](./docs/ARCHITECTURE.md#3-sandbox-system) to search across all your [sources](./docs/SOURCES.md). Results are deterministic, explainable, and instant. Zero infrastructure overhead.
 
 ### Multi-Platform Bots — One Agent, Everywhere
 
-Write your agent once, deploy it on the web chat, GitHub Issues, Discord — and soon Slack, Linear, and more. Powered by pluggable adapters via the [Chat SDK](https://github.com/vercel-labs/chat). Adding a new platform is a single adapter file.
+Write your agent once, deploy it on the web chat, GitHub Issues, Discord — and soon Slack, Linear, and more. Powered by pluggable adapters via the [Chat SDK](https://github.com/vercel-labs/chat). Adding a new platform is [a single adapter file](./docs/CUSTOMIZATION.md#4-add-a-bot-adapter).
 
 ### Built-in Admin Panel
 
@@ -35,7 +35,7 @@ Ask your app about itself. "What errors happened in the last 24 hours?", "Show t
 
 ### Smart Complexity Router
 
-Every incoming question is classified by complexity (trivial → complex) and routed to the right model. Simple questions go to fast, cheap models. Hard questions go to powerful ones. Cost optimization happens automatically — no manual rules to maintain.
+Every incoming question is classified by complexity (trivial → complex) and [routed to the right model](./docs/ARCHITECTURE.md#4-ai-agent-router--model-selection). Simple questions go to fast, cheap models. Hard questions go to powerful ones. Cost optimization happens automatically — no manual rules to maintain.
 
 ### Real-Time Tool Visualization
 
@@ -49,7 +49,7 @@ Share any conversation with a single click. Generates a public read-only link wi
 
 Sandboxes are pooled across users and conversations. When a chat starts, it connects to an already-running sandbox instead of creating a new one — startup in under 100ms. If none is available, a pre-built snapshot spins one up in 1–3s. Sandboxes are read-only with blocked dangerous commands, and automatically shared so multiple agents search the same up-to-date content without duplicating resources.
 
-## Architecture
+## [Architecture](./docs/ARCHITECTURE.md)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -159,7 +159,7 @@ See [ENVIRONMENT.md](./docs/ENVIRONMENT.md) for the full list of environment var
 Savoir is designed as a **reusable template**. See the [Customization Guide](./docs/CUSTOMIZATION.md) for how to:
 
 - Rename your instance (name, icon, description)
-- Add documentation sources (GitHub repos, YouTube channels)
+- Add [content sources](./docs/SOURCES.md) (GitHub repos, YouTube channels, custom)
 - Add custom AI tools
 - Add bot adapters (Slack, Linear, etc.)
 - Customize AI prompts
@@ -176,6 +176,8 @@ See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
 
 ## How It Works
 
+> For the full technical deep-dive, see [Architecture](./docs/ARCHITECTURE.md).
+
 1. **Sources in Database**: Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com), managed through the admin interface
 2. **Content Aggregation**: Sources (GitHub repos, YouTube transcripts, custom APIs, etc.) are synced to a snapshot repository via [Vercel Workflow](https://useworkflow.dev)
 3. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) with the snapshot repo cloned
@@ -189,7 +191,7 @@ Savoir includes built-in bot integrations powered by the [Vercel Chat SDK](https
 - **GitHub Bot**: Responds to mentions in GitHub issues and PRs. Uses a [GitHub App](https://docs.github.com/en/apps) for authentication and webhooks.
 - **Discord Bot**: Responds to mentions and continues conversations in threads. Uses the [Discord API](https://discord.com/developers/docs).
 
-Both bots use the same AI agent and knowledge base as the chat interface.
+Both bots use the same AI agent and knowledge base as the chat interface. Want to add your own? See [Adding a Bot Adapter](./docs/CUSTOMIZATION.md#4-add-a-bot-adapter).
 
 ## Development
 

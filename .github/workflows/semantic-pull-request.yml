@@ -24,9 +24,9 @@ jobs:
           scopes: |
             deps
             chat
-            bot
             sdk
-            logger
+            agent
+            cli
             docs
           types: |
             breaking

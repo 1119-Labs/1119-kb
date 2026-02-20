@@ -77,3 +77,5 @@ Admin mode uses a completely separate AI pipeline from the regular chat:
 4. The `chart` tool can render visual time-series charts inline in the conversation
 
 Admin chats are stored like regular chats but tagged with `mode: 'admin'` in the database.
+
+For a deeper look at the architecture behind admin mode and other components, see the [Architecture documentation](https://github.com/vercel-labs/savoir/blob/main/docs/ARCHITECTURE.md) on GitHub.

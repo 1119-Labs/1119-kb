@@ -1,5 +1,7 @@
 # Customization Guide
 
+> Back to [README](../README.md) | See also: [Sources](./SOURCES.md), [Environment](./ENVIRONMENT.md), [Architecture](./ARCHITECTURE.md)
+
 Savoir is designed as a reusable template. This guide covers how to customize your instance.
 
 ## 1. Rename Your Instance
@@ -32,7 +34,7 @@ Sources define your knowledge base. Manage them through the **Admin UI**:
 3. Configure a GitHub repository or YouTube channel
 4. Click **Sync** to pull content
 
-See [SOURCES.md](./SOURCES.md) for all source options.
+See [Sources](./SOURCES.md) for all source options and how to add custom source types.
 
 ## 3. Add Custom AI Tools
 
@@ -135,7 +137,7 @@ export default defineAppConfig({
 })
 ```
 
-See the [Nuxt UI documentation](https://ui.nuxt.com) for all theming options.
+See the [Nuxt UI documentation](https://ui.nuxt.com) for all theming options. For a deeper understanding of the app structure, see [Architecture](./ARCHITECTURE.md).
 
 ## 7. Deploy
 

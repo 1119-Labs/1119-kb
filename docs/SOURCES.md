@@ -1,5 +1,7 @@
 # Content Sources
 
+> Back to [README](../README.md) | See also: [Customization](./CUSTOMIZATION.md), [Architecture](./ARCHITECTURE.md)
+
 Savoir aggregates content from multiple sources into a unified, searchable knowledge base. A source is anything that produces files — GitHub repos, YouTube transcripts, and any custom source you build. Everything ends up as files in a sandbox, and the AI agent searches across all of them.
 
 The system is designed to be extensible. Built-in source types handle GitHub and YouTube, but the architecture supports any source that can output files: Reddit threads, Slack exports, RSS feeds, custom APIs, static markdown — anything.
@@ -91,12 +93,12 @@ await savoir.client.syncSource('my-docs')
 
 ### How Sync Works
 
-1. A Vercel Sandbox is created from the latest snapshot
+1. A [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) is created from the latest snapshot
 2. All source repositories are cloned/updated
 3. Changes are pushed to the snapshot repository
 4. A new sandbox snapshot is taken for instant startup
 
-This runs as a durable Vercel Workflow with automatic retries.
+This runs as a durable [Vercel Workflow](https://useworkflow.dev) with automatic retries. See [Architecture > Sandbox System](./ARCHITECTURE.md#3-sandbox-system) for more details on how snapshots and sandboxes work.
 
 ### Sync Tracking
 

@@ -1,6 +1,8 @@
 # Savoir Architecture
 
-This document describes the technical architecture of Savoir, a platform for building AI agents with real-time knowledge access.
+> Back to [README](../README.md)
+
+This document describes the technical architecture of Savoir, a platform for building AI agents with up-to-date knowledge access.
 
 ## System Overview
 
@@ -110,7 +112,7 @@ savoir/
 
 ### 1. Sources (Database)
 
-Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com) and managed through the admin interface.
+Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com) and managed through the admin interface. See [Sources](./SOURCES.md) for configuration details.
 
 #### Database Schema
 
@@ -251,7 +253,7 @@ Content synchronization uses [Vercel Workflow](https://useworkflow.dev) for dura
 - Responds to mentions and continues conversations in threads
 - Webhook: `POST /api/webhooks/discord`
 
-Both bots use the same AI agent pipeline (router + tools) as the chat interface but with internal sandbox access (no HTTP round-trip).
+Both bots use the same AI agent pipeline (router + tools) as the chat interface but with internal sandbox access (no HTTP round-trip). To add a new platform, see [Customization > Add a Bot Adapter](./CUSTOMIZATION.md#4-add-a-bot-adapter).
 
 ## API Endpoints
 

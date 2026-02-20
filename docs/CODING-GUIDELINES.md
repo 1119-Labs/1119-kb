@@ -1,5 +1,7 @@
 # Coding Guidelines
 
+> Back to [README](../README.md) | See also: [Contributing](../CONTRIBUTING.md), [Architecture](./ARCHITECTURE.md)
+
 ## Comments
 
 Only add comments when the code is truly complex or non-obvious.
