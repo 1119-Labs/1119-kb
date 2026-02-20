@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { PatchChatShareBody, PatchChatShareResponse } from '#shared/types/chat'
+
 const props = defineProps<{
   chatId: string
   isPublic: boolean
@@ -30,9 +32,9 @@ const shareUrl = computed(() => {
 async function togglePublic(value: boolean) {
   isToggling.value = true
   try {
-    const updated = await $fetch<{ isPublic: boolean, shareToken: string | null }>(`/api/chats/${props.chatId}/share`, {
+    const updated = await $fetch<PatchChatShareResponse>(`/api/chats/${props.chatId}/share`, {
       method: 'PATCH',
-      body: { isPublic: value }
+      body: { isPublic: value } satisfies PatchChatShareBody
     })
     localIsPublic.value = updated.isPublic
     localShareToken.value = updated.shareToken

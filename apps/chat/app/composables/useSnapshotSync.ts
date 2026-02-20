@@ -1,4 +1,4 @@
-import type { SnapshotSyncStatus } from '~~/shared/types/snapshot'
+import type { SnapshotSyncStatus } from '#shared/types/snapshot'
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000
 

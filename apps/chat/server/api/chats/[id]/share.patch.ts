@@ -1,6 +1,7 @@
 import { db, schema } from '@nuxthub/db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
+import type { PatchChatShareBody, PatchChatShareResponse } from '#shared/types/chat'
 
 const paramsSchema = z.object({
   id: z.string().min(1, 'Missing chat ID'),
@@ -11,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   const { id } = await getValidatedRouterParams(event, paramsSchema.parse)
 
-  const { isPublic } = await readValidatedBody(event, z.object({
+  const { isPublic } = await readValidatedBody<PatchChatShareBody>(event, z.object({
     isPublic: z.boolean()
   }).parse)
 
@@ -39,5 +40,13 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.chats.id, id))
     .returning()
 
-  return updated
+  if (!updated) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to update chat sharing settings',
+      data: { why: 'The database update did not return the updated chat row', fix: 'Try again or check server logs for database errors' },
+    })
+  }
+
+  return updated satisfies PatchChatShareResponse
 })

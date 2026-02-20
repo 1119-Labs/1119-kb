@@ -21,7 +21,7 @@ useHead({
 })
 
 useHead({
-  titleTemplate: `%s - ${appConfig.app.name}`,
+  titleTemplate: `%s - ${appConfig.app.name}`
 })
 
 useSeoMeta({

@@ -1,17 +1,8 @@
 import { isToday, isYesterday, subMonths } from 'date-fns'
+import type { ComputedRef, Ref } from 'vue'
+import type { UIChat } from '#shared/types/chat'
 
-export interface UIChat {
-  id: string
-  label: string
-  generating?: boolean
-  icon: string
-  createdAt: string
-  to: string
-  isPublic: boolean
-  shareToken: string | null
-}
-
-export function useChats(chats: Ref<UIChat[] | undefined>) {
+export function useChats(chats: Ref<UIChat[] | undefined> | ComputedRef<UIChat[] | undefined>) {
   const groups = computed(() => {
     const today: UIChat[] = []
     const yesterday: UIChat[] = []

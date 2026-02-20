@@ -1,6 +1,7 @@
 import { db, schema } from '@nuxthub/db'
 import { and, asc, eq } from 'drizzle-orm'
 import { z } from 'zod'
+import type { GetChatResponse } from '#shared/types/chat'
 
 const paramsSchema = z.object({
   id: z.string().min(1, 'Missing chat ID'),
@@ -31,5 +32,5 @@ export default defineEventHandler(async (event) => {
 
   requestLog.set({ messageCount: chat.messages.length })
 
-  return chat
+  return chat satisfies GetChatResponse
 })

@@ -252,7 +252,7 @@ function isSourceEmpty(source: ExtractedSource): boolean {
 }
 
 function resetSource(source: ExtractedSource) {
-  const type = source.data.type
+  const { type } = source.data
   Object.assign(source.data, createSourceData({ type } as SourceOcrItem))
   source.confidence = 1
 }

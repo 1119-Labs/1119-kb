@@ -1,12 +1,14 @@
 # Content Sources
 
-Savoir aggregates documentation from multiple sources into a unified, searchable knowledge base.
+Savoir aggregates content from multiple sources into a unified, searchable knowledge base. A source is anything that produces files — GitHub repos, YouTube transcripts, and any custom source you build. Everything ends up as files in a sandbox, and the AI agent searches across all of them.
+
+The system is designed to be extensible. Built-in source types handle GitHub and YouTube, but the architecture supports any source that can output files: Reddit threads, Slack exports, RSS feeds, custom APIs, static markdown — anything.
 
 ## Managing Sources
 
 Sources are managed through the **admin interface** at `/admin`. From there you can:
 
-- Add new GitHub repositories or YouTube channels
+- Add new sources (GitHub repositories, YouTube channels, or custom types)
 - Edit existing source configurations
 - Delete sources
 - Trigger a sync to update the knowledge base

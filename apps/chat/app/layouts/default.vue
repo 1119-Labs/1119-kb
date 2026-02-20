@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LazyModalConfirm, LazyModalShare } from '#components'
+import type { GetChatsResponse, UIChat } from '#shared/types/chat'
 
 const route = useRoute()
 const toast = useToast()
@@ -27,20 +28,21 @@ const shareModal = overlay.create(LazyModalShare, {
   }
 })
 
-const { data: chats, refresh: refreshChats } = await useFetch('/api/chats', {
+const { data: chatsResponse, refresh: refreshChats } = await useFetch<GetChatsResponse>('/api/chats', {
   key: 'chats',
-  transform: data => data.map(chat => ({
-    id: chat.id,
-    label: chat.title || 'Generating title…',
-    generating: !chat.title,
-    to: `/chat/${chat.id}`,
-    icon: chat.mode === 'admin' ? 'i-custom-shield' : 'i-custom-chat',
-    mode: chat.mode,
-    createdAt: chat.createdAt,
-    isPublic: chat.isPublic,
-    shareToken: chat.shareToken
-  }))
 })
+
+const chats = computed<UIChat[] | undefined>(() => chatsResponse.value?.map(chat => ({
+  id: chat.id,
+  label: chat.title || 'Generating title…',
+  generating: !chat.title,
+  to: `/chat/${chat.id}`,
+  icon: chat.mode === 'admin' ? 'i-custom-shield' : 'i-custom-chat',
+  mode: chat.mode,
+  createdAt: String(chat.createdAt),
+  isPublic: chat.isPublic,
+  shareToken: chat.shareToken
+})))
 
 watch(loggedIn, () => {
   refreshChats()
@@ -317,7 +319,7 @@ defineShortcuts({
                       ]"
                       @click="open = false"
                     >
-                      <UIcon v-if="(chat as any).mode === 'admin'" name="i-custom-shield" class="size-4 shrink-0" />
+                      <UIcon v-if="chat.mode === 'admin'" name="i-custom-shield" class="size-4 shrink-0" />
                       <TextScramble v-if="chat.generating" />
                       <span v-else class="truncate">{{ chat.label }}</span>
                     </NuxtLink>

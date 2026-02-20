@@ -7,6 +7,7 @@ import { useClipboard } from '@vueuse/core'
 import { getTextFromMessage } from '@nuxt/ui/utils/ai'
 import ProseStreamPre from '../../components/prose/PreStream.vue'
 import type { ToolCall } from '#shared/types/tool-call'
+import type { GetChatResponse } from '#shared/types/chat'
 
 definePageMeta({ auth: 'user' })
 
@@ -46,7 +47,7 @@ const {
 const nuxtApp = useNuxtApp()
 const chatKey = `chat-${route.params.id}`
 
-const { data } = await useFetch(`/api/chats/${route.params.id}`, {
+const { data } = await useFetch<GetChatResponse>(`/api/chats/${route.params.id}`, {
   key: chatKey,
   getCachedData: (key, nuxtApp) =>
     nuxtApp.payload.data[key] ?? nuxtApp.static.data[key],
@@ -56,7 +57,7 @@ if (!data.value) {
 }
 
 if (data.value.mode) {
-  setMode(data.value.mode as 'chat' | 'admin')
+  setMode(data.value.mode)
 }
 
 useSeoMeta({ title: () => data.value?.title || 'Chat' })
@@ -66,7 +67,7 @@ const isNewChat = (data.value?.messages.length ?? 0) <= 1
 
 const chat = new Chat({
   id: data.value.id,
-  messages: data.value.messages,
+  messages: data.value.messages as UIMessage[],
   transport: new DefaultChatTransport({
     api: `/api/chats/${data.value.id}`,
     body: {

@@ -1,15 +1,20 @@
 import type { UIMessage } from 'ai'
 import { db, schema } from '@nuxthub/db'
 import { z } from 'zod'
+import type { CreateChatBody, CreateChatResponse } from '#shared/types/chat'
+
+const bodySchema = z.object({
+  id: z.string(),
+  mode: z.enum(['chat', 'admin']).default('chat'),
+  message: z.custom<UIMessage>()
+})
 
 export default defineEventHandler(async (event) => {
   const requestLog = useLogger(event)
   const { user } = await requireUserSession(event)
-  const { id, mode, message } = await readValidatedBody(event, z.object({
-    id: z.string(),
-    mode: z.enum(['chat', 'admin']).default('chat'),
-    message: z.custom<UIMessage>()
-  }).parse)
+  const body: CreateChatBody = await readValidatedBody(event, bodySchema.parse)
+  const { id, message } = body
+  const mode = body.mode ?? 'chat'
 
   requestLog.set({ userId: user.id, chatId: id, mode })
 
@@ -35,5 +40,5 @@ export default defineEventHandler(async (event) => {
     parts: message.parts
   })
 
-  return chat
+  return chat satisfies CreateChatResponse
 })

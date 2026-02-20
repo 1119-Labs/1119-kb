@@ -8,21 +8,46 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/vercel-labs/savoir/actions/workflows/ci.yml"><img src="https://github.com/vercel-labs/savoir/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
-  <a href="https://github.com/vercel-labs/savoir/actions/workflows/build.yml"><img src="https://github.com/vercel-labs/savoir/actions/workflows/build.yml/badge.svg" alt="Build"></a>
-  <a href="https://www.npmjs.com/package/@savoir/sdk"><img src="https://img.shields.io/npm/v/@savoir/sdk?color=0284c7&label=@savoir/sdk" alt="npm @savoir/sdk"></a>
-  <a href="https://www.npmjs.com/package/@savoir/agent"><img src="https://img.shields.io/npm/v/@savoir/agent?color=0284c7&label=@savoir/agent" alt="npm @savoir/agent"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/github/license/vercel-labs/savoir?color=0284c7" alt="License"></a>
-  <a href="https://github.com/vercel-labs/savoir/stargazers"><img src="https://img.shields.io/github/stars/vercel-labs/savoir?style=flat&color=0284c7" alt="GitHub Stars"></a>
-</p>
-
-<p align="center">
   <b>Template.</b> Fork it, customize it, and deploy your own AI documentation assistant.
 </p>
 
 ---
 
-Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a unified [Nuxt](https://nuxt.com) application for the chat interface and API with an SDK that provides [AI SDK](https://ai-sdk.dev)-compatible tools.
+Open-source infrastructure to build AI agents powered by real-time file-based knowledge. Plug any source — GitHub repos, YouTube transcripts, custom APIs — and deploy as a chat app, a GitHub bot, a Discord bot, or all at once.
+
+## Features
+
+### File-Based Search — No Embeddings Needed
+
+No vector database. No chunking pipeline. No embedding model. Savoir agents use `grep`, `find`, and `cat` inside isolated sandboxes to search across all your sources. Results are deterministic, explainable, and instant. Zero infrastructure overhead.
+
+### Multi-Platform Bots — One Agent, Everywhere
+
+Write your agent once, deploy it on the web chat, GitHub Issues, Discord — and soon Slack, Linear, and more. Powered by pluggable adapters via the [Chat SDK](https://github.com/vercel-labs/chat). Adding a new platform is a single adapter file.
+
+### Built-in Admin Panel
+
+Full admin interface out of the box: usage stats, error logs, user management, source configuration, and content sync controls. No need for external dashboards or third-party monitoring.
+
+### AI-Powered Admin Agent
+
+Ask your app about itself. "What errors happened in the last 24 hours?", "Show token usage by model", "Which endpoints are slowest?" — the admin agent has access to internal tools like `query_stats`, `query_errors`, `run_sql`, and `chart` to answer operational questions in natural language.
+
+### Smart Complexity Router
+
+Every incoming question is classified by complexity (trivial → complex) and routed to the right model. Simple questions go to fast, cheap models. Hard questions go to powerful ones. Cost optimization happens automatically — no manual rules to maintain.
+
+### Real-Time Tool Visualization
+
+The chat UI shows what the agent is doing in real time: which files it's reading, which commands it's running, and how long each step takes. No black box.
+
+### Shareable Conversations
+
+Share any conversation with a single click. Generates a public read-only link with full metadata — author, title, and the complete exchange.
+
+### Shared Sandbox Pool
+
+Sandboxes are pooled across users and conversations. When a chat starts, it connects to an already-running sandbox instead of creating a new one — startup in under 100ms. If none is available, a pre-built snapshot spins one up in 1–3s. Sandboxes are read-only with blocked dangerous commands, and automatically shared so multiple agents search the same up-to-date content without duplicating resources.
 
 ## Architecture
 
@@ -152,7 +177,7 @@ See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
 ## How It Works
 
 1. **Sources in Database**: Sources are stored in SQLite via [NuxtHub](https://hub.nuxt.com), managed through the admin interface
-2. **Content Aggregation**: Sources (GitHub docs, YouTube transcripts, etc.) are synced to a snapshot repository via [Vercel Workflow](https://useworkflow.dev)
+2. **Content Aggregation**: Sources (GitHub repos, YouTube transcripts, custom APIs, etc.) are synced to a snapshot repository via [Vercel Workflow](https://useworkflow.dev)
 3. **Sandbox Creation**: When an agent needs to search, the API creates/recovers a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) with the snapshot repo cloned
 4. **File-based Search**: The SDK `bash` and `bash_batch` tools execute grep/find/cat commands in the sandbox to search and read content
 5. **AI Integration**: Tools are compatible with the [Vercel AI SDK](https://ai-sdk.dev) for seamless integration with any LLM
