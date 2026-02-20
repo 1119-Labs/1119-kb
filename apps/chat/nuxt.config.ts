@@ -123,8 +123,6 @@ export default defineNuxtConfig({
     '/api/webhooks/**': { isr: false, cache: false },
     // Admin pages are behind auth
     '/admin/**': { auth: { user: { role: 'admin' } } },
-    // Admin API routes should never be cached
-    '/api/admin/**': { isr: false, cache: false },
   },
 
   runtimeConfig: {

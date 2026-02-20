@@ -8,7 +8,7 @@ import { compactContext } from '../core/context'
 import { callOptionsSchema } from '../core/schemas'
 import { sanitizeToolCallInputs } from '../core/sanitize'
 import { countConsecutiveToolSteps, shouldForceTextOnlyStep } from '../core/policy'
-import { getSearchTools } from '../tools/model-config'
+import { webSearchTool } from '../tools/web-search'
 import type { AgentConfigData, AgentCallOptions, AgentExecutionContext, RoutingResult } from '../types'
 
 export interface SourceAgentOptions {
@@ -71,7 +71,7 @@ export function createSourceAgent({
         ...settings,
         model: effectiveModel,
         instructions: applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig),
-        tools: { ...tools, ...getSearchTools(effectiveModel) },
+        tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),
         experimental_context: executionContext,
       }

@@ -179,11 +179,17 @@ async function extractAll() {
     }) as { sources: SourceOcrItem[] }
 
     for (const item of result.sources) {
-      sources.value.push({
-        id: crypto.randomUUID(),
-        data: createSourceData(item),
-        confidence: item.confidence,
-      })
+      const emptySlot = sources.value.find(s => isSourceEmpty(s))
+      if (emptySlot) {
+        Object.assign(emptySlot.data, createSourceData(item))
+        emptySlot.confidence = item.confidence
+      } else {
+        sources.value.push({
+          id: crypto.randomUUID(),
+          data: createSourceData(item),
+          confidence: item.confidence,
+        })
+      }
     }
 
     pendingFiles.value.forEach(f => f.previewUrl && URL.revokeObjectURL(f.previewUrl))
@@ -237,7 +243,29 @@ function handleFileSelect(event: Event) {
   }
 }
 
+function isSourceEmpty(source: ExtractedSource): boolean {
+  const d = source.data
+  if (d.type === 'github') {
+    return !d.label && !d.repo && !d.contentPath
+  }
+  return !d.label && !d.channelId && !d.handle
+}
+
+function resetSource(source: ExtractedSource) {
+  const type = source.data.type
+  Object.assign(source.data, createSourceData({ type } as SourceOcrItem))
+  source.confidence = 1
+}
+
 function removeSource(id: string) {
+  const source = sources.value.find(s => s.id === id)
+  if (!source) return
+
+  if (!isSourceEmpty(source)) {
+    resetSource(source)
+    return
+  }
+
   if (sources.value.length > 1) {
     sources.value = sources.value.filter(s => s.id !== id)
   }
@@ -479,6 +507,7 @@ const validSourcesCount = computed(() => sources.value.filter(s => s.data.label)
               </div>
             </div>
             <button
+              tabindex="-1"
               class="text-muted hover:text-error transition-colors p-1"
               aria-label="Delete source"
               @click="removeSource(source.id)"

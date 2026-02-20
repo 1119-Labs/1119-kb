@@ -1,5 +1,5 @@
 // Tools
-export { getSearchTools } from './tools/model-config'
+export { webSearchTool } from './tools/web-search'
 
 // Agents
 export { createSourceAgent } from './agents/source'
