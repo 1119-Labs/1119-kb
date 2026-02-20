@@ -49,7 +49,7 @@ The Discord bot is built on the [Vercel Chat SDK](https://github.com/vercel-labs
 Mention the bot in any channel:
 
 ```
-@savoir-bot How do I use useAsyncData?
+@your-bot How do I configure authentication?
 ```
 
 The bot will reply in the same channel with an answer from the knowledge base, using the same AI agent pipeline as the [chat interface](/admin/docs/getting-started#how-it-works) and [GitHub bot](/admin/docs/github-bot).

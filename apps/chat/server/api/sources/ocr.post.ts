@@ -1,7 +1,7 @@
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
-import type { SourceOcrItem } from '~~/shared/utils/source-ocr'
-import { IMAGE_OPTIMIZATION_CONFIG } from '~~/shared/utils/file'
+import type { SourceOcrItem } from '#shared/utils/source-ocr'
+import { IMAGE_OPTIMIZATION_CONFIG } from '#shared/utils/file'
 import { optimizeImage } from '~~/server/utils/image/optimize'
 
 const bodySchema = z.object({

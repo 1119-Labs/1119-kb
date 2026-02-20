@@ -38,7 +38,7 @@ const { text } = await generateText({
   model: 'google/gemini-3-flash',
   tools: savoir.tools,
   maxSteps: 10,
-  prompt: 'How do I use useAsyncData in Nuxt?',
+  prompt: 'How do I configure authentication?',
 })
 
 console.log(text)

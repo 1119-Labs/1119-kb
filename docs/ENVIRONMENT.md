@@ -36,7 +36,7 @@ All environment variables for the Savoir project, organized by category.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NUXT_PUBLIC_GITHUB_BOT_TRIGGER` | Yes* | Bot mention trigger (e.g. `@nuxt-agent`). Required if using the GitHub bot. |
+| `NUXT_PUBLIC_GITHUB_BOT_TRIGGER` | Yes* | Bot mention trigger (e.g. `@your-bot-name`). Required if using the GitHub bot. |
 | `NUXT_GITHUB_APP_ID` | Yes* | GitHub App ID |
 | `NUXT_GITHUB_APP_PRIVATE_KEY` | Yes* | GitHub App private key (PEM format, can be base64-encoded) |
 | `NUXT_GITHUB_WEBHOOK_SECRET` | Yes* | Webhook secret set when creating the GitHub App |

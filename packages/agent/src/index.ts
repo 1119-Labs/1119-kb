@@ -20,6 +20,7 @@ export {
 // Prompts
 export { ROUTER_SYSTEM_PROMPT } from './prompts/router'
 export { buildBotSystemPrompt, buildBotUserMessage } from './prompts/bot'
+export { buildAdminSystemPrompt, ADMIN_SYSTEM_PROMPT, buildChatSystemPrompt } from './prompts/chat'
 
 // Types
 export type {

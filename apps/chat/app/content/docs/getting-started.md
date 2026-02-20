@@ -25,7 +25,7 @@ cp apps/chat/.env.example apps/chat/.env
 
 | Variable | Description |
 |----------|-------------|
-| `NUXT_PUBLIC_GITHUB_APP_NAME` | GitHub App name (e.g. `savoir-bot`) |
+| `NUXT_PUBLIC_GITHUB_APP_NAME` | GitHub App name (e.g. `your-bot-name`) |
 | `NUXT_GITHUB_APP_ID` | GitHub App ID (same app as OAuth, see [GitHub App Setup](#github-app-setup)) |
 | `NUXT_GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM format) |
 | `NUXT_GITHUB_WEBHOOK_SECRET` | Webhook secret for the GitHub App |
@@ -40,7 +40,7 @@ Savoir uses a single **GitHub App** for both **user authentication** (OAuth logi
 
 1. Go to [**GitHub Settings > Developer settings > GitHub Apps > New GitHub App**](https://github.com/settings/apps/new)
 2. Fill in the basic information:
-   - **App name**: e.g. `savoir-bot`
+   - **App name**: e.g. `your-bot-name`
    - **Homepage URL**: your Savoir instance URL
    - **Callback URL**: `<your-url>/api/auth/callback/github` (for OAuth login)
    - **Webhook URL**: `<your-url>/api/webhooks/github` (for the bot)
@@ -124,7 +124,7 @@ The app will be available at `http://localhost:3000`. Sign in with GitHub using 
 
 ## Adding Sources
 
-Sources define the knowledge base that Savoir uses to answer questions. They are managed through the **admin interface**.
+Sources define the knowledge base the app uses to answer questions. They are managed through the **admin interface**.
 
 1. Navigate to the admin panel at `/admin`
 2. Go to the Sources section

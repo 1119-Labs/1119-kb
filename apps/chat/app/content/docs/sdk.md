@@ -81,13 +81,13 @@ The `savoir.client` property exposes the low-level `SavoirClient` for direct API
 
 ```typescript
 // Execute bash command
-const result = await savoir.client.bash('grep -rl "useAsyncData" docs/')
+const result = await savoir.client.bash('grep -rl "authentication" docs/')
 console.log(result.stdout)
 
 // Execute multiple commands
 const batchResult = await savoir.client.bashBatch([
   'find docs/ -name "*.md" | head -10',
-  'cat docs/nuxt/getting-started/installation.md',
+  'cat docs/my-framework/getting-started/installation.md',
 ])
 
 // List all indexed sources
@@ -111,7 +111,7 @@ const result = await generateText({
   model: yourModel,
   tools: savoir.tools,
   maxSteps: 10,
-  prompt: 'How do I use Nuxt middleware?',
+  prompt: 'How do I configure middleware?',
 })
 
 // reportUsage accepts any AI SDK generate result

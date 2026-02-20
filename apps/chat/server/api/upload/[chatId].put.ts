@@ -2,7 +2,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from '@nuxthub/db'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { IMAGE_OPTIMIZATION_CONFIG } from '~~/shared/utils/file'
+import { IMAGE_OPTIMIZATION_CONFIG } from '#shared/utils/file'
 import { isOptimizableImage, optimizeImage } from '~~/server/utils/image/optimize'
 
 interface FileData {

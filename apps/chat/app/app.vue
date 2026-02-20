@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Analytics } from '@vercel/analytics/nuxt'
 
+const appConfig = useAppConfig()
 const colorMode = useColorMode()
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')
@@ -11,28 +12,26 @@ useHead({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { key: 'theme-color', name: 'theme-color', content: color }
+    { key: 'theme-color', name: 'theme-color', content: color },
   ],
   link: [{ rel: 'icon', href: '/favicon.ico' }],
   htmlAttrs: {
-    lang: 'en'
-  }
+    lang: 'en',
+  },
 })
 
-const description = 'Your intelligent AI assistant for knowledge and insights.'
-
 useHead({
-  titleTemplate: '%s - Savoir'
+  titleTemplate: `%s - ${appConfig.app.name}`,
 })
 
 useSeoMeta({
-  title: 'Savoir',
-  description,
-  ogTitle: 'Savoir',
-  ogDescription: description,
+  title: appConfig.app.name,
+  description: appConfig.app.description,
+  ogTitle: appConfig.app.name,
+  ogDescription: appConfig.app.description,
   ogImage: '/og-image.png',
   twitterImage: '/og-image.png',
-  twitterCard: 'summary_large_image'
+  twitterCard: 'summary_large_image',
 })
 </script>
 
@@ -44,6 +43,7 @@ useSeoMeta({
       <NuxtPage />
     </NuxtLayout>
 
-    <Analytics />
+    <!-- To enable Vercel Analytics, uncomment: -->
+    <!-- <Analytics /> -->
   </UApp>
 </template>

@@ -1,6 +1,7 @@
 {
   "name": "@savoir/agent",
   "version": "0.1.0",
+  "license": "MIT",
   "description": "Framework-agnostic agent core for Savoir",
   "type": "module",
   "exports": {

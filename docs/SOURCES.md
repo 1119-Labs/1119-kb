@@ -84,7 +84,7 @@ Content syncing is triggered from the **admin interface**. You can also trigger 
 await savoir.client.sync()
 
 // Sync a specific source
-await savoir.client.syncSource('nuxt')
+await savoir.client.syncSource('my-docs')
 ```
 
 ### How Sync Works
@@ -129,13 +129,13 @@ The snapshot repository contains all aggregated content:
 ```
 {NUXT_GITHUB_SNAPSHOT_REPO}/
 ├── docs/
-│   ├── nuxt/
+│   ├── my-framework/
 │   │   ├── getting-started/
-│   │   └── composables/
-│   ├── nitro/
+│   │   └── api/
+│   ├── my-library/
 │   └── ...
 └── youtube/
-    └── alex-lichter/
+    └── my-channel/
 ```
 
 Configure via environment variable:

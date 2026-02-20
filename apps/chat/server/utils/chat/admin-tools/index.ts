@@ -7,7 +7,7 @@ import { getAgentConfigTool } from './get-agent-config'
 import { queryLogsTool } from './query-logs'
 import { logStatsTool } from './log-stats'
 import { queryErrorsTool } from './query-errors'
-import { chartTool } from '~~/shared/utils/tools/chart'
+import { chartTool } from '#shared/utils/tools/chart'
 
 export const adminTools = {
   query_stats: queryStatsTool,

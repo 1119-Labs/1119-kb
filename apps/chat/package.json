@@ -1,6 +1,7 @@
 {
   "name": "@savoir/chat",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "nuxt build",

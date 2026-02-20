@@ -2,6 +2,8 @@
 import { z } from 'zod'
 import { Circle, DotGrid, Glow, Godrays, ProgressiveBlur, Saturation, Shader, SolidColor } from 'shaders/vue'
 
+const appConfig = useAppConfig()
+
 definePageMeta({ layout: false, auth: 'guest' })
 useSeoMeta({ title: 'Sign in' })
 
@@ -85,13 +87,13 @@ function onGitHub() {
       <div class="w-full max-w-sm">
         <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center mb-4">
-            <UIcon name="i-custom-savoir" class="size-10 text-primary" />
+            <UIcon :name="appConfig.app.icon" class="size-10 text-primary" />
           </div>
           <h1 class="text-2xl font-semibold text-highlighted">
             {{ mode === 'signin' ? 'Welcome back' : 'Create your account' }}
           </h1>
           <p class="mt-1.5 text-sm text-muted">
-            {{ mode === 'signin' ? 'Sign in to your Savoir account.' : 'Get started with Savoir.' }}
+            {{ mode === 'signin' ? `Sign in to your ${appConfig.app.name} account.` : `Get started with ${appConfig.app.name}.` }}
           </p>
         </div>
 

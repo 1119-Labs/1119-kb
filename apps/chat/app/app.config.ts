@@ -1,4 +1,9 @@
 export default defineAppConfig({
+  app: {
+    name: 'Savoir',
+    description: 'Your intelligent AI assistant for knowledge and insights.',
+    icon: 'i-custom-savoir',
+  },
   ui: {
     colors: {
       primary: 'primary',

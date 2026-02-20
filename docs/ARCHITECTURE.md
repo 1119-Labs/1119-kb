@@ -368,13 +368,13 @@ Used for file uploads (images, PDFs, CSVs attached to chats).
 ```
 {GITHUB_SNAPSHOT_REPO}/
 ├── docs/
-│   ├── nuxt/
+│   ├── my-framework/
 │   │   ├── getting-started/
 │   │   └── composables/
-│   ├── nitro/
+│   ├── my-library/
 │   └── ...
 └── youtube/
-    └── alex-lichter/
+    └── my-channel/
 ```
 
 ## Environment Variables

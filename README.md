@@ -1,6 +1,26 @@
-# Savoir
+<p align="center">
+  <br>
+  <b>Savoir</b>
+  <br>
+  <i>Build AI agents with real-time knowledge access.</i>
+  <br>
+  <br>
+</p>
 
-Build AI agents with real-time knowledge access.
+<p align="center">
+  <a href="https://github.com/vercel-labs/savoir/actions/workflows/ci.yml"><img src="https://github.com/vercel-labs/savoir/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/vercel-labs/savoir/actions/workflows/build.yml"><img src="https://github.com/vercel-labs/savoir/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://www.npmjs.com/package/@savoir/sdk"><img src="https://img.shields.io/npm/v/@savoir/sdk?color=0284c7&label=@savoir/sdk" alt="npm @savoir/sdk"></a>
+  <a href="https://www.npmjs.com/package/@savoir/agent"><img src="https://img.shields.io/npm/v/@savoir/agent?color=0284c7&label=@savoir/agent" alt="npm @savoir/agent"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/vercel-labs/savoir?color=0284c7" alt="License"></a>
+  <a href="https://github.com/vercel-labs/savoir/stargazers"><img src="https://img.shields.io/github/stars/vercel-labs/savoir?style=flat&color=0284c7" alt="GitHub Stars"></a>
+</p>
+
+<p align="center">
+  <b>Template.</b> Fork it, customize it, and deploy your own AI documentation assistant.
+</p>
+
+---
 
 Savoir provides the infrastructure to create file-based AI agents (chatbots, Discord bots, GitHub bots, etc.) that can search and read from frequently updated knowledge bases. It combines a unified [Nuxt](https://nuxt.com) application for the chat interface and API with an SDK that provides [AI SDK](https://ai-sdk.dev)-compatible tools.
 
@@ -41,6 +61,7 @@ Savoir provides the infrastructure to create file-based AI agents (chatbots, Dis
 | Package | Description |
 |---------|-------------|
 | [`@savoir/sdk`](./packages/sdk) | [AI SDK](https://ai-sdk.dev) compatible tools for agents |
+| [`@savoir/agent`](./packages/agent) | Agent core: router, prompts, tools, types |
 | [`apps/chat`](./apps/chat) | Unified [Nuxt](https://nuxt.com) app (chat UI + API + bots) |
 
 ## Quick Start
@@ -60,7 +81,7 @@ const { text } = await generateText({
   model: yourModel, // any AI SDK compatible model
   tools: savoir.tools, // bash and bash_batch tools
   maxSteps: 10,
-  prompt: 'How do I configure authentication in Nuxt?',
+  prompt: 'How do I configure authentication?',
 })
 
 console.log(text)
@@ -107,6 +128,18 @@ NUXT_PUBLIC_SITE_URL=https://...      # Public URL of your instance
 ```
 
 See [ENVIRONMENT.md](./docs/ENVIRONMENT.md) for the full list of environment variables.
+
+## Customization
+
+Savoir is designed as a **reusable template**. See the [Customization Guide](./docs/CUSTOMIZATION.md) for how to:
+
+- Rename your instance (name, icon, description)
+- Add documentation sources (GitHub repos, YouTube channels)
+- Add custom AI tools
+- Add bot adapters (Slack, Linear, etc.)
+- Customize AI prompts
+- Theme the UI
+- Deploy to production
 
 ## Configuration
 
@@ -162,6 +195,10 @@ bun run lint:fix
 - [Better Auth](https://www.better-auth.com) - Authentication framework
 - [Drizzle ORM](https://orm.drizzle.team) - Type-safe database queries
 - [Vercel Chat SDK](https://github.com/vercel-labs/chat) - Bot framework for GitHub and Discord
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
 
 ## License
 

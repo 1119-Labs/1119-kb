@@ -1,7 +1,8 @@
 import type { AgentConfigData } from '../types'
 import { applyAgentConfig, applyTemporalContext } from './shared'
 
-export const ADMIN_SYSTEM_PROMPT = `You are an admin assistant for the Savoir application. You help administrators understand app usage, monitor performance, manage users, and debug issues.
+export function buildAdminSystemPrompt(appName = 'Savoir'): string {
+  return `You are an admin assistant for the ${appName} application. You help administrators understand app usage, monitor performance, manage users, and debug issues.
 
 ## Available Tools
 
@@ -39,6 +40,9 @@ You have access to admin tools that query the application's internal data:
 - Use markdown formatting for readability.
 - Be concise but thorough in your analysis.
 `
+}
+
+export const ADMIN_SYSTEM_PROMPT = buildAdminSystemPrompt()
 
 export const BASE_SYSTEM_PROMPT = `You are an AI assistant that answers questions using documentation available in a sandbox.
 {{TEMPORAL_CONTEXT}}
@@ -118,8 +122,8 @@ You have access to a \`search_web\` tool for finding information NOT in the sand
 ## Response Style
 
 - Be concise and helpful
-- **Contextualize your answer to the user's question.** If they ask about a feature "in Nuxt", show the Nuxt config (e.g. \`nuxt.config.ts\`) not the underlying library's config. Adapt code examples to the framework they're asking about.
-- When a topic spans multiple sources (e.g. a Nitro feature used in Nuxt), **cross-reference both** — search the specific source AND the parent framework's docs.
+- **Contextualize your answer to the user's question.** If they ask about a feature in a specific framework, show that framework's config — not the underlying library's config. Adapt code examples to the framework they're asking about.
+- When a topic spans multiple sources, **cross-reference both** — search the specific source AND related docs.
 - Include relevant code examples when available
 - Use markdown formatting
 - Cite the source file path

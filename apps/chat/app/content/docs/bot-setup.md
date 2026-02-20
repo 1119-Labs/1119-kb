@@ -21,7 +21,7 @@ For the full setup, see [Getting Started > GitHub App Setup](/admin/docs/getting
 
 | Variable | Description |
 |----------|-------------|
-| `NUXT_PUBLIC_GITHUB_APP_NAME` | The GitHub App name (e.g. `savoir-bot`). Used to build the install URL and as the default bot username. |
+| `NUXT_PUBLIC_GITHUB_APP_NAME` | The GitHub App name (e.g. `your-bot-name`). Used to build the install URL and as the default bot username. |
 | `NUXT_PUBLIC_GITHUB_BOT_TRIGGER` | Optional override for the bot mention trigger. Defaults to the app name. |
 | `NUXT_GITHUB_APP_ID` | The App ID from your [GitHub App settings](https://github.com/settings/apps) |
 | `NUXT_GITHUB_APP_PRIVATE_KEY` | The private key (PEM format). Generate one from your app's settings page. Can be base64-encoded. |
@@ -42,7 +42,7 @@ The app uses [installation access tokens](https://docs.github.com/en/apps/creati
 Mention the bot in any issue comment:
 
 ```
-@savoir-bot How do I configure SSO?
+@your-bot-name How do I configure SSO?
 ```
 
 The bot will:
@@ -58,8 +58,8 @@ The bot only responds when explicitly mentioned. It ignores its own comments to 
 By default, the bot responds to mentions matching the GitHub App name. If you want a different mention trigger, set `NUXT_PUBLIC_GITHUB_BOT_TRIGGER`:
 
 ```bash
-NUXT_PUBLIC_GITHUB_APP_NAME=my-company-bot
-NUXT_PUBLIC_GITHUB_BOT_TRIGGER=ask-ai    # Users will @ask-ai instead of @my-company-bot
+NUXT_PUBLIC_GITHUB_APP_NAME=your-bot-name
+NUXT_PUBLIC_GITHUB_BOT_TRIGGER=ask-ai    # Users will @ask-ai instead of @your-bot-name
 ```
 
 ## Auto-Reply to New Issues
