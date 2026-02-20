@@ -261,7 +261,7 @@ defineShortcuts({
         </template>
 
         <template v-else>
-          <template v-if="collapsed">
+          <div v-if="collapsed" class="flex flex-col items-center gap-2 w-full">
             <NuxtLink
               to="/"
               class="flex items-center justify-center rounded-md p-px bg-linear-to-b from-[#e0dfe3] to-[#d8d7dc] dark:from-[#353539] dark:to-[#2a2a2e] shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3)] hover:brightness-110 active:scale-[0.98] transition-[filter,transform] duration-150"
@@ -283,7 +283,7 @@ defineShortcuts({
             </UTooltip>
             <UDashboardSearchButton collapsed />
             <UDashboardSidebarCollapse />
-          </template>
+          </div>
 
           <div v-else class="flex flex-col flex-1 min-h-0 relative">
             <div
