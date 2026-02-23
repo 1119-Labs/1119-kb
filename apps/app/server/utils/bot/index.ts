@@ -22,15 +22,8 @@ async function handleBotResponse(thread: Thread, message: Message) {
     messageLength: message.text.length,
   })
 
-  const incoming = thread.createSentMessageFromMessage(message)
-  await incoming.addReaction(emoji.eyes).catch((error) => {
-    log.warn({
-      event: 'bot.reaction.failed',
-      emoji: 'eyes',
-      threadId: thread.id,
-      error: error instanceof Error ? error.message : 'Unknown',
-    })
-  })
+  await thread.startTyping().catch(() => {})
+  await adapter.addReaction(thread.id, message.id, emoji.eyes).catch(e => log.debug({ event: 'bot.reaction.failed', emoji: 'eyes', adapter: adapter.name, error: e instanceof Error ? e.message : 'Unknown' }))
 
   try {
     const context = hasContextProvider(adapter)
@@ -48,8 +41,9 @@ async function handleBotResponse(thread: Thread, message: Message) {
 
     await thread.post(response)
 
-    await incoming.removeReaction(emoji.eyes).catch(e => log.debug({ event: 'bot.reaction.cleanup_failed', emoji: 'eyes', error: e instanceof Error ? e.message : 'Unknown' }))
-    await incoming.addReaction(emoji.thumbs_up).catch(e => log.debug({ event: 'bot.reaction.add_failed', emoji: 'thumbs_up', error: e instanceof Error ? e.message : 'Unknown' }))
+    await adapter.removeReaction(thread.id, message.id, emoji.eyes).catch(e => log.debug({ event: 'bot.reaction.cleanup_failed', adapter: adapter.name, error: e instanceof Error ? e.message : 'Unknown' }))
+    await new Promise(r => setTimeout(r, 500))
+    await adapter.addReaction(thread.id, message.id, emoji.thumbs_up).catch(e => log.debug({ event: 'bot.reaction.add_failed', adapter: adapter.name, error: e instanceof Error ? e.message : 'Unknown' }))
 
     log.info({
       event: 'bot.response.success',
@@ -66,8 +60,6 @@ async function handleBotResponse(thread: Thread, message: Message) {
       durationMs: Date.now() - startTime,
       error: error instanceof Error ? error.message : 'Unknown',
     })
-
-    await incoming.removeReaction(emoji.eyes).catch(e => log.debug({ event: 'bot.reaction.cleanup_failed', emoji: 'eyes', error: e instanceof Error ? e.message : 'Unknown' }))
 
     try {
       await thread.post(`Sorry, I encountered an error while processing your request. Please try again later.
