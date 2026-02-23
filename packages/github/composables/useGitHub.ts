@@ -6,9 +6,10 @@ interface ReposResponse {
 }
 
 export function useGitHub() {
-  const fetchRepos = (options: { force?: boolean } = {}) => {
+  const fetchRepos = (options: { force?: boolean, lazy?: boolean } = {}) => {
     return useFetch<ReposResponse>('/api/github/repos', {
       query: { force: options.force },
+      lazy: options.lazy,
     })
   }
 

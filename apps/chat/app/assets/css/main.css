@@ -6,17 +6,17 @@
   --font-mono: 'Geist Mono', monospace;
   --font-pixel: 'Geist Pixel Line', monospace;
 
-  --color-primary-50: #E6EBFA;
-  --color-primary-100: #C2CDF3;
-  --color-primary-200: #99ABEA;
-  --color-primary-300: #6B85E0;
-  --color-primary-400: #1444d4;
-  --color-primary-500: #0035D0;
-  --color-primary-600: #002EB8;
-  --color-primary-700: #00259E;
-  --color-primary-800: #001D85;
-  --color-primary-900: #00155C;
-  --color-primary-950: #000D3D;
+  --color-primary-50: #EFFDF5;
+  --color-primary-100: #D9FBE8;
+  --color-primary-200: #B3F5D1;
+  --color-primary-300: #75EDAE;
+  --color-primary-400: #00DC82;
+  --color-primary-500: #00C16A;
+  --color-primary-600: #00A155;
+  --color-primary-700: #007F45;
+  --color-primary-800: #016538;
+  --color-primary-900: #0A5331;
+  --color-primary-950: #052E16;
 }
 
 :root {
@@ -35,7 +35,6 @@ html {
   animation: none;
 }
 
-/* Discreet scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: oklch(25% 0 0 / 0.5) transparent;
@@ -59,15 +58,12 @@ html {
   background: oklch(35% 0 0 / 0.6);
 }
 
-/* Linear-inspired darker theme — shift dark mode one step deeper */
 .dark {
-  /* Backgrounds: shell is near-black, surfaces step up visibly */
   --ui-bg: oklch(14.5% 0 0);                /* neutral-950 (was neutral-900) */
   --ui-bg-muted: oklch(17.5% 0 0);          /* between 950/900 */
   --ui-bg-elevated: oklch(20.5% 0 0);       /* neutral-900 (was neutral-800) */
   --ui-bg-accented: oklch(26.9% 0 0);       /* neutral-800 (was neutral-700) */
 
-  /* Borders: slightly brighter to stay visible on darker surfaces */
   --ui-border: oklch(26.9% 0 0);            /* neutral-800 (was neutral-800, now more visible) */
   --ui-border-muted: oklch(23% 0 0);        /* between 900/800 */
   --ui-border-accented: oklch(30% 0 0);     /* between 800/700 */

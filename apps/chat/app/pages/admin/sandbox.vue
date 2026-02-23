@@ -20,7 +20,7 @@ const {
 
 const { data: snapshotConfig, refresh: refreshSnapshotConfig } = useLazyFetch('/api/snapshot/config')
 const { fetchRepos } = useGitHub()
-const { data: repoCatalog, status: repoCatalogStatus } = await fetchRepos()
+const { data: repoCatalog, status: repoCatalogStatus } = fetchRepos({ lazy: true })
 
 const snapshotRepoInput = ref('')
 const snapshotBranchInput = ref('main')
@@ -209,26 +209,29 @@ watch(selectedSuggestion, (value) => {
             Choose one from your accessible repositories, or type a new name above and Savoir will create it automatically.
           </p>
 
-          <p
-            v-if="repositoryOptions.length > 0"
-            class="text-xs text-muted mb-2"
-          >
-            {{ repositoryOptions.length }} repositories available
-          </p>
+          <template v-if="repoCatalogStatus === 'pending'">
+            <USkeleton class="h-4 w-40 mb-2" />
+            <USkeleton class="h-9 w-full rounded-md" />
+          </template>
 
-          <USelectMenu
-            v-if="repositoryOptions.length > 0"
-            v-model="selectedSuggestion"
-            value-key="value"
-            :items="repositoryOptions"
-            :search-input="{ placeholder: 'Search repositories...' }"
-            :virtualize="{ overscan: 16, estimateSize: 36 }"
-            placeholder="Select a repository..."
-            icon="i-simple-icons-github"
-          />
+          <template v-else-if="repositoryOptions.length > 0">
+            <p class="text-xs text-muted mb-2">
+              {{ repositoryOptions.length }} repositories available
+            </p>
+
+            <USelectMenu
+              v-model="selectedSuggestion"
+              value-key="value"
+              :items="repositoryOptions"
+              :search-input="{ placeholder: 'Search repositories...' }"
+              :virtualize="{ overscan: 16, estimateSize: 36 }"
+              placeholder="Select a repository..."
+              icon="i-simple-icons-github"
+            />
+          </template>
 
           <div
-            v-else-if="repoCatalogStatus !== 'pending' && repoCatalogStatus !== 'idle'"
+            v-else-if="repoCatalogStatus !== 'idle'"
             class="text-xs text-muted rounded-md border border-default bg-default px-3 py-2"
           >
             No repositories found with current GitHub credentials. You can still type a new `owner/repo` and save.

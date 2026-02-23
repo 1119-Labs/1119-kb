@@ -1,8 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" aria-hidden="true" id="reading">
-  <title>savoir</title>
-  <g fill="currentColor">
-    <circle cx="9" cy="3.75" r="2.75" stroke-width="0"></circle>
-    <path d="m8.25,8.4724l-3.9668-1.2693c-.5376-.1699-1.1079-.0791-1.5649.2529-.4565.3335-.7183.8486-.7183,1.4141v4.6499c0,.7637.4888,1.4336,1.2168,1.667l5.0332,1.6104v-8.325Z" stroke-width="0"></path>
-    <path d="m15.2817,7.4561c-.4561-.332-1.0273-.4248-1.5649-.2529l-3.9668,1.2693v8.325l5.0337-1.6104c.7275-.2334,1.2163-.9033,1.2163-1.667v-4.6499c0-.5654-.2617-1.0806-.7183-1.4141Z" stroke-width="0"></path>
-  </g>
+<svg width="824" height="824" viewBox="0 0 824 824" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_ii_610_841)">
+<rect width="824" height="824" rx="186.5" fill="url(#paint0_radial_610_841)"/>
+</g>
+<rect x="2.5" y="2.5" width="819" height="819" rx="184" stroke="url(#paint1_linear_610_841)" stroke-width="5"/>
+<g filter="url(#filter1_di_610_841)">
+<path d="M411.5 312.886C466.936 312.886 511.875 267.916 511.875 212.443C511.875 156.97 466.936 112 411.5 112C356.064 112 311.125 156.97 311.125 212.443C311.125 267.916 356.064 312.886 411.5 312.886Z" fill="black"/>
+<path d="M384.125 384.928L239.337 338.567C219.714 332.361 198.898 335.678 182.218 347.804C165.556 359.985 156 378.799 156 399.454V569.29C156 597.184 173.841 621.652 200.413 630.177L384.125 688.996V384.928Z" fill="black"/>
+<path d="M640.782 347.808C624.134 335.681 603.286 332.292 583.663 338.57L438.875 384.931V689L622.605 630.18C649.159 621.656 667 597.188 667 569.294V399.457C667 378.806 657.448 359.989 640.782 347.808Z" fill="black"/>
+</g>
+<defs>
+<filter id="filter0_ii_610_841" x="0" y="-3.00455" width="824" height="828.924" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="4.7998"/>
+<feGaussianBlur stdDeviation="0.959961"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.309804 0 0 0 0 0.313726 0 0 0 0 0.32549 0 0 0 1 0"/>
+<feBlend mode="normal" in2="shape" result="effect1_innerShadow_610_841"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="-3.00455"/>
+<feGaussianBlur stdDeviation="2.00304"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="effect1_innerShadow_610_841" result="effect2_innerShadow_610_841"/>
+</filter>
+<filter id="filter1_di_610_841" x="150" y="111" width="523" height="589" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="5"/>
+<feGaussianBlur stdDeviation="3"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.986272 0 0 0 0 0.582797 0 0 0 1 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_610_841"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_610_841" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1"/>
+<feGaussianBlur stdDeviation="8.45"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.932749 0 0 0 0 0.55117 0 0 0 1 0"/>
+<feBlend mode="normal" in2="shape" result="effect2_innerShadow_610_841"/>
+</filter>
+<radialGradient id="paint0_radial_610_841" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(412 -2.6028) rotate(90) scale(829.207)">
+<stop stop-color="#00DC82"/>
+<stop offset="1" stop-color="#009458"/>
+</radialGradient>
+<linearGradient id="paint1_linear_610_841" x1="537.459" y1="1.59185e-05" x2="314.421" y2="824" gradientUnits="userSpaceOnUse">
+<stop offset="0.010423" stop-color="#00DC82"/>
+<stop offset="1" stop-color="#006F42"/>
+</linearGradient>
+</defs>
 </svg>

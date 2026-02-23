@@ -1,3 +1,5 @@
+<img src="./assets/banner.jpg" width="100%" alt="Savoir banner" />
+
 <p align="center">
   <br>
   <b>Savoir</b>

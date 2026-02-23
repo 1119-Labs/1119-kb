@@ -29,8 +29,8 @@ useSeoMeta({
   description: appConfig.app.description,
   ogTitle: appConfig.app.name,
   ogDescription: appConfig.app.description,
-  ogImage: '/og-image.png',
-  twitterImage: '/og-image.png',
+  ogImage: '/og.jpg',
+  twitterImage: '/og.jpg',
   twitterCard: 'summary_large_image',
 })
 </script>

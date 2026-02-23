@@ -153,7 +153,7 @@ const quickChats = computed(() => mode.value === 'admin' ? adminQuickChats : cha
               <ModelSelect v-model="model" />
             </div>
 
-            <UChatPromptSubmit color="neutral" size="sm" :disabled="isUploading" />
+            <UChatPromptSubmit size="sm" :disabled="isUploading" />
           </template>
         </UChatPrompt>
 
@@ -166,7 +166,6 @@ const quickChats = computed(() => mode.value === 'admin' ? adminQuickChats : cha
             size="sm"
             color="neutral"
             variant="outline"
-            class="rounded-full justify-start"
             @click="createChat(quickChat.label)"
           />
         </div>

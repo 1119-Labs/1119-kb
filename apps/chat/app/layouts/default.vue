@@ -224,10 +224,10 @@ defineShortcuts({
 
             <NuxtLink
               to="/"
-              class="block rounded-md p-px bg-linear-to-b from-[#e0dfe3] to-[#d8d7dc] dark:from-[#353539] dark:to-[#2a2a2e] shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3)] hover:brightness-110 active:scale-[0.98] transition-[filter,transform] duration-150"
+              class="block rounded-md p-px bg-linear-to-br from-[#e0dfe3] to-[#d8d7dc] dark:from-[#424242] dark:to-[#1b1b1c] shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3)] hover:brightness-110 active:scale-[0.98] transition-[filter,transform] duration-150"
               @click="open = false"
             >
-              <div class="flex items-center gap-1.5 rounded-[calc(var(--radius-md)-1px)] px-2.5 py-1.5 text-sm text-highlighted bg-linear-to-b from-[#f8f7fa] to-[#f2f1f5] dark:from-[#222226] dark:to-[#1f1f23]">
+              <div class="flex items-center gap-1.5 rounded-[calc(var(--radius-md)-1px)] px-2 py-1 text-sm text-highlighted bg-linear-to-b from-[#f8f7fa] to-[#f2f1f5] dark:from-[#222226] dark:to-[#1f1f23]">
                 <UIcon name="i-lucide-plus" class="size-3.5 shrink-0 text-muted" />
                 New chat
               </div>

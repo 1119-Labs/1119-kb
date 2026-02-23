@@ -28,8 +28,8 @@ function primary(shade: number) {
 
 onMounted(() => {
   Object.assign(shaderColors, {
-    swirlA: primary(800),
-    swirlB: primary(400),
+    swirlA: primary(700),
+    swirlB: primary(500),
     circle: primary(100),
     dots: primary(300),
     rays: primary(500),

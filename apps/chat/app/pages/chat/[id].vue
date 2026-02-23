@@ -440,7 +440,6 @@ watch(() => chat.status, (newStatus, oldStatus) => {
             <UChatPromptSubmit
               :status="chat.status"
               :disabled="isUploading"
-              color="neutral"
               size="sm"
               @stop="chat.stop()"
               @reload="chat.regenerate()"
