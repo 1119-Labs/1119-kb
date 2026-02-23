@@ -166,6 +166,8 @@ Savoir is designed as a **reusable template**. See the [Customization Guide](./d
 - Theme the UI
 - Deploy to production
 
+**AI-assisted customization:** The project includes local skills in [`.agents/skills/`](./.agents/skills) (add-tool, add-source, add-bot-adapter, rename-project). You can delegate these tasks to an AI agent — e.g. *"Follow the rename-project skill to rename this to MyDocs"* — instead of doing them manually.
+
 ## Configuration
 
 Sources are managed through the **admin interface** at `/admin`. You can add GitHub repositories and YouTube channels as knowledge sources, then trigger a sync from the UI.

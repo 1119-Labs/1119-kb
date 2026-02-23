@@ -30,3 +30,15 @@ savoir/
 - [Sources](docs/SOURCES.md) - Content sources configuration
 - [Coding Guidelines](docs/CODING-GUIDELINES.md) - Code style, patterns
 - [Environment](docs/ENVIRONMENT.md) - Environment variables
+- [Customization](docs/CUSTOMIZATION.md) - How to customize the instance
+
+## Local Skills (`.agents/skills/`)
+
+Project-specific guides for AI-assisted customization. When the user asks to add a tool, source, bot adapter, or rename the project, follow the corresponding skill:
+
+| Skill | File | Use when |
+|-------|------|----------|
+| Add Tool | `add-tool.md` | Adding a new AI SDK tool |
+| Add Source | `add-source.md` | Adding a GitHub/YouTube knowledge source |
+| Add Bot Adapter | `add-bot-adapter.md` | Adding a new platform (Slack, Linear, etc.) |
+| Rename Project | `rename-project.md` | Renaming the project from "Savoir" |

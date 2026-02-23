@@ -4,6 +4,21 @@
 
 Savoir is designed as a reusable template. This guide covers how to customize your instance.
 
+## AI-Assisted Customization (Agent Skills)
+
+Savoir includes **local project skills** in `.agents/skills/` that guide an AI agent (e.g. Cursor, Claude Code) through common customization tasks. Instead of manually following each step, you can delegate the migration to an agent by referencing these skills.
+
+| Skill | File | Purpose |
+|-------|------|---------|
+| **Add Tool** | `add-tool.md` | Add a new AI SDK tool to the agent (generator pattern, status yields) |
+| **Add Source** | `add-source.md` | Add a knowledge source (GitHub, YouTube) via admin UI or API |
+| **Add Bot Adapter** | `add-bot-adapter.md` | Add a new platform adapter (Slack, Linear, etc.) to the bot system |
+| **Rename Project** | `rename-project.md` | Fully rename the project from "Savoir" to a custom name |
+
+**How to use:** When customizing the project, ask your AI assistant to follow the relevant skill. For example: *"Follow the add-bot-adapter skill to add a Slack adapter"* or *"Use the rename-project skill to rename this to MyDocs"*.
+
+The skills provide step-by-step instructions, file locations, code patterns, and checklists so the agent can perform the changes consistently and completely.
+
 ## 1. Rename Your Instance
 
 Edit `apps/chat/app/app.config.ts` to change the branding:
