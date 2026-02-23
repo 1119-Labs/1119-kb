@@ -6,7 +6,7 @@ Framework-agnostic agent core for Savoir. Handles question routing, prompt manag
 
 ## Overview
 
-This package provides the AI agent infrastructure used by Savoir's chat interface and bots. It is designed to be consumed by `apps/chat` but can also be used independently.
+This package provides the AI agent infrastructure used by Savoir's chat interface and bots. It is designed to be consumed by `apps/app` but can also be used independently.
 
 ## Components
 

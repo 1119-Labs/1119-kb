@@ -17,8 +17,8 @@ When the user wants to rename the project:
 
 | File | What to change |
 |------|---------------|
-| `apps/chat/app/app.config.ts` | `name: 'Savoir'` → new name, update `description`, update `icon` |
-| `apps/chat/app/assets/icons/custom/savoir.svg` | Replace with custom icon SVG, rename the file |
+| `apps/app/app/app.config.ts` | `name: 'Savoir'` → new name, update `description`, update `icon` |
+| `apps/app/app/assets/icons/custom/savoir.svg` | Replace with custom icon SVG, rename the file |
 
 ### Package Metadata
 
@@ -27,7 +27,7 @@ When the user wants to rename the project:
 | `package.json` | `"name"`, `"description": "Monorepo for Savoir"` |
 | `packages/sdk/package.json` | `"name"`, `"description"`, `"repository.url"`, `"homepage"` |
 | `packages/agent/package.json` | `"name"`, `"description"` |
-| `apps/chat/package.json` | `"name"`, dependency references `@savoir/agent`, `@savoir/sdk` |
+| `apps/app/package.json` | `"name"`, dependency references `@savoir/agent`, `@savoir/sdk` |
 
 ### Source Code
 
@@ -37,9 +37,9 @@ When the user wants to rename the project:
 | `packages/sdk/src/client.ts` | `SavoirClient` class name, error messages mentioning "Savoir" |
 | `packages/sdk/src/types.ts` | `SavoirConfig` type name, JSDoc comments |
 | `packages/agent/src/prompts/chat.ts` | `buildAdminSystemPrompt(appName = 'Savoir')` default value |
-| `apps/chat/server/utils/bot/adapters/github.ts` | `SavoirGitHubAdapter` class name |
-| `apps/chat/server/utils/bot/index.ts` | `SavoirGitHubAdapter` import and usage |
-| `apps/chat/server/utils/sandbox/git.ts` | `email: 'bot@savoir.dev'`, `name: 'Savoir Bot'` |
+| `apps/app/server/utils/bot/adapters/github.ts` | `SavoirGitHubAdapter` class name |
+| `apps/app/server/utils/bot/index.ts` | `SavoirGitHubAdapter` import and usage |
+| `apps/app/server/utils/sandbox/git.ts` | `email: 'bot@savoir.dev'`, `name: 'Savoir Bot'` |
 
 After renaming packages, update **all imports** across the codebase:
 
@@ -69,12 +69,12 @@ Also check `package.json` scripts for `--filter=@savoir/*` references.
 
 | File | What to change |
 |------|---------------|
-| `apps/chat/app/content/docs/getting-started.md` | All mentions of "Savoir" |
-| `apps/chat/app/content/docs/sdk.md` | All mentions of "Savoir" |
-| `apps/chat/app/content/docs/bot-setup.md` | "Savoir GitHub bot", "Savoir knowledge base" |
-| `apps/chat/app/content/docs/discord-bot.md` | "Savoir Discord bot" |
-| `apps/chat/app/content/docs/api-keys.md` | "authenticate with Savoir" |
-| `apps/chat/app/content/docs/admin-mode.md` | "Savoir uses" |
+| `apps/app/app/content/docs/getting-started.md` | All mentions of "Savoir" |
+| `apps/app/app/content/docs/sdk.md` | All mentions of "Savoir" |
+| `apps/app/app/content/docs/bot-setup.md` | "Savoir GitHub bot", "Savoir knowledge base" |
+| `apps/app/app/content/docs/discord-bot.md` | "Savoir Discord bot" |
+| `apps/app/app/content/docs/api-keys.md` | "authenticate with Savoir" |
+| `apps/app/app/content/docs/admin-mode.md` | "Savoir uses" |
 
 ### Skills
 
@@ -100,7 +100,7 @@ grep -ri "savoir" --include="*.ts" --include="*.vue" --include="*.md" --include=
 - [ ] All TypeScript source — class names, function names, error messages
 - [ ] All `@savoir/*` imports → new namespace
 - [ ] All documentation files (root `docs/`, `packages/*/README.md`)
-- [ ] All in-app docs (`apps/chat/app/content/docs/`)
+- [ ] All in-app docs (`apps/app/app/content/docs/`)
 - [ ] All skill files (`agents/skills/`)
 - [ ] Git config (`server/utils/sandbox/git.ts`) — email and bot name
 - [ ] Run `bun install` to update lockfile

@@ -10,8 +10,8 @@
         "turbo": "^2.8.3",
       },
     },
-    "apps/chat": {
-      "name": "@savoir/chat",
+    "apps/app": {
+      "name": "@savoir/app",
       "dependencies": {
         "@ai-sdk/gateway": "^3.0.45",
         "@ai-sdk/vue": "^3.0.85",
@@ -1054,7 +1054,7 @@
 
     "@savoir/agent": ["@savoir/agent@workspace:packages/agent"],
 
-    "@savoir/chat": ["@savoir/chat@workspace:apps/chat"],
+    "@savoir/app": ["@savoir/app@workspace:apps/app"],
 
     "@savoir/github": ["@savoir/github@workspace:packages/github"],
 

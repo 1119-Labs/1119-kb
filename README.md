@@ -67,7 +67,7 @@ Sandboxes are pooled across users and conversations. When a chat starts, it conn
                                   │ API calls
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                         apps/chat                                │
+│                         apps/app                                │
 │                    (Unified Nuxt Application)                    │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
 │  │   Sandbox   │  │   Content    │  │   Vercel Workflows     │  │
@@ -89,7 +89,7 @@ Sandboxes are pooled across users and conversations. When a chat starts, it conn
 |---------|-------------|
 | [`@savoir/sdk`](./packages/sdk) | [AI SDK](https://ai-sdk.dev) compatible tools for agents |
 | [`@savoir/agent`](./packages/agent) | Agent core: router, prompts, tools, types |
-| [`apps/chat`](./apps/chat) | Unified [Nuxt](https://nuxt.com) app (chat UI + API + bots) |
+| [`apps/app`](./apps/app) | Unified [Nuxt](https://nuxt.com) app (chat UI + API + bots) |
 
 ## Quick Start
 
@@ -125,7 +125,7 @@ cd savoir
 bun install
 
 # Configure environment variables
-cp apps/chat/.env.example apps/chat/.env
+cp apps/app/.env.example apps/app/.env
 # Edit .env with your configuration
 
 # Start the app

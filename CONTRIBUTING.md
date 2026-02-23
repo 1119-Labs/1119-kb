@@ -25,7 +25,7 @@ cd savoir
 bun install
 
 # Set up environment variables
-cp apps/chat/.env.example apps/chat/.env
+cp apps/app/.env.example apps/app/.env
 # Edit .env with your configuration
 
 # Start dev server
@@ -36,7 +36,7 @@ bun run dev
 
 ```
 savoir/
-├── apps/chat/          # Nuxt application (chat UI + API + bots)
+├── apps/app/          # Nuxt application (chat UI + API + bots)
 ├── packages/sdk/       # @savoir/sdk - AI SDK compatible tools
 ├── packages/agent/     # @savoir/agent - Agent core (router, prompts, tools)
 └── docs/               # Documentation

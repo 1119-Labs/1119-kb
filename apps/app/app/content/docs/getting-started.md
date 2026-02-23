@@ -2,10 +2,10 @@
 
 ## Environment Variables
 
-Create a `.env` file in the `apps/chat/` directory. You can copy `.env.example` as a starting point:
+Create a `.env` file in the `apps/app/` directory. You can copy `.env.example` as a starting point:
 
 ```bash
-cp apps/chat/.env.example apps/chat/.env
+cp apps/app/.env.example apps/app/.env
 ```
 
 ### Required

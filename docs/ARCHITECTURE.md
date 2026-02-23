@@ -8,7 +8,7 @@ This document describes the technical architecture of Savoir, a platform for bui
 
 Savoir consists of two main components:
 
-1. **Chat App** (`apps/chat`): A unified [Nuxt](https://nuxt.com) application that provides the chat interface, API, bot integrations, sandbox management, and content synchronization
+1. **Main App** (`apps/app`): A unified [Nuxt](https://nuxt.com) application that provides the chat interface, API, bot integrations, sandbox management, and content synchronization
 2. **SDK** (`packages/sdk`): A client library providing [AI SDK](https://ai-sdk.dev)-compatible tools (`bash`, `bash_batch`)
 
 ```
@@ -31,7 +31,7 @@ Savoir consists of two main components:
                                      │ HTTPS (Better Auth session or API key)
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                            apps/chat                                     │
+│                            apps/app                                     │
 │                       (Unified Nuxt App)                                 │
 │                                                                          │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
@@ -67,7 +67,7 @@ Savoir consists of two main components:
 ```
 savoir/
 ├── apps/
-│   └── chat/                 # Unified Nuxt application
+│   └── app/                  # Unified Nuxt application
 │       ├── app/              # Vue app (components, pages, composables)
 │       ├── shared/           # Shared types (tool-call, snapshot)
 │       ├── server/

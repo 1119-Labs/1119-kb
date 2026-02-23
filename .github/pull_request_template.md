@@ -18,7 +18,7 @@ Here are the available types and scopes:
 - revert (reverts a previous commit) 🔄
 
 ### Scopes
-- chat (apps/chat - Main application)
+- app (apps/app - Main application)
 - sdk (packages/sdk - @savoir/sdk)
 - agent (packages/agent - @savoir/agent)
 - cli (packages/cli - @savoir/cli)

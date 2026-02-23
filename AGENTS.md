@@ -17,7 +17,7 @@ AI agents with real-time knowledge base access.
 
 ```
 savoir/
-├── apps/chat/          # Nuxt app (chat UI + API + bots)
+├── apps/app/          # Nuxt app (chat UI + API + bots)
 │   ├── app/            # Vue components, pages
 │   └── server/         # API, workflows, sandbox, bot adapters
 └── packages/

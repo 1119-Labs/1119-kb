@@ -21,7 +21,7 @@ The skills provide step-by-step instructions, file locations, code patterns, and
 
 ## 1. Rename Your Instance
 
-Edit `apps/chat/app/app.config.ts` to change the branding:
+Edit `apps/app/app/app.config.ts` to change the branding:
 
 ```typescript
 export default defineAppConfig({
@@ -35,7 +35,7 @@ export default defineAppConfig({
 ```
 
 To use a custom icon:
-1. Replace `apps/chat/app/assets/icons/custom/savoir.svg` with your own SVG
+1. Replace `apps/app/app/assets/icons/custom/savoir.svg` with your own SVG
 2. Update the `icon` value in `app.config.ts` to match (e.g. `i-custom-my-icon` for `my-icon.svg`)
 
 The name and description are used throughout the UI (login page, shared chats, SEO meta tags).
@@ -108,7 +108,7 @@ export const myTool = tool({
 ```
 
 2. Export it from `packages/agent/src/index.ts`
-3. Register it in the agent creation (e.g. in `apps/chat/server/utils/chat/`)
+3. Register it in the agent creation (e.g. in `apps/app/server/utils/chat/`)
 
 See `packages/agent/src/tools/web-search.ts` for a complete real-world example. Tools are compatible with the [Vercel AI SDK tool format](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling).
 
@@ -116,11 +116,11 @@ See `packages/agent/src/tools/web-search.ts` for a complete real-world example. 
 
 Bot adapters connect Savoir to messaging platforms. The project includes GitHub and Discord adapters. To add a new one (e.g. Slack, Linear):
 
-1. Look at `apps/chat/server/utils/bot/` for the existing adapter pattern
+1. Look at `apps/app/server/utils/bot/` for the existing adapter pattern
 2. The GitHub adapter (`SavoirGitHubAdapter`) is a good reference for custom adapters
 3. Create your adapter implementing the [Chat SDK](https://github.com/vercel-labs/chat) adapter interface
-4. Register the webhook endpoint in `apps/chat/server/api/webhooks/`
-5. Add the adapter to the bot instance in `apps/chat/server/utils/bot/`
+4. Register the webhook endpoint in `apps/app/server/api/webhooks/`
+5. Add the adapter to the bot instance in `apps/app/server/utils/bot/`
 
 ## 5. Customize AI Prompts
 
@@ -137,7 +137,7 @@ You can also customize the agent behavior through the admin UI at `/admin/agent`
 
 ## 6. Customize the UI Theme
 
-Edit `apps/chat/app/app.config.ts` to change colors:
+Edit `apps/app/app/app.config.ts` to change colors:
 
 ```typescript
 export default defineAppConfig({

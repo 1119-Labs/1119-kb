@@ -83,7 +83,7 @@ export { myTool } from './tools/my-tool'
 
 ### 3. Register in the Agent
 
-In the agent creation (e.g. `apps/chat/server/utils/chat/`), add the tool to the tools object:
+In the agent creation (e.g. `apps/app/server/utils/chat/`), add the tool to the tools object:
 
 ```typescript
 import { myTool } from '@savoir/agent'
