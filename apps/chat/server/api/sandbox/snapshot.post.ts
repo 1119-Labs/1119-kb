@@ -1,15 +1,17 @@
 import { start } from 'workflow/api'
 import { createSnapshot } from '../../workflows/create-snapshot'
+import { getSnapshotRepoConfig } from '../../utils/sandbox/snapshot-config'
 
 export default defineEventHandler(async (event) => {
   const requestLog = useLogger(event)
   const config = useRuntimeConfig()
+  const snapshotConfig = await getSnapshotRepoConfig()
 
   await start(createSnapshot, [
     {
-      githubToken: config.github.token,
-      snapshotRepo: config.github.snapshotRepo,
-      snapshotBranch: config.github.snapshotBranch,
+      githubToken: await getSnapshotToken(),
+      snapshotRepo: snapshotConfig.snapshotRepo,
+      snapshotBranch: snapshotConfig.snapshotBranch,
     }
   ])
 

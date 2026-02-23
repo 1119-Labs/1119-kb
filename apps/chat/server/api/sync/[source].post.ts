@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db, schema } from '@nuxthub/db'
 import { syncDocumentation } from '../../workflows/sync-docs'
 import type { Source } from '../../workflows/sync-docs'
+import { getSnapshotRepoConfig } from '../../utils/sandbox/snapshot-config'
 
 const paramsSchema = z.object({
   source: z.string().min(1),
@@ -19,6 +20,7 @@ export default defineEventHandler(async (event) => {
   const { source: sourceId } = await getValidatedRouterParams(event, paramsSchema.parse)
   requestLog.set({ sourceId })
   const config = useRuntimeConfig()
+  const snapshotConfig = await getSnapshotRepoConfig()
 
   const dbSource = await db.query.sources.findFirst({
     where: eq(schema.sources.id, sourceId),
@@ -60,10 +62,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const syncConfig = {
-    githubToken: config.github.token,
+    githubToken: await getSnapshotToken(),
     youtubeApiKey: config.youtube?.apiKey,
-    snapshotRepo: config.github.snapshotRepo,
-    snapshotBranch: config.github.snapshotBranch,
+    snapshotRepo: snapshotConfig.snapshotRepo,
+    snapshotBranch: snapshotConfig.snapshotBranch,
   }
 
   await start(syncDocumentation, [syncConfig, [source]])
