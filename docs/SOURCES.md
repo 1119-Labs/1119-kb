@@ -110,21 +110,24 @@ The system tracks when sources were last synced:
 
 ## Content Normalization
 
-All content is normalized to Markdown:
+During sync, only documentation-relevant files are kept in the snapshot. All other files are discarded.
 
-| Input | Output |
-|-------|--------|
+### Supported File Types
+
+| Extension | Handling |
+|-----------|----------|
 | `.md` | Preserved as-is |
-| `.mdx` | Converted to `.md` |
-| `.yml`/`.yaml` | Preserved |
+| `.mdx` | Preserved (treated as Markdown) |
+| `.yml` / `.yaml` | Preserved |
 | `.json` | Preserved |
-| Other | Ignored |
+| All other types | **Deleted** during sync |
 
-### Excluded Files
+Source code files (`.ts`, `.js`, `.vue`, etc.), images, binaries, and any file not in the list above are automatically removed after cloning. Only the supported types end up in the snapshot repository.
 
-- Lock files (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lock`, etc.)
+### Excluded Directories
+
 - `node_modules/`
-- Binary files
+- Empty directories (cleaned up after filtering)
 
 ## Snapshot Repository
 

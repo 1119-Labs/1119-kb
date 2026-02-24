@@ -148,8 +148,11 @@ After adding or updating sources, trigger a sync from the admin interface. The s
 
 1. Creates a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) from the latest snapshot
 2. Clones/updates all source repositories
-3. Pushes changes to the snapshot repository
-4. Takes a new sandbox snapshot for instant startup
+3. Filters files to keep only documentation types (`.md`, `.mdx`, `.yml`, `.yaml`, `.json`) -- all other files are discarded
+4. Pushes changes to the snapshot repository
+5. Takes a new sandbox snapshot for instant startup
+
+> **Note:** Only documentation files are synced. Source code (`.ts`, `.js`, `.vue`, etc.), images, and binaries are automatically excluded. See the [Sources documentation](https://github.com/vercel-labs/knowledge-agent-template/blob/main/docs/SOURCES.md#content-normalization) for details.
 
 ## How It Works
 
