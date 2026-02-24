@@ -1,6 +1,6 @@
 import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet, type UIMessage } from 'ai'
 import { log } from 'evlog'
-import { DEFAULT_MODEL } from '../router/schema'
+import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { routeQuestion } from '../router/route-question'
 import { buildChatSystemPrompt } from '../prompts/chat'
 import { applyComplexity } from '../prompts/shared'
@@ -73,6 +73,7 @@ export function createSourceAgent({
         instructions: applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig),
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),
+        providerOptions: getModelFallbackOptions(effectiveModel),
         experimental_context: executionContext,
       }
     },

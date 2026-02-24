@@ -1,3 +1,4 @@
+import type { SharedV3ProviderOptions } from '@ai-sdk/provider'
 import { z } from 'zod'
 
 export const ROUTER_MODEL = 'google/gemini-2.5-flash-lite'
@@ -29,4 +30,17 @@ export function getDefaultConfig(): AgentConfig {
     model: 'anthropic/claude-sonnet-4.6',
     reasoning: 'Default fallback configuration',
   }
+}
+
+const MODEL_FALLBACKS: Record<string, string[]> = {
+  'google/gemini-3-flash': ['anthropic/claude-sonnet-4.6', 'openai/gpt-4o'],
+  'anthropic/claude-sonnet-4.6': ['google/gemini-3-flash', 'openai/gpt-4o'],
+  'anthropic/claude-opus-4.6': ['anthropic/claude-sonnet-4.6', 'google/gemini-3-flash'],
+  'google/gemini-2.5-flash-lite': ['google/gemini-3-flash', 'openai/gpt-4o-mini'],
+}
+
+export function getModelFallbackOptions(model: string): SharedV3ProviderOptions | undefined {
+  const fallbacks = MODEL_FALLBACKS[model]
+  if (!fallbacks?.length) return undefined
+  return { gateway: { models: fallbacks } }
 }

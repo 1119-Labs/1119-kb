@@ -1,6 +1,6 @@
 import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet } from 'ai'
 import { log } from 'evlog'
-import { DEFAULT_MODEL } from '../router/schema'
+import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { compactContext } from '../core/context'
 import { callOptionsSchema } from '../core/schemas'
 import { sanitizeToolCallInputs } from '../core/sanitize'
@@ -56,6 +56,7 @@ export function createAgent({
         instructions: buildPrompt(routerConfig, agentConfig),
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),
+        providerOptions: getModelFallbackOptions(effectiveModel),
         experimental_context: executionContext,
       }
     },

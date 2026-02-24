@@ -1,5 +1,5 @@
 import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet } from 'ai'
-import { DEFAULT_MODEL } from '../router/schema'
+import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { ADMIN_SYSTEM_PROMPT } from '../prompts/chat'
 import { compactContext } from '../core/context'
 import { callOptionsSchema } from '../core/schemas'
@@ -45,6 +45,7 @@ export function createAdminAgent({
         instructions: systemPrompt,
         tools,
         stopWhen: stepCountIs(maxSteps),
+        providerOptions: getModelFallbackOptions(effectiveModel),
         experimental_context: executionContext,
       }
     },

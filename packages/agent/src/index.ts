@@ -13,6 +13,7 @@ export { routeQuestion } from './router/route-question'
 export {
   agentConfigSchema,
   getDefaultConfig,
+  getModelFallbackOptions,
   DEFAULT_MODEL,
   ROUTER_MODEL,
 } from './router/schema'
