@@ -1,11 +1,9 @@
 import { admin, apiKey } from 'better-auth/plugins'
 import { schema } from '@nuxthub/db'
-import { eq } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 import { defineServerAuth } from '@onmax/nuxt-better-auth/config'
 
-export default defineServerAuth(({ runtimeConfig, db }) => {
-  const adminUsers = runtimeConfig.adminUsers?.split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean) || []
-
+export default defineServerAuth(({ db }) => {
   return {
     emailAndPassword: {
       enabled: true,
@@ -43,8 +41,9 @@ export default defineServerAuth(({ runtimeConfig, db }) => {
     databaseHooks: {
       user: {
         create: {
-          after: async (user: { id: string, email?: string, username?: string }) => {
-            if ((user.email && adminUsers.includes(user.email.toLowerCase())) || (user.username && adminUsers.includes(user.username.toLowerCase()))) {
+          after: async (user: { id: string }) => {
+            const result = await db.select({ total: count() }).from(schema.user)
+            if (result[0]!.total === 1) {
               await db.update(schema.user).set({ role: 'admin' }).where(eq(schema.user.id, user.id))
             }
           },

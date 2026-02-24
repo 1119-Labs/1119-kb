@@ -24,9 +24,7 @@ useHead({
   titleTemplate: `%s - ${appConfig.app.name}`
 })
 
-const config = useRuntimeConfig()
-const siteUrl = config.public.siteUrl as string
-const ogImage = siteUrl ? `${siteUrl.replace(/\/$/, '')}/og.jpg` : '/og.jpg'
+const ogImage = `${useRequestURL().origin}/og.jpg`
 
 useSeoMeta({
   title: appConfig.app.name,

@@ -262,7 +262,7 @@ Both bots use the same AI agent pipeline (router + tools) as the chat interface 
 Authentication uses [Better Auth](https://www.better-auth.com) with the [`@onmax/nuxt-better-auth`](https://github.com/onmax/nuxt-better-auth) module:
 - **Email/password** and **GitHub OAuth** sign-in (via a [GitHub App](https://docs.github.com/en/apps), scope `user:email`)
 - **API keys** via Better Auth's [`apiKey` plugin](https://www.better-auth.com/docs/plugins/api-key) (supports `Authorization: Bearer <key>` and `x-api-key` headers)
-- **Admin role** granted to users whose email or username matches `NUXT_ADMIN_USERS`
+- **Admin role** automatically granted to the first registered user; additional admins promoted via the admin panel
 
 ### Sandbox
 
@@ -389,7 +389,7 @@ See [ENVIRONMENT.md](./ENVIRONMENT.md) for the complete list.
 
 - Better Auth handles user sessions, OAuth, and API keys
 - API keys support both `Authorization: Bearer <key>` and `x-api-key` headers
-- Admin role is automatically assigned based on `NUXT_ADMIN_USERS`
+- Admin role is automatically assigned to the first registered user
 
 ### Sandbox Isolation
 

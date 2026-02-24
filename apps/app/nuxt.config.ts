@@ -132,8 +132,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Admin users (comma-separated GitHub emails or usernames)
-    adminUsers: '',
     github: {
       token: '',
       snapshotRepo: '',
@@ -153,7 +151,6 @@ export default defineNuxtConfig({
       apiKey: '',
     },
     public: {
-      siteUrl: '',
       github: {
         appName: '',
         botTrigger: '',

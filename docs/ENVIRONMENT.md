@@ -4,13 +4,6 @@
 
 All environment variables for the Knowledge Agent Template project, organized by category.
 
-## Core
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NUXT_PUBLIC_SITE_URL` | Yes | Public URL of your instance |
-| `NUXT_ADMIN_USERS` | Yes | Comma-separated list of admin emails or GitHub usernames |
-
 ## Authentication
 
 | Variable | Required | Description |

@@ -143,15 +143,10 @@ GITHUB_CLIENT_SECRET=...              # GitHub OAuth app client secret
 # AI
 AI_GATEWAY_API_KEY=...                # Vercel AI Gateway API key
 
-# Admin
-NUXT_ADMIN_USERS=user1,user2          # Comma-separated admin emails/usernames
-
 # Sandbox
 # NUXT_GITHUB_SNAPSHOT_REPO=org/repo  # Optional default (can be set from admin sandbox UI)
 # NUXT_GITHUB_TOKEN=ghp_...           # Optional fallback override (GitHub App is the default path)
 
-# Site
-NUXT_PUBLIC_SITE_URL=https://...      # Public URL of your instance
 ```
 
 See [ENVIRONMENT.md](./docs/ENVIRONMENT.md) for the full list of environment variables.
@@ -219,6 +214,7 @@ bun run lint:fix
 ## Built With
 
 - [Nuxt](https://nuxt.com) - Full-stack Vue framework
+- [Nuxt UI](https://ui.nuxt.com) - UI component library
 - [NuxtHub](https://hub.nuxt.com) - Database, KV, and blob storage
 - [Vercel AI SDK](https://ai-sdk.dev) - AI model integration and tool system
 - [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) - Isolated execution environment

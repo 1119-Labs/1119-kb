@@ -4,7 +4,7 @@ Admin mode lets you **talk directly to your application**. Instead of searching 
 
 ## How to Access
 
-Admin mode is available to users listed in `NUXT_ADMIN_USERS`. When you're an admin, a mode toggle appears on the homepage letting you switch between **Chat** (documentation search) and **Admin** (application monitoring).
+Admin mode is automatically granted to the first user who signs up. Additional admins can be promoted from the admin users page. When you're an admin, a mode toggle appears on the homepage letting you switch between **Chat** (documentation search) and **Admin** (application monitoring).
 
 Admin chats are marked with a shield icon in the sidebar.
 

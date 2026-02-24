@@ -6,9 +6,7 @@ const appConfig = useAppConfig()
 
 definePageMeta({ layout: false, auth: 'guest' })
 
-const config = useRuntimeConfig()
-const siteUrl = config.public.siteUrl as string
-const ogImage = siteUrl ? `${siteUrl.replace(/\/$/, '')}/og.jpg` : '/og.jpg'
+const ogImage = `${useRequestURL().origin}/og.jpg`
 
 useSeoMeta({
   title: 'Sign in',
@@ -90,7 +88,18 @@ function onGitHub() {
 <template>
   <div class="flex min-h-dvh bg-default">
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
-      <UColorModeButton class="absolute top-4 right-4" />
+      <div class="absolute top-4 right-4 flex items-center gap-1">
+        <UButton
+          to="https://github.com/vercel-labs/knowledge-agent-template"
+          target="_blank"
+          icon="i-simple-icons-github"
+          color="neutral"
+          variant="ghost"
+          size="md"
+          square
+        />
+        <UColorModeButton />
+      </div>
 
       <div class="w-full max-w-sm">
         <div class="text-center mb-8">
@@ -176,9 +185,14 @@ function onGitHub() {
           </template>
         </p>
 
-        <p class="mt-4 text-center text-xs text-muted/60">
-          By continuing, you agree to our terms of service.
-        </p>
+        <UAlert
+          class="mt-8"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-info"
+          :title="appConfig.app.description"
+          :ui="{ root: 'p-3', title: 'text-xs font-normal', icon: 'size-4' }"
+        />
       </div>
     </div>
 

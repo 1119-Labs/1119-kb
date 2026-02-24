@@ -15,8 +15,6 @@ cp apps/app/.env.example apps/app/.env
 | `BETTER_AUTH_SECRET` | Secret used to sign sessions and tokens. See [Better Auth docs](https://www.better-auth.com/docs/installation#set-environment-variables). |
 | `GITHUB_CLIENT_ID` | GitHub App client ID (used for OAuth login). See [GitHub App Setup](#github-app-setup) below. |
 | `GITHUB_CLIENT_SECRET` | GitHub App client secret |
-| `NUXT_ADMIN_USERS` | Comma-separated list of admin emails or GitHub usernames |
-| `NUXT_PUBLIC_SITE_URL` | Public URL of your instance |
 | `AI_GATEWAY_API_KEY` | [Vercel AI Gateway](https://ai-sdk.dev) API key |
 
 `NUXT_GITHUB_SNAPSHOT_REPO` and `NUXT_GITHUB_TOKEN` are optional. You can configure the snapshot repository in the admin sandbox UI after startup, and the app uses a GitHub App installation access token automatically when app credentials are configured.
@@ -133,7 +131,7 @@ npm run dev
 ```
 ::
 
-The app will be available at `http://localhost:3000`. Sign in with GitHub using one of the admin emails or usernames defined in `NUXT_ADMIN_USERS` to access the admin panel.
+The app will be available at `http://localhost:3000`. The first user to sign up is automatically granted admin access.
 
 ## Adding Sources
 

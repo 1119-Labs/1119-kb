@@ -9,9 +9,7 @@
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
       "outputs": [".vercel/output/**", ".nuxt/**", ".output/**", "dist/**"],
       "env": [
-        "NUXT_PUBLIC_SITE_URL",
         "NUXT_PUBLIC_GITHUB_BOT_TRIGGER",
-        "NUXT_ADMIN_USERS",
         "NUXT_GITHUB_TOKEN",
         "NUXT_GITHUB_SNAPSHOT_REPO",
         "NUXT_GITHUB_SNAPSHOT_BRANCH",
