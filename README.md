@@ -126,8 +126,8 @@ console.log(text)
 
 ```bash
 # Clone the repository
-git clone https://github.com/vercel-labs/knowledge-agent-template.git
-cd knowledge-agent-template
+git clone https://github.com/vercel-labs/chatsdk-knowledge-agent-template.git
+cd chatsdk-knowledge-agent-template
 
 # Install dependencies
 bun install

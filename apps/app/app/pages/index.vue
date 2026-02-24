@@ -54,28 +54,28 @@ async function onSubmit() {
 
 const chatQuickChats = [
   {
-    label: 'What are Nitro tasks and how do I use them in my Nuxt app?',
-    icon: 'i-logos-nuxt-icon'
-  },
-  {
-    label: 'How does unstorage work and how can I use it with NuxtHub KV?',
+    label: 'What are Nitro tasks and how do I use them?',
     icon: 'i-logos-unjs'
   },
   {
-    label: 'What is H3 readValidatedBody and how to use it in Nuxt server routes?',
-    icon: 'i-logos-unjs'
-  },
-  {
-    label: 'How do I configure unhead for SEO in Nuxt with useHead and useSeoMeta?',
-    icon: 'i-lucide-search'
-  },
-  {
-    label: 'What are Nitro cache options and how to use them with Nuxt routeRules?',
-    icon: 'i-custom-docs'
-  },
-  {
-    label: 'How does ofetch work and what\'s the difference with Nuxt useFetch?',
+    label: 'How do I use unstorage with NuxtHub KV?',
     icon: 'i-logos-nuxt-icon'
+  },
+  {
+    label: 'How do I build a multi-step agent with ToolLoopAgent?',
+    icon: 'i-lucide-bot'
+  },
+  {
+    label: 'How do I use streamText with tool calling?',
+    icon: 'i-lucide-sparkles'
+  },
+  {
+    label: 'How do I configure model fallbacks with AI Gateway?',
+    icon: 'i-lucide-shuffle'
+  },
+  {
+    label: 'How do I build a Discord bot with the chat SDK?',
+    icon: 'i-simple-icons-discord'
   }
 ]
 

@@ -202,6 +202,10 @@ function onGitHub() {
           :title="appConfig.app.description"
           :ui="{ root: 'p-3', title: 'text-xs font-normal', icon: 'size-4' }"
         />
+
+        <p class="mt-6 text-center text-xs text-dimmed">
+          This is a demo instance of a template project. Data may be reset at any time — do not store anything you want to keep.
+        </p>
       </div>
     </div>
 
