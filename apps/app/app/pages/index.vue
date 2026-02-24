@@ -54,12 +54,12 @@ async function onSubmit() {
 
 const chatQuickChats = [
   {
-    label: 'What are Nitro tasks and how do I use them?',
-    icon: 'i-logos-unjs'
-  },
-  {
     label: 'How do I use unstorage with NuxtHub KV?',
     icon: 'i-logos-nuxt-icon'
+  },
+  {
+    label: 'What are Nitro tasks and how do I use them?',
+    icon: 'i-custom-nitro'
   },
   {
     label: 'How do I build a multi-step agent with ToolLoopAgent?',

@@ -374,8 +374,9 @@ defineShortcuts({
 
       <div class="flex-1 flex rounded-xl ring ring-default bg-muted shadow-sm min-w-0 overflow-hidden" :class="(isAdminRoute || isSettingsRoute) && 'flex-col'">
         <template v-if="isAdminRoute || isSettingsRoute">
-          <div class="shrink-0 flex items-center justify-end sm:px-4 h-12">
-            <UColorModeButton />
+          <div class="shrink-0 flex items-center px-4 h-12">
+            <UDashboardSidebarToggle class="lg:hidden" size="xs" />
+            <UColorModeButton class="ml-auto" />
           </div>
           <div class="flex-1 flex min-h-0">
             <div ref="adminContentArea" class="flex-1 overflow-y-auto min-w-0">
