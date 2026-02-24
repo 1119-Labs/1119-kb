@@ -6,12 +6,12 @@
   "author": "Hugo Richard",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/savoir.git",
+    "url": "git+https://github.com/vercel-labs/knowledge-agent-template.git",
     "directory": "packages/sdk"
   },
-  "homepage": "https://github.com/vercel-labs/savoir/tree/main/packages/sdk#readme",
+  "homepage": "https://github.com/vercel-labs/knowledge-agent-template/tree/main/packages/sdk#readme",
   "bugs": {
-    "url": "https://github.com/vercel-labs/savoir/issues"
+    "url": "https://github.com/vercel-labs/knowledge-agent-template/issues"
   },
   "keywords": [
     "savoir",

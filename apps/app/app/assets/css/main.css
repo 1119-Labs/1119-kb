@@ -5,29 +5,18 @@
   --font-sans: 'Geist', sans-serif;
   --font-mono: 'Geist Mono', monospace;
   --font-pixel: 'Geist Pixel Line', monospace;
-
-  --color-primary-50: #EFFDF5;
-  --color-primary-100: #D9FBE8;
-  --color-primary-200: #B3F5D1;
-  --color-primary-300: #75EDAE;
-  --color-primary-400: #00DC82;
-  --color-primary-500: #00C16A;
-  --color-primary-600: #00A155;
-  --color-primary-700: #007F45;
-  --color-primary-800: #016538;
-  --color-primary-900: #0A5331;
-  --color-primary-950: #052E16;
 }
 
 :root {
+  --ui-primary: black;
   --ui-container: var(--container-3xl);
   --ui-radius: 0.15rem;
 
   overscroll-behavior-y: none;
 }
 
-html {
-  background-color: var(--ui-bg);
+.dark {
+  --ui-primary: white;
 }
 
 ::view-transition-old(root),

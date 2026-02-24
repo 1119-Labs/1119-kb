@@ -80,9 +80,9 @@ function copyKey(key: string) {
     </header>
 
     <div class="space-y-6">
-      <div v-if="revealedKey" class="rounded-lg border border-primary/30 bg-primary/5 p-4">
+      <div v-if="revealedKey" class="rounded-lg border border-neutral-300 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 p-4">
         <div class="flex items-center gap-2 mb-2">
-          <UIcon name="i-lucide-alert-triangle" class="size-4 text-primary" />
+          <UIcon name="i-lucide-alert-triangle" class="size-4 text-highlighted" />
           <p class="text-sm font-medium text-highlighted">
             Save your API key now
           </p>

@@ -1,12 +1,12 @@
 export default defineAppConfig({
   app: {
-    name: 'Savoir',
+    name: 'Knowledge Agent Template',
     description: 'Open source file-system and knowledge based agent template.',
-    icon: 'i-custom-savoir',
+    icon: 'i-simple-icons-vercel',
   },
   ui: {
     colors: {
-      primary: 'primary',
+      primary: 'neutral',
       neutral: 'neutral'
     },
     dashboardPanel: {

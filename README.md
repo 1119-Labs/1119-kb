@@ -1,8 +1,8 @@
-<img src="./assets/banner.jpg" width="100%" alt="Savoir banner" />
+<img src="./assets/banner.jpg" width="100%" alt="Knowledge Agent Template banner" />
 
 <p align="center">
   <br>
-  <b>Savoir</b>
+  <b>Knowledge Agent Template</b>
   <br>
   <i>Open source file-system and knowledge based agent template.</i>
   <br>
@@ -21,7 +21,7 @@ Open source file-system and knowledge based agent template. Build AI agents that
 
 ### File-Based Search — No Embeddings Needed
 
-No vector database. No chunking pipeline. No embedding model. Savoir agents use `grep`, `find`, and `cat` inside [isolated sandboxes](./docs/ARCHITECTURE.md#3-sandbox-system) to search across all your [sources](./docs/SOURCES.md). Results are deterministic, explainable, and instant. Zero infrastructure overhead.
+No vector database. No chunking pipeline. No embedding model. Agents use `grep`, `find`, and `cat` inside [isolated sandboxes](./docs/ARCHITECTURE.md#3-sandbox-system) to search across all your [sources](./docs/SOURCES.md). Results are deterministic, explainable, and instant. Zero infrastructure overhead.
 
 ### Multi-Platform Bots — One Agent, Everywhere
 
@@ -118,8 +118,8 @@ console.log(text)
 
 ```bash
 # Clone the repository
-git clone https://github.com/vercel-labs/savoir.git
-cd savoir
+git clone https://github.com/vercel-labs/knowledge-agent-template.git
+cd knowledge-agent-template
 
 # Install dependencies
 bun install
@@ -158,7 +158,7 @@ See [ENVIRONMENT.md](./docs/ENVIRONMENT.md) for the full list of environment var
 
 ## Customization
 
-Savoir is designed as a **reusable template**. See the [Customization Guide](./docs/CUSTOMIZATION.md) for how to:
+Knowledge Agent Template is designed as a **reusable template**. See the [Customization Guide](./docs/CUSTOMIZATION.md) for how to:
 
 - Rename your instance (name, icon, description)
 - Add [content sources](./docs/SOURCES.md) (GitHub repos, YouTube channels, custom)
@@ -190,7 +190,7 @@ See [SOURCES.md](./docs/SOURCES.md) for detailed source configuration options.
 
 ## Bots
 
-Savoir includes built-in bot integrations powered by the [Vercel Chat SDK](https://github.com/vercel-labs/chat):
+Knowledge Agent Template includes built-in bot integrations powered by the [Vercel Chat SDK](https://github.com/vercel-labs/chat):
 
 - **GitHub Bot**: Responds to mentions in GitHub issues and PRs. Uses a [GitHub App](https://docs.github.com/en/apps) for authentication and webhooks.
 - **Discord Bot**: Responds to mentions and continues conversations in threads. Uses the [Discord API](https://discord.com/developers/docs).

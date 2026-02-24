@@ -77,7 +77,7 @@ async function saveSnapshotConfig() {
     if (status === 409) {
       const confirmed = await confirmModal.open({
         title: 'Use existing repository?',
-        description: 'This repository already exists and is not marked as managed by Savoir. Confirm only if you want Savoir to adopt it.',
+        description: 'This repository already exists and is not marked as managed by the app. Confirm only if you want to adopt it.',
         confirmLabel: 'Adopt repository',
         cancelLabel: 'Cancel',
       })
@@ -91,7 +91,7 @@ async function saveSnapshotConfig() {
           ])
           toast.add({
             title: 'Repository adopted',
-            description: 'Savoir will now use this existing repository for snapshots.',
+            description: 'The app will now use this existing repository for snapshots.',
             icon: 'i-lucide-check',
           })
           return
@@ -165,7 +165,7 @@ watch(selectedSuggestion, (value) => {
       </p>
       <div class="rounded-lg border border-default p-4 space-y-4">
         <p class="text-xs text-muted">
-          This repository stores the aggregated docs that snapshots are created from. If it doesn't exist, Savoir creates it automatically.
+          This repository stores the aggregated docs that snapshots are created from. If it doesn't exist, the app creates it automatically.
         </p>
 
         <div class="grid grid-cols-3 gap-3">
@@ -206,7 +206,7 @@ watch(selectedSuggestion, (value) => {
           </div>
 
           <p class="text-xs text-muted mb-2">
-            Choose one from your accessible repositories, or type a new name above and Savoir will create it automatically.
+            Choose one from your accessible repositories, or type a new name above and the app will create it automatically.
           </p>
 
           <template v-if="repoCatalogStatus === 'pending'">

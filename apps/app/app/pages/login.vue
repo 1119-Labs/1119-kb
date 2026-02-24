@@ -33,21 +33,15 @@ const oauthErrors: Record<string, string> = {
   temporarily_unavailable: 'GitHub is temporarily unavailable. Please try again later.',
 }
 
-const shaderColors = reactive({ swirlA: '', swirlB: '', circle: '', dots: '', rays: '' })
-
-function primary(shade: number) {
-  return getComputedStyle(document.documentElement).getPropertyValue(`--color-primary-${shade}`).trim()
-}
+const shaderColors = reactive({
+  swirlA: '#404040',
+  swirlB: '#a3a3a3',
+  circle: '#e5e5e5',
+  dots: '#737373',
+  rays: '#a3a3a3',
+})
 
 onMounted(() => {
-  Object.assign(shaderColors, {
-    swirlA: primary(700),
-    swirlB: primary(500),
-    circle: primary(100),
-    dots: primary(300),
-    rays: primary(500),
-  })
-
   const queryError = route.query.error as string | undefined
   if (queryError) {
     error.value = oauthErrors[queryError] || `Authentication error: ${queryError}`
@@ -101,13 +95,13 @@ function onGitHub() {
       <div class="w-full max-w-sm">
         <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center mb-4">
-            <UIcon :name="appConfig.app.icon" class="size-10 text-primary" />
+            <UIcon :name="appConfig.app.icon" class="size-8 text-highlighted" />
           </div>
           <h1 class="text-2xl font-semibold text-highlighted">
             {{ mode === 'signin' ? 'Welcome back' : 'Create your account' }}
           </h1>
           <p class="mt-1.5 text-sm text-muted">
-            {{ mode === 'signin' ? `Sign in to your ${appConfig.app.name} account.` : `Get started with ${appConfig.app.name}.` }}
+            {{ mode === 'signin' ? 'Sign in to your account.' : 'Create your account to get started.' }}
           </p>
         </div>
 
@@ -164,20 +158,19 @@ function onGitHub() {
             block
             size="lg"
             :loading
-            class="text-white"
           />
         </UForm>
 
         <p class="mt-6 text-center text-sm text-muted">
           <template v-if="mode === 'signin'">
             Don't have an account?
-            <button class="text-primary font-medium hover:underline cursor-pointer" @click="mode = 'signup'">
+            <button class="text-highlighted font-medium hover:underline cursor-pointer" @click="mode = 'signup'">
               Sign up
             </button>
           </template>
           <template v-else>
             Already have an account?
-            <button class="text-primary font-medium hover:underline cursor-pointer" @click="mode = 'signin'">
+            <button class="text-highlighted font-medium hover:underline cursor-pointer" @click="mode = 'signin'">
               Sign in
             </button>
           </template>
@@ -189,7 +182,7 @@ function onGitHub() {
       </div>
     </div>
 
-    <div class="hidden lg:block w-1/2 m-2 rounded-lg border border-muted/50 relative overflow-hidden">
+    <div class="hidden lg:block w-1/2 m-2 rounded-lg relative overflow-hidden">
       <ClientOnly>
         <Shader class="absolute inset-0 size-full">
           <Glow :intensity="2.69" :size="27.5" :threshold="0.37">

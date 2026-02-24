@@ -16,10 +16,10 @@ cp apps/app/.env.example apps/app/.env
 | `GITHUB_CLIENT_ID` | GitHub App client ID (used for OAuth login). See [GitHub App Setup](#github-app-setup) below. |
 | `GITHUB_CLIENT_SECRET` | GitHub App client secret |
 | `NUXT_ADMIN_USERS` | Comma-separated list of admin emails or GitHub usernames |
-| `NUXT_PUBLIC_SITE_URL` | Public URL of your Savoir instance |
+| `NUXT_PUBLIC_SITE_URL` | Public URL of your instance |
 | `AI_GATEWAY_API_KEY` | [Vercel AI Gateway](https://ai-sdk.dev) API key |
 
-`NUXT_GITHUB_SNAPSHOT_REPO` and `NUXT_GITHUB_TOKEN` are optional. You can configure the snapshot repository in the admin sandbox UI after startup, and Savoir uses a GitHub App installation access token automatically when app credentials are configured.
+`NUXT_GITHUB_SNAPSHOT_REPO` and `NUXT_GITHUB_TOKEN` are optional. You can configure the snapshot repository in the admin sandbox UI after startup, and the app uses a GitHub App installation access token automatically when app credentials are configured.
 
 `NUXT_GITHUB_TOKEN` is only a fallback. Keep it unset unless you explicitly need to override GitHub App authentication.
 
@@ -38,12 +38,12 @@ cp apps/app/.env.example apps/app/.env
 
 ## GitHub App Setup
 
-Savoir uses a single **GitHub App** for both **user authentication** (OAuth login) and the **GitHub bot** (webhook events). This avoids creating two separate apps.
+Knowledge Agent Template uses a single **GitHub App** for both **user authentication** (OAuth login) and the **GitHub bot** (webhook events). This avoids creating two separate apps.
 
 1. Go to [**GitHub Settings > Developer settings > GitHub Apps > New GitHub App**](https://github.com/settings/apps/new)
 2. Fill in the basic information:
    - **App name**: e.g. `your-bot-name`
-   - **Homepage URL**: your Savoir instance URL
+   - **Homepage URL**: your instance URL
    - **Callback URL**: `<your-url>/api/auth/callback/github` (for OAuth login)
    - **Webhook URL**: `<your-url>/api/webhooks/github` (for the bot)
    - **Webhook secret**: generate a random string and save it
@@ -52,7 +52,7 @@ Savoir uses a single **GitHub App** for both **user authentication** (OAuth logi
 
 | Permission | Access | Why |
 |------------|--------|-----|
-| Email addresses | Read-only | Required for user login -- allows Savoir to identify users by email |
+| Email addresses | Read-only | Required for user login -- allows the app to identify users by email |
 
 ### Repository Permissions
 
@@ -61,11 +61,11 @@ Savoir uses a single **GitHub App** for both **user authentication** (OAuth logi
 | Issues | Read & Write | Bot needs to read issues and post replies |
 | Metadata | Read-only | Required by GitHub for all apps |
 
-If you want Savoir to manage the snapshot repository automatically from the admin UI (list repos, create repo if missing, write sync commits), add:
+If you want the app to manage the snapshot repository automatically from the admin UI (list repos, create repo if missing, write sync commits), add:
 
 | Permission | Access | Why |
 |------------|--------|-----|
-| Contents | Read & Write | Push synced content and maintain the Savoir marker file |
+| Contents | Read & Write | Push synced content and maintain the marker file |
 | Administration | Read & Write* | Needed when creating repositories automatically |
 
 \* Depending on your GitHub setup (user vs org ownership), repository creation can require elevated app permissions and org approval.
@@ -137,7 +137,7 @@ The app will be available at `http://localhost:3000`. Sign in with GitHub using 
 
 ## Adding Sources
 
-Sources define the knowledge base the app uses to answer questions. They are managed through the **admin interface**. Sources aren't limited to documentation — you can add any content that produces files (GitHub repos, YouTube transcripts, custom APIs). See the [Sources documentation](https://github.com/vercel-labs/savoir/blob/main/docs/SOURCES.md) for all available options.
+Sources define the knowledge base the app uses to answer questions. They are managed through the **admin interface**. Sources aren't limited to documentation — you can add any content that produces files (GitHub repos, YouTube transcripts, custom APIs). See the [Sources documentation](https://github.com/vercel-labs/knowledge-agent-template/blob/main/docs/SOURCES.md) for all available options.
 
 1. Navigate to the admin panel at `/admin`
 2. Go to the Sources section
@@ -155,14 +155,14 @@ After adding or updating sources, trigger a sync from the admin interface. The s
 
 ## How It Works
 
-Savoir uses a **file-based search** approach -- no embeddings or vector databases:
+Knowledge Agent Template uses a **file-based search** approach -- no embeddings or vector databases:
 
 1. Documentation from all sources is aggregated into a single snapshot repository
 2. When a user asks a question, a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox) is created from the snapshot
 3. The AI agent uses `bash` and `bash_batch` tools (via the [AI SDK](https://ai-sdk.dev)) to run `grep`, `find`, `cat`, etc. in the sandbox
 4. Results are synthesized into a natural language answer with citations
 
-You can also integrate Savoir into your own applications using the [SDK](/admin/docs/sdk). For the full technical architecture, see the [Architecture documentation](https://github.com/vercel-labs/savoir/blob/main/docs/ARCHITECTURE.md) on GitHub.
+You can also integrate the app into your own applications using the [SDK](/admin/docs/sdk). For the full technical architecture, see the [Architecture documentation](https://github.com/vercel-labs/knowledge-agent-template/blob/main/docs/ARCHITECTURE.md) on GitHub.
 
 ## Admin Panel
 
@@ -176,7 +176,7 @@ The admin panel at `/admin` provides:
 
 ## Tech Stack
 
-Savoir is built on:
+Knowledge Agent Template is built on:
 
 - [Nuxt](https://nuxt.com) -- full-stack Vue framework
 - [NuxtHub](https://hub.nuxt.com) -- database (SQLite), KV storage, and blob storage

@@ -1,6 +1,6 @@
 # GitHub Bot Setup
 
-The Savoir GitHub bot responds to mentions in GitHub issues, using your knowledge base to provide answers directly in the conversation.
+The Knowledge Agent Template GitHub bot responds to mentions in GitHub issues, using your knowledge base to provide answers directly in the conversation.
 
 > If you haven't created your GitHub App yet, follow the [GitHub App Setup](/admin/docs/getting-started#github-app-setup) in the Getting Started guide first. The same app handles both OAuth login and the bot.
 
@@ -37,10 +37,10 @@ Users can also install the app from the sidebar suggestion card or from the **Se
 
 The app uses [installation access tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation) to interact with repositories -- no personal access token needed for the bot.
 
-If you also use the snapshot repository management features in Savoir admin, extend app permissions with:
+If you also use the snapshot repository management features in the admin panel, extend app permissions with:
 
 - **Contents (Read & Write)** to push synced docs and marker files
-- **Administration (Read & Write)** when you want Savoir to create repositories automatically
+- **Administration (Read & Write)** when you want the app to create repositories automatically
 
 `NUXT_GITHUB_TOKEN` remains optional fallback only and is not required for normal GitHub App-based setup.
 
@@ -54,7 +54,7 @@ Mention the bot in any issue comment:
 
 The bot will:
 1. React with an "eyes" emoji to indicate it's processing
-2. Search the Savoir knowledge base using the same AI agent as the chat
+2. Search the knowledge base using the same AI agent as the chat
 3. Post a reply in the same issue thread
 4. React with a "thumbs up" emoji when done
 
@@ -87,4 +87,4 @@ When enabled, the bot will respond to every new issue opened in repositories whe
 
 The bot is built on the [Vercel Chat SDK](https://github.com/vercel-labs/chat) with a custom GitHub adapter. It uses the [Octokit](https://github.com/octokit/rest.js) library with [GitHub App authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) to interact with the GitHub API.
 
-Each response goes through the same AI agent pipeline as the chat interface, using [Vercel AI SDK](https://ai-sdk.dev) tools to search the knowledge base in a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox). For the full architecture, see the [Architecture documentation](https://github.com/vercel-labs/savoir/blob/main/docs/ARCHITECTURE.md) on GitHub. To build your own adapter, see the [Customization Guide](https://github.com/vercel-labs/savoir/blob/main/docs/CUSTOMIZATION.md#4-add-a-bot-adapter).
+Each response goes through the same AI agent pipeline as the chat interface, using [Vercel AI SDK](https://ai-sdk.dev) tools to search the knowledge base in a [Vercel Sandbox](https://vercel.com/docs/vercel-sandbox). For the full architecture, see the [Architecture documentation](https://github.com/vercel-labs/knowledge-agent-template/blob/main/docs/ARCHITECTURE.md) on GitHub. To build your own adapter, see the [Customization Guide](https://github.com/vercel-labs/knowledge-agent-template/blob/main/docs/CUSTOMIZATION.md#4-add-a-bot-adapter).

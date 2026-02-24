@@ -1,16 +1,16 @@
-# Contributing to Savoir
+# Contributing to Knowledge Agent Template
 
-Thank you for your interest in contributing to Savoir!
+Thank you for your interest in contributing to Knowledge Agent Template!
 
 ## Reporting Bugs
 
-- Search [existing issues](https://github.com/vercel-labs/savoir/issues) before opening a new one
+- Search [existing issues](https://github.com/vercel-labs/knowledge-agent-template/issues) before opening a new one
 - Include steps to reproduce, expected behavior, and actual behavior
 - Include your environment (Node version, OS, browser)
 
 ## Suggesting Features
 
-- Open a [feature request issue](https://github.com/vercel-labs/savoir/issues/new)
+- Open a [feature request issue](https://github.com/vercel-labs/knowledge-agent-template/issues/new)
 - Describe the use case and why it would be valuable
 - If possible, outline a proposed implementation
 
@@ -18,8 +18,8 @@ Thank you for your interest in contributing to Savoir!
 
 ```bash
 # Clone the repo
-git clone https://github.com/vercel-labs/savoir.git
-cd savoir
+git clone https://github.com/vercel-labs/knowledge-agent-template.git
+cd knowledge-agent-template
 
 # Install dependencies
 bun install
@@ -35,7 +35,7 @@ bun run dev
 ## Project Structure
 
 ```
-savoir/
+knowledge-agent-template/
 ├── apps/app/          # Nuxt application (chat UI + API + bots)
 ├── packages/sdk/       # @savoir/sdk - AI SDK compatible tools
 ├── packages/agent/     # @savoir/agent - Agent core (router, prompts, tools)

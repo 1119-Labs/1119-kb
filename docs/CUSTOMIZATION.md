@@ -2,18 +2,18 @@
 
 > Back to [README](../README.md) | See also: [Sources](./SOURCES.md), [Environment](./ENVIRONMENT.md), [Architecture](./ARCHITECTURE.md)
 
-Savoir is designed as a reusable template. This guide covers how to customize your instance.
+Knowledge Agent Template is designed as a reusable template. This guide covers how to customize your instance.
 
 ## AI-Assisted Customization (Agent Skills)
 
-Savoir includes **local project skills** in `.agents/skills/` that guide an AI agent (e.g. Cursor, Claude Code) through common customization tasks. Instead of manually following each step, you can delegate the migration to an agent by referencing these skills.
+Knowledge Agent Template includes **local project skills** in `.agents/skills/` that guide an AI agent (e.g. Cursor, Claude Code) through common customization tasks. Instead of manually following each step, you can delegate the migration to an agent by referencing these skills.
 
 | Skill | File | Purpose |
 |-------|------|---------|
 | **Add Tool** | `add-tool.md` | Add a new AI SDK tool to the agent (generator pattern, status yields) |
 | **Add Source** | `add-source.md` | Add a knowledge source (GitHub, YouTube) via admin UI or API |
 | **Add Bot Adapter** | `add-bot-adapter.md` | Add a new platform adapter (Slack, Linear, etc.) to the bot system |
-| **Rename Project** | `rename-project.md` | Fully rename the project from "Savoir" to a custom name |
+| **Rename Project** | `rename-project.md` | Fully rename the project from "Knowledge Agent Template" to a custom name |
 
 **How to use:** When customizing the project, ask your AI assistant to follow the relevant skill. For example: *"Follow the add-bot-adapter skill to add a Slack adapter"* or *"Use the rename-project skill to rename this to MyDocs"*.
 
@@ -114,7 +114,7 @@ See `packages/agent/src/tools/web-search.ts` for a complete real-world example. 
 
 ## 4. Add a Bot Adapter
 
-Bot adapters connect Savoir to messaging platforms. The project includes GitHub and Discord adapters. To add a new one (e.g. Slack, Linear):
+Bot adapters connect the app to messaging platforms. The project includes GitHub and Discord adapters. To add a new one (e.g. Slack, Linear):
 
 1. Look at `apps/app/server/utils/bot/` for the existing adapter pattern
 2. The GitHub adapter (`SavoirGitHubAdapter`) is a good reference for custom adapters

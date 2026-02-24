@@ -83,7 +83,7 @@ onMounted(() => {
     <header class="shrink-0 z-20 bg-default border-b border-default">
       <div class="max-w-5xl mx-auto flex items-center justify-between px-4 h-12">
         <NuxtLink to="/" class="flex items-center gap-2">
-          <UIcon :name="appConfig.app.icon" class="size-6 text-primary" />
+          <UIcon :name="appConfig.app.icon" class="size-6 text-highlighted" />
           <span class="text-lg font-bold font-pixel tracking-wide text-highlighted">{{ appConfig.app.name }}</span>
         </NuxtLink>
 
@@ -100,7 +100,7 @@ onMounted(() => {
         <UButton
           label="Start your own chat"
           to="/"
-          color="primary"
+          color="neutral"
           size="xs"
         />
       </div>
@@ -168,7 +168,7 @@ onMounted(() => {
         <div class="shrink-0 border-t border-default px-4 py-3">
           <p class="text-center text-sm text-muted">
             Read-only shared chat.
-            <NuxtLink to="/" class="text-primary hover:underline font-medium">
+            <NuxtLink to="/" class="text-highlighted hover:underline font-medium">
               Start your own conversation
             </NuxtLink>
           </p>

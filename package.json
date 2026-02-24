@@ -7,10 +7,10 @@
   "author": "HugoRCD",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/savoir.git"
+    "url": "git+https://github.com/vercel-labs/knowledge-agent-template.git"
   },
   "bugs": {
-    "url": "https://github.com/vercel-labs/savoir/issues"
+    "url": "https://github.com/vercel-labs/knowledge-agent-template/issues"
   },
   "workspaces": [
     "apps/*",

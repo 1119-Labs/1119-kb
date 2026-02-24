@@ -1,12 +1,12 @@
-# Savoir Architecture
+# Knowledge Agent Template Architecture
 
 > Back to [README](../README.md)
 
-This document describes the technical architecture of Savoir, an open-source file-system and knowledge based agent template for building AI agents with up-to-date knowledge access.
+This document describes the technical architecture of Knowledge Agent Template, an open-source file-system and knowledge based agent template for building AI agents with up-to-date knowledge access.
 
 ## System Overview
 
-Savoir consists of two main components:
+Knowledge Agent Template consists of two main components:
 
 1. **Main App** (`apps/app`): A unified [Nuxt](https://nuxt.com) application that provides the chat interface, API, bot integrations, sandbox management, and content synchronization
 2. **SDK** (`packages/sdk`): A client library providing [AI SDK](https://ai-sdk.dev)-compatible tools (`bash`, `bash_batch`)
@@ -65,7 +65,7 @@ Savoir consists of two main components:
 ## Project Structure
 
 ```
-savoir/
+knowledge-agent-template/
 ├── apps/
 │   └── app/                  # Unified Nuxt application
 │       ├── app/              # Vue app (components, pages, composables)
@@ -142,7 +142,7 @@ export const sources = sqliteTable('sources', {
 
 ### 2. SDK (`@savoir/sdk`)
 
-The SDK provides [AI SDK](https://ai-sdk.dev)-compatible tools that communicate with the Savoir API via `POST /api/sandbox/shell`.
+The SDK provides [AI SDK](https://ai-sdk.dev)-compatible tools that communicate with the API via `POST /api/sandbox/shell`.
 
 #### API Design
 
@@ -205,7 +205,7 @@ Blocked: `rm`, `curl`, `wget`, `git`, `ssh`, `sudo`, command substitution, redir
 
 ### 4. AI Agent (Router + Model Selection)
 
-Savoir uses a complexity-based router to select the appropriate model and step count for each question.
+Knowledge Agent Template uses a complexity-based router to select the appropriate model and step count for each question.
 
 #### Router Flow
 

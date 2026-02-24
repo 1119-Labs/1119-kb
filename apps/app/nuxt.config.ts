@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   evlog: {
     retention: '7d',
     env: {
-      service: 'savoir',
+      service: 'knowledge-agent-template',
       version: '0.1.0',
     },
     routes: {
@@ -125,6 +125,8 @@ export default defineNuxtConfig({
     '/api/chats/**': { isr: false, cache: false },
     // Webhook routes should never be cached
     '/api/webhooks/**': { isr: false, cache: false },
+    // Admin docs: SSR + permanent ISR (static markdown, only changes on redeploy)
+    '/admin/docs/**': { ssr: true, isr: { expiration: false } },
     // Admin pages are behind auth
     '/admin/**': { auth: { user: { role: 'admin' } as any } },
   },

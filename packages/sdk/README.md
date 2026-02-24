@@ -1,6 +1,6 @@
 # @savoir/sdk
 
-SDK for [Savoir](https://github.com/vercel-labs/savoir) — AI agents with up-to-date knowledge base access.
+SDK for [Knowledge Agent Template](https://github.com/vercel-labs/knowledge-agent-template) — AI agents with up-to-date knowledge base access.
 
 Provides [AI SDK](https://ai-sdk.dev) compatible tools to query content in a sandboxed environment.
 
@@ -22,7 +22,7 @@ Set the following environment variables:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SAVOIR_API_URL` | Yes | Base URL of your Savoir API |
+| `SAVOIR_API_URL` | Yes | Base URL of your API |
 | `SAVOIR_API_KEY` | No | API key for authentication ([Better Auth](https://www.better-auth.com) API key). |
 
 ## Quick Start
@@ -50,7 +50,7 @@ console.log(text)
 
 ### `createSavoir(config)`
 
-Creates a Savoir instance with API client and AI SDK tools.
+Creates an instance with API client and AI SDK tools.
 
 ```ts
 import { createSavoir } from '@savoir/sdk'
@@ -70,7 +70,7 @@ const savoir = createSavoir({
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `apiUrl` | `string` | Yes | Base URL of your Savoir API |
+| `apiUrl` | `string` | Yes | Base URL of your API |
 | `apiKey` | `string` | No | API key for authentication |
 | `sessionId` | `string` | No | Reuse an existing sandbox session |
 | `source` | `string` | No | Usage source identifier (e.g. `'github-bot'`). Defaults to `'sdk'`. |

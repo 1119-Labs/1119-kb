@@ -2,13 +2,13 @@
 
 > Back to [README](../README.md) | See also: [Architecture](./ARCHITECTURE.md), [Customization](./CUSTOMIZATION.md)
 
-All environment variables for the Savoir project, organized by category.
+All environment variables for the Knowledge Agent Template project, organized by category.
 
 ## Core
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NUXT_PUBLIC_SITE_URL` | Yes | Public URL of your Savoir instance |
+| `NUXT_PUBLIC_SITE_URL` | Yes | Public URL of your instance |
 | `NUXT_ADMIN_USERS` | Yes | Comma-separated list of admin emails or GitHub usernames |
 
 ## Authentication
@@ -30,7 +30,7 @@ All environment variables for the Savoir project, organized by category.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NUXT_GITHUB_TOKEN` | No | Optional fallback override token for snapshot git operations. If omitted, Savoir uses GitHub App installation tokens by default. |
+| `NUXT_GITHUB_TOKEN` | No | Optional fallback override token for snapshot git operations. If omitted, the app uses GitHub App installation tokens by default. |
 | `NUXT_GITHUB_SNAPSHOT_REPO` | No | Default snapshot repository in `owner/repo` format. Can be configured later from the admin sandbox UI. |
 | `NUXT_GITHUB_SNAPSHOT_BRANCH` | No | Snapshot branch (default: `main`) |
 
@@ -95,7 +95,7 @@ When using the SDK from an external application:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SAVOIR_API_URL` | Yes | Base URL of your Savoir API |
+| `SAVOIR_API_URL` | Yes | Base URL of your API |
 | `SAVOIR_API_KEY` | No | API key for authentication (Better Auth API key) |
 
 ## Database

@@ -41,13 +41,12 @@ useSeoMeta({
 
 <template>
   <UApp :toaster="{ position: 'top-right' }" :tooltip="{ delayDuration: 200 }">
-    <NuxtLoadingIndicator color="var(--ui-primary)" />
+    <NuxtLoadingIndicator color="var(--ui-text-highlighted)" />
 
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
 
-    <!-- To enable Vercel Analytics, uncomment: -->
-    <!-- <Analytics /> -->
+    <Analytics />
   </UApp>
 </template>

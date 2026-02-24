@@ -318,7 +318,7 @@ async function investigateErrors() {
                 <div
                   v-for="d in dailyChartData"
                   :key="d.day"
-                  class="flex-1 min-w-0 bg-primary/40 hover:bg-primary/70 transition-colors rounded-sm cursor-default"
+                  class="flex-1 min-w-0 bg-neutral-300 hover:bg-neutral-500 dark:bg-neutral-600 dark:hover:bg-neutral-400 transition-colors rounded-sm cursor-default"
                   :style="{ height: `${d.pct}%` }"
                   :title="`${d.day}: ${d.count.toLocaleString()} logs`"
                 />
@@ -363,7 +363,7 @@ async function investigateErrors() {
                 v-for="unit in (['hours', 'days'] as TimeUnit[])"
                 :key="unit"
                 class="px-3 py-1 text-xs capitalize transition-colors"
-                :class="timeUnit === unit ? 'bg-primary text-white' : 'text-muted hover:text-highlighted hover:bg-elevated'"
+                :class="timeUnit === unit ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'text-muted hover:text-highlighted hover:bg-elevated'"
                 @click="timeUnit = unit"
               >
                 {{ unit }}

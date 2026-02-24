@@ -72,7 +72,7 @@ export async function ensureSnapshotRepo(options: {
     if (!hasMarker && !allowExisting) {
       throw createError({
         status: 409,
-        message: 'Repository already exists and is not managed by Savoir',
+        message: 'Repository already exists and is not managed by the app',
         why: `The repository ${repoPath} exists but has no ${SAVOIR_MARKER_PATH} marker`,
         fix: 'Confirm adoption explicitly, or choose a new repository name',
       })

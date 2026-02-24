@@ -1,12 +1,12 @@
 # @savoir/agent
 
-Framework-agnostic agent core for Savoir. Handles question routing, prompt management, agent creation, and AI tool definitions.
+Framework-agnostic agent core for Knowledge Agent Template. Handles question routing, prompt management, agent creation, and AI tool definitions.
 
 > See also: [Main README](../../README.md), [Architecture](../../docs/ARCHITECTURE.md), [Customization](../../docs/CUSTOMIZATION.md)
 
 ## Overview
 
-This package provides the AI agent infrastructure used by Savoir's chat interface and bots. It is designed to be consumed by `apps/app` but can also be used independently.
+This package provides the AI agent infrastructure used by the chat interface and bots. It is designed to be consumed by `apps/app` but can also be used independently.
 
 ## Components
 

@@ -128,7 +128,7 @@ function scrollTo(id: string) {
 
     <ul ref="listEl" class="space-y-1 border-l border-default relative">
       <div
-        class="absolute left-0 w-0.5 -ml-px bg-primary rounded-full transition-all duration-200"
+        class="absolute left-0 w-0.5 -ml-px bg-neutral-900 dark:bg-white rounded-full transition-all duration-200"
         :style="indicatorStyle"
       />
 

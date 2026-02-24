@@ -108,16 +108,6 @@ function getTrendIcon(trend: number | null): string {
   return 'i-lucide-minus'
 }
 
-const sourceColorMap: Record<string, string> = {
-  'web': 'bg-primary',
-  'github-bot': 'bg-emerald-500',
-  'discord-bot': 'bg-violet-500',
-  'sdk': 'bg-amber-500',
-}
-
-function getSourceColor(source: string): string {
-  return sourceColorMap[source] ?? 'bg-gray-400'
-}
 
 const chartDataBySource = computed(() => {
   if (!stats.value?.dailyBySource) return []
@@ -189,6 +179,12 @@ const peakHoursMax = computed(() => {
 function getModelCost(modelId: string): number | null {
   const entry = stats.value?.estimatedCost?.byModel?.find(m => m.model === modelId)
   return entry ? entry.totalCost : null
+}
+
+const sourceColors = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
+
+function getSourceColor(index: number): string {
+  return sourceColors[index % sourceColors.length] ?? '#000000'
 }
 
 </script>
@@ -399,12 +395,11 @@ function getModelCost(modelId: string): number | null {
                   :content="{ side: 'top', sideOffset: 6 }"
                 >
                   <div class="w-full flex flex-col-reverse relative before:absolute before:inset-x-0 before:bottom-full before:h-40">
-                    <template v-for="src in chartSources" :key="src">
+                    <template v-for="(src, srcIndex) in chartSources" :key="src">
                       <div
                         v-if="day.sources[src]"
                         class="w-full transition-opacity group-hover:opacity-80 first:rounded-b-sm last:rounded-t-sm"
-                        :class="getSourceColor(src)"
-                        :style="{ height: `${Math.max(1, ((chartMetric === 'tokens' ? day.sources[src].tokens : day.sources[src].messages) / chartMax) * 140)}px` }"
+                        :style="{ height: `${Math.max(1, ((chartMetric === 'tokens' ? day.sources[src].tokens : day.sources[src].messages) / chartMax) * 140)}px`, backgroundColor: getSourceColor(srcIndex) }"
                       />
                     </template>
                   </div>
@@ -422,8 +417,8 @@ function getModelCost(modelId: string): number | null {
               </span>
             </div>
             <div class="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-default text-[10px] text-muted">
-              <span v-for="src in chartSources" :key="src" class="flex items-center gap-1">
-                <span class="inline-block size-2 rounded" :class="getSourceColor(src)" />
+              <span v-for="(src, srcIndex) in chartSources" :key="src" class="flex items-center gap-1">
+                <span class="inline-block size-2 rounded" :style="{ backgroundColor: getSourceColor(srcIndex) }" />
                 {{ src.replace('-', ' ') }}
               </span>
             </div>
@@ -451,7 +446,7 @@ function getModelCost(modelId: string): number | null {
                   :content="{ side: 'top', sideOffset: 4 }"
                 >
                   <div
-                    class="w-full bg-primary/60 rounded-t-sm transition-opacity group-hover:bg-primary relative before:absolute before:inset-x-0 before:bottom-full before:h-24"
+                    class="w-full bg-neutral-400 dark:bg-neutral-600 rounded-t-sm transition-opacity group-hover:bg-neutral-600 dark:group-hover:bg-neutral-400 relative before:absolute before:inset-x-0 before:bottom-full before:h-24"
                     :style="{ height: `${Math.max(2, (h.messageCount / peakHoursMax) * 80)}px` }"
                   />
                 </UTooltip>

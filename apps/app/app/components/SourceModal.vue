@@ -142,8 +142,8 @@ async function save() {
 
         <div class="p-4 bg-muted/30 rounded-lg border border-default">
           <div class="flex items-start gap-3 mb-3">
-            <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-folder-output" class="size-4 text-primary" />
+            <div class="size-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-folder-output" class="size-4 text-highlighted" />
             </div>
             <div>
               <h3 class="text-sm font-medium text-highlighted">
@@ -171,7 +171,7 @@ async function save() {
           </div>
 
           <div class="mt-3 flex items-center gap-2 text-xs">
-            <UIcon name="i-lucide-arrow-right" class="size-3 text-primary" />
+            <UIcon name="i-lucide-arrow-right" class="size-3 text-highlighted" />
             <span class="text-muted">Preview:</span>
             <code class="text-highlighted font-mono bg-default px-1.5 py-0.5 rounded">
               {{ snapshotPreviewPath }}

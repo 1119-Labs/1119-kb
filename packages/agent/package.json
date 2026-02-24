@@ -2,16 +2,16 @@
   "name": "@savoir/agent",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Framework-agnostic agent core for Savoir",
+  "description": "Framework-agnostic agent core for Knowledge Agent Template",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/savoir.git",
+    "url": "git+https://github.com/vercel-labs/knowledge-agent-template.git",
     "directory": "packages/agent"
   },
   "bugs": {
-    "url": "https://github.com/vercel-labs/savoir/issues"
+    "url": "https://github.com/vercel-labs/knowledge-agent-template/issues"
   },
-  "homepage": "https://github.com/vercel-labs/savoir/tree/main/packages/agent#readme",
+  "homepage": "https://github.com/vercel-labs/knowledge-agent-template/tree/main/packages/agent#readme",
   "type": "module",
   "exports": {
     ".": {

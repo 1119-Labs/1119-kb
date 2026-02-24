@@ -1,6 +1,6 @@
 # Add Source
 
-Guide for adding a new knowledge source to the Savoir instance.
+Guide for adding a new knowledge source to the Knowledge Agent Template instance.
 
 ## Via Admin UI (recommended)
 

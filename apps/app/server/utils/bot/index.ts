@@ -89,7 +89,7 @@ function createBot(): Chat {
     throw createError({
       message: 'GitHub App name not configured',
       why: 'NUXT_PUBLIC_GITHUB_APP_NAME is not set',
-      fix: 'Set NUXT_PUBLIC_GITHUB_APP_NAME to the GitHub App name (e.g. savoir-bot)',
+      fix: 'Set NUXT_PUBLIC_GITHUB_APP_NAME to the GitHub App name (e.g. your-bot-name)',
     })
   }
 

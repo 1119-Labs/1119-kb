@@ -125,7 +125,7 @@ export function generateCommitMessage(results: SyncSourceResult[]): string {
 export async function pushChanges(
   sandbox: Sandbox,
   options: GitPushOptions,
-  gitConfig: GitConfig = { email: 'bot@savoir.dev', name: 'Savoir Bot' },
+  gitConfig: GitConfig = { email: 'bot@vercel.com', name: 'Knowledge Agent Bot' },
 ): Promise<GitPushResult> {
   try {
     await configureGit(sandbox, gitConfig)

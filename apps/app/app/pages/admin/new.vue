@@ -384,7 +384,7 @@ const validSourcesCount = computed(() => sources.value.filter(s => s.data.label)
       <div
         class="relative p-8 border border-dashed rounded-lg transition-colors cursor-pointer"
         :class="[
-          isDragging ? 'border-primary bg-primary/5' : 'border-default hover:border-muted hover:bg-elevated/30',
+          isDragging ? 'border-neutral-900 bg-neutral-900/5 dark:border-white dark:bg-white/5' : 'border-default hover:border-muted hover:bg-elevated/30',
         ]"
         @drop="handleDrop"
         @dragover="handleDragOver"
@@ -405,7 +405,7 @@ const validSourcesCount = computed(() => sources.value.filter(s => s.data.label)
             <UIcon
               :name="isDragging ? 'i-lucide-download' : 'i-lucide-upload'"
               class="size-5 text-muted"
-              :class="{ 'text-primary': isDragging }"
+              :class="{ 'text-highlighted': isDragging }"
               aria-hidden="true"
             />
           </div>
@@ -574,7 +574,7 @@ const validSourcesCount = computed(() => sources.value.filter(s => s.data.label)
 
     <div class="mb-2 text-center">
       <button
-        class="text-xs text-muted hover:text-primary transition-colors inline-flex items-center gap-1.5"
+        class="text-xs text-muted hover:text-highlighted transition-colors inline-flex items-center gap-1.5"
         @click="showQuickImport = !showQuickImport"
       >
         <UIcon name="i-lucide-sparkles" class="size-3" />

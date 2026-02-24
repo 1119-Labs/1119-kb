@@ -1,6 +1,6 @@
-# Savoir SDK
+# Knowledge Agent Template SDK
 
-The [`@savoir/sdk`](https://github.com/vercel-labs/savoir/tree/main/packages/sdk) package provides a TypeScript client for interacting with Savoir programmatically. It exposes [AI SDK](https://ai-sdk.dev)-compatible tools that let any AI model search and read your knowledge base. For the full API reference and error handling, see the [SDK README](https://github.com/vercel-labs/savoir/blob/main/packages/sdk/README.md) on GitHub.
+The [`@savoir/sdk`](https://github.com/vercel-labs/knowledge-agent-template/tree/main/packages/sdk) package provides a TypeScript client for interacting with Knowledge Agent Template programmatically. It exposes [AI SDK](https://ai-sdk.dev)-compatible tools that let any AI model search and read your knowledge base. For the full API reference and error handling, see the [SDK README](https://github.com/vercel-labs/knowledge-agent-template/blob/main/packages/sdk/README.md) on GitHub.
 
 ## Installation
 
@@ -36,7 +36,7 @@ You'll need an API key to authenticate. See [API Keys](/admin/docs/api-keys) for
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `apiUrl` | `string` | Yes | Base URL of your Savoir API |
+| `apiUrl` | `string` | Yes | Base URL of your API |
 | `apiKey` | `string` | No | API key for authentication. See [API Keys](/admin/docs/api-keys). |
 | `sessionId` | `string` | No | Reuse an existing [sandbox](https://vercel.com/docs/vercel-sandbox) session |
 | `source` | `string` | No | Usage source identifier (e.g. `'github-bot'`). Defaults to `'sdk'`. |
@@ -45,7 +45,7 @@ You'll need an API key to authenticate. See [API Keys](/admin/docs/api-keys) for
 
 ## AI SDK Tools
 
-The SDK exposes tools compatible with the [Vercel AI SDK](https://ai-sdk.dev). Use them with [`generateText`](https://ai-sdk.dev/docs/ai-sdk-core/generating-text) or [`streamText`](https://ai-sdk.dev/docs/ai-sdk-core/streaming-text) to give any AI model access to your Savoir knowledge base.
+The SDK exposes tools compatible with the [Vercel AI SDK](https://ai-sdk.dev). Use them with [`generateText`](https://ai-sdk.dev/docs/ai-sdk-core/generating-text) or [`streamText`](https://ai-sdk.dev/docs/ai-sdk-core/streaming-text) to give any AI model access to your knowledge base.
 
 ```typescript
 import { generateText } from 'ai'
