@@ -59,20 +59,20 @@ Sandboxes are pooled across users and conversations. When a chat starts, it conn
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Your AI Application                       │
-│                     (Discord bot, GitHub bot, etc.)              │
+│                        Your AI Application                      │
+│                     (Discord bot, GitHub bot, etc.)             │
 └─────────────────────────────────┬───────────────────────────────┘
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                          @savoir/sdk                             │
-│              AI SDK compatible tools (bash, bash_batch)          │
+│                          @savoir/sdk                            │
+│              AI SDK compatible tools (bash, bash_batch)         │
 └─────────────────────────────────┬───────────────────────────────┘
                                   │ API calls
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                         apps/app                                │
-│                    (Unified Nuxt Application)                    │
+│                    (Unified Nuxt Application)                   │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
 │  │   Sandbox   │  │   Content    │  │   Vercel Workflows     │  │
 │  │   Manager   │  │     Sync     │  │   (scheduled sync)     │  │
