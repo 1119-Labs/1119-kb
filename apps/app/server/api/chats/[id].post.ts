@@ -11,6 +11,7 @@ import { generateTitle } from '../../utils/chat/generate-title'
 import { getAgentConfig } from '../../utils/agent-config'
 import { KV_KEYS } from '../../utils/sandbox/types'
 import { adminTools } from '../../utils/chat/admin-tools'
+import { checkRateLimit, incrementRateLimit } from '../../utils/rate-limit'
 
 defineRouteMeta({
   openAPI: {
@@ -62,6 +63,14 @@ export default defineEventHandler(async (event) => {
 
     if (isAdminChat && user.role !== 'admin') {
       throw createError({ statusCode: 403, statusMessage: 'Admin access required', data: { why: 'This chat is in admin mode and requires the admin role', fix: 'Contact an administrator to be granted access' } })
+    }
+
+    let rateLimitInfo: { allowed: boolean, remaining: number, limit: number } | undefined
+    if (user.role !== 'admin') {
+      rateLimitInfo = await checkRateLimit(user.id)
+      if (!rateLimitInfo.allowed) {
+        throw createError({ statusCode: 429, statusMessage: 'Rate limit exceeded', data: { why: `You have reached the daily limit of ${rateLimitInfo.limit} messages`, fix: 'Wait until tomorrow or contact an administrator' } })
+      }
     }
 
     const lastMessage = messages[messages.length - 1]
@@ -221,6 +230,10 @@ export default defineEventHandler(async (event) => {
           }
         }
 
+        if (user.role !== 'admin') {
+          await incrementRateLimit(user.id)
+        }
+
         requestLog.set({
           outcome: 'success',
           responseMessageCount: responseMessages.length,
@@ -229,6 +242,11 @@ export default defineEventHandler(async (event) => {
         })
       },
     })
+
+    if (rateLimitInfo) {
+      setHeader(event, 'X-RateLimit-Limit', String(rateLimitInfo.limit))
+      setHeader(event, 'X-RateLimit-Remaining', String(rateLimitInfo.remaining - 1))
+    }
 
     return createUIMessageStreamResponse({ stream })
   } catch (error) {

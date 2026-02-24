@@ -36,4 +36,5 @@ export const KV_KEYS = {
   AGENT_CONFIG_CACHE: 'agent:config-cache',
   session: (sessionId: string) => `session:${sessionId}`,
   ACTIVE_SANDBOX_SESSION: 'sandbox:active-session',
+  rateLimit: (userId: string, date: string) => `ratelimit:${userId}:${date}`,
 } as const
