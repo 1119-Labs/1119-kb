@@ -27,7 +27,7 @@
         "@nuxt/ui": "^4.4.0",
         "@nuxthub/core": "^0.10.6",
         "@nuxtjs/mdc": "^0.20.1",
-        "@onmax/nuxt-better-auth": "0.0.2-alpha.21",
+        "@onmax/nuxt-better-auth": "0.0.2-alpha.29",
         "@savoir/agent": "workspace:*",
         "@savoir/github": "workspace:*",
         "@savoir/sdk": "workspace:*",
@@ -748,7 +748,7 @@
 
     "@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
 
-    "@onmax/nuxt-better-auth": ["@onmax/nuxt-better-auth@0.0.2-alpha.21", "", { "dependencies": { "@better-auth/cli": "^1.5.0-beta.3", "@nuxt/kit": "^4.2.2", "@nuxt/ui": "^4.2.1", "defu": "^6.1.4", "jiti": "^2.4.2", "pathe": "^2.0.3", "radix3": "^1.1.2", "std-env": "^3.10.0" }, "peerDependencies": { "@nuxthub/core": ">=0.10.5", "better-auth": ">=1.0.0", "convex": ">=1.25.0" }, "optionalPeers": ["@nuxthub/core", "convex"] }, "sha512-Q42DoTDQ/0bqSJtv5t0h/Pdo81DiWqvhGufGYuJXTt6jr9+4fWSQAolG+6S168lMeR5F9BMEFpH+L24NmNc9tw=="],
+    "@onmax/nuxt-better-auth": ["@onmax/nuxt-better-auth@0.0.2-alpha.29", "", { "dependencies": { "@better-auth/cli": "^1.5.0-beta.3", "@nuxt/kit": "^4.2.2", "@nuxt/ui": "^4.2.1", "defu": "^6.1.4", "jiti": "^2.4.2", "pathe": "^2.0.3", "radix3": "^1.1.2", "std-env": "^3.10.0" }, "peerDependencies": { "@nuxthub/core": ">=0.10.5", "better-auth": ">=1.0.0" }, "optionalPeers": ["@nuxthub/core"] }, "sha512-/C6oiqiwDD3t5QAYwvC3S+ZaJPjRcKjwT+rN7bcEuH03p7Q/FVcC5EjPyv2yUqzW+Hfx0ySgIJDn01CPbHtmAA=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.0", "", {}, "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="],
 

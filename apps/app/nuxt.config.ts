@@ -111,23 +111,12 @@ export default defineNuxtConfig({
     cache: true
   },
 
-  ssr: false,
-
   routeRules: {
-    // Root and login: SSR for OG meta tags and fast first paint
-    '/': { ssr: true },
-    '/login': { ssr: true },
-    // Shared chats: SSR + ISR for public access and SEO
-    '/shared/**': { ssr: true, isr: { expiration: 300 } },
-    // Auth API routes should never be cached
+    '/shared/**': { isr: { expiration: 300 } },
     '/api/auth/**': { isr: false, cache: false },
-    // Chat API responses are user-specific
     '/api/chats/**': { isr: false, cache: false },
-    // Webhook routes should never be cached
     '/api/webhooks/**': { isr: false, cache: false },
-    // Admin docs: SSR + permanent ISR (static markdown, only changes on redeploy)
-    '/admin/docs/**': { ssr: true, isr: { expiration: false } },
-    // Admin pages are behind auth
+    '/admin/docs/**': { isr: { expiration: false } },
     '/admin/**': { auth: { user: { role: 'admin' } as any } },
   },
 
