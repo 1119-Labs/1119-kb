@@ -52,6 +52,7 @@ export const sources = pgTable('sources', {
   basePath: text('base_path').default('/docs'),
   repo: text('repo'),
   branch: text('branch'),
+  refType: text('ref_type', { enum: ['branch', 'tag', 'release'] }).default('branch'),
   contentPath: text('content_path'),
   outputPath: text('output_path'),
   readmeOnly: boolean('readme_only').default(false),
@@ -61,6 +62,18 @@ export const sources = pgTable('sources', {
   ...timestamps,
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, table => [index('sources_type_idx').on(table.type)])
+
+export const sourceVersions = pgTable('source_versions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sourceId: text('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  versionFolderName: text('version_folder_name').notNull(),
+  refType: text('ref_type', { enum: ['branch', 'tag', 'release'] }).notNull(),
+  ref: text('ref').notNull(),
+  syncedAt: timestamp('synced_at').notNull().defaultNow(),
+}, table => [
+  index('source_versions_source_id_idx').on(table.sourceId),
+  uniqueIndex('source_versions_source_version_idx').on(table.sourceId, table.versionFolderName),
+])
 
 export const agentConfig = pgTable('agent_config', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),

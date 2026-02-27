@@ -34,7 +34,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.30",
+    "@openrouter/ai-sdk-provider": "^2.2.0",
     "@ai-sdk/provider": "^3.0.8",
     "ai": "^6.0.85",
     "evlog": "^1.9.0",

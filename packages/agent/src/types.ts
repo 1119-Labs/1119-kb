@@ -47,6 +47,8 @@ export interface AgentExecutionContext {
   routerConfig?: AgentConfig
   agentConfig?: AgentConfigData
   customContext?: Record<string, unknown>
+  /** When set, restrict search to these sandbox-relative paths (e.g. docs/repo1/[branch]-master) */
+  searchPaths?: string[]
 }
 
 export interface CreateAgentOptions {
@@ -55,7 +57,7 @@ export interface CreateAgentOptions {
   route: () => Promise<AgentConfig>
   buildPrompt: (routerConfig: AgentConfig, agentConfig: AgentConfigData) => string
   resolveModel?: (routerConfig: AgentConfig, agentConfig: AgentConfigData) => string
-  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
+  /** OpenRouter API key. Optional — falls back to OPENROUTER_API_KEY env var. */
   apiKey?: string
   onRouted?: (result: RoutingResult) => void
   onStepFinish?: (stepResult: any) => void

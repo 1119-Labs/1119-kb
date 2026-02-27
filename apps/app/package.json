@@ -20,7 +20,7 @@
     "snapshot:create": "curl -X POST http://localhost:3000/api/sandbox/snapshot"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.30",
+    "@openrouter/ai-sdk-provider": "^2.2.0",
     "@ai-sdk/vue": "^3.0.85",
     "@chat-adapter/discord": "^4.13.0",
     "@chat-adapter/state-memory": "^4.13.0",

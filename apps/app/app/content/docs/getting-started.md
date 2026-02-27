@@ -15,7 +15,7 @@ cp apps/app/.env.example apps/app/.env
 | `BETTER_AUTH_SECRET` | Secret used to sign sessions and tokens. See [Better Auth docs](https://www.better-auth.com/docs/installation#set-environment-variables). |
 | `GITHUB_CLIENT_ID` | GitHub App client ID (used for OAuth login). See [GitHub App Setup](#github-app-setup) below. |
 | `GITHUB_CLIENT_SECRET` | GitHub App client secret |
-| `OPENAI_API_KEY` | [OpenAI](https://platform.openai.com/api-keys) API key (required for chat, title generation, bots, OCR) |
+| `OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/keys) API key (required for chat, title generation, bots, OCR) |
 
 `NUXT_GITHUB_SNAPSHOT_REPO` and `NUXT_GITHUB_TOKEN` are optional. You can configure the snapshot repository in the admin sandbox UI after startup, and the app uses a GitHub App installation access token automatically when app credentials are configured.
 

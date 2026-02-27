@@ -40,7 +40,7 @@ export function applyAgentConfig(basePrompt: string, config: AgentConfigData): s
 export const COMPLEXITY_HINTS: Record<AgentConfig['complexity'], string> = {
   trivial: 'Respond directly without searching.',
   simple:
-    'One bash_batch call: search + read in parallel, then answer.\nbash_batch: ["grep -rl \'keyword\' docs/ --include=\'*.md\' | head -5", "head -100 docs/likely-source/index.md"]\nThen answer.',
+    'One bash_batch call: search + read in parallel, then answer. For sample code/snippet requests, grep for the SDK or feature name (e.g. wallet, js-sdk), then read the top matches and return the code with a short explanation.\nbash_batch: ["grep -rl \'keyword\' docs/ --include=\'*.md\' | head -5", "head -100 docs/likely-source/index.md"]\nThen answer with the actual code from the docs.',
   moderate:
     'One bash_batch: parallel grep across likely directories, then one batch read.\nbash_batch: ["grep -rl \'keyword\' docs/source1/ --include=\'*.md\' | head -5", "grep -rl \'keyword\' docs/source2/ --include=\'*.md\' | head -5"]\nThen bash_batch: read the top results.\nIf sandbox results are insufficient, use `search_web` for supplementary information.\nAnswer with what you found.',
   complex:

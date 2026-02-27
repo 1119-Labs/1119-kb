@@ -7,6 +7,7 @@ interface SourceData {
   label: string
   repo: string | null
   branch: string | null
+  refType?: 'branch' | 'tag' | 'release' | null
   contentPath: string | null
   outputPath: string | null
   readmeOnly: boolean | null
@@ -52,6 +53,13 @@ const sourceIdentifier = computed(() => {
   if (props.source.type === 'github') return props.source.repo
   return props.source.handle || props.source.channelId
 })
+
+const refBadgeLabel = computed(() => {
+  if (props.source.type !== 'github' || !props.source.branch) return null
+  const refType = props.source.refType ?? 'branch'
+  const refLabel = refType === 'branch' ? 'Branch' : refType === 'tag' ? 'Tag' : 'Release'
+  return `${refLabel}: ${props.source.branch}`
+})
 </script>
 
 <template>
@@ -80,11 +88,11 @@ const sourceIdentifier = computed(() => {
         <div class="flex flex-wrap items-center gap-1.5 mt-2">
           <template v-if="source.type === 'github'">
             <div
-              v-if="source.branch"
+              v-if="refBadgeLabel"
               class="inline-flex items-center gap-1 h-[22px] px-2 rounded-md text-[11px] font-medium text-muted bg-muted"
             >
               <UIcon name="i-lucide-git-branch" class="size-3 opacity-60" />
-              {{ source.branch }}
+              {{ refBadgeLabel }}
             </div>
             <div
               v-if="source.contentPath"

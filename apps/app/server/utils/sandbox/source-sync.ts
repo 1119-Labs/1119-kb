@@ -13,6 +13,60 @@ function generateAuthRepoUrl(repoPath: string, token?: string): string {
   return `https://x-access-token:${encoded}@github.com/${repoPath}.git`
 }
 
+/** Fetches the latest release tag name from GitHub API. Uses token for private repos and rate limits. */
+async function fetchLatestReleaseTag(repo: string, token?: string): Promise<string> {
+  const [owner, repoName] = repo.split('/')
+  if (!owner || !repoName) {
+    throw createError({
+      message: `Invalid repo format: ${repo}`,
+      why: 'Expected owner/repo',
+      fix: 'Use GitHub repo in owner/repo format',
+    })
+  }
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+  const res = await $fetch<{ tag_name: string }>(
+    `https://api.github.com/repos/${owner}/${repoName}/releases/latest`,
+    { headers },
+  ).catch((err: { statusCode?: number; data?: { message?: string } }) => {
+    if (err.statusCode === 404) {
+      throw createError({
+        message: `No releases found for ${repo}`,
+        why: 'This repository has no GitHub releases',
+        fix: 'Create a release or use a branch/tag instead',
+      })
+    }
+    const msg = err?.data?.message ?? (err as Error).message
+    throw createError({
+      message: `Failed to fetch latest release for ${repo}`,
+      why: String(msg),
+      fix: 'Check repo access and GitHub API rate limits',
+    })
+  })
+  return res.tag_name
+}
+
+/** Resolves the git ref to use for clone: branch/tag as-is, or latest release tag when refType is release and branch is "latest". */
+async function getEffectiveRef(source: GitHubSource, githubToken?: string): Promise<string> {
+  const refType = source.refType ?? 'branch'
+  const branch = source.branch || 'main'
+  if (refType === 'release' && branch.toLowerCase() === 'latest') {
+    return await fetchLatestReleaseTag(source.repo, githubToken)
+  }
+  return await Promise.resolve(branch)
+}
+
+/** Returns version folder name for snapshot layout: [branch]-<ref>, [tag]-<ref>, [release]-<ref> */
+export function getVersionFolderName(refType: 'branch' | 'tag' | 'release', ref: string): string {
+  const prefix = refType === 'branch' ? '[branch]' : refType === 'tag' ? '[tag]' : '[release]'
+  return `${prefix}-${ref}`
+}
+
 interface YouTubeVideo {
   id: string
   title: string
@@ -37,22 +91,37 @@ export async function syncGitHubSource(
 ): Promise<SyncSourceResult> {
   const basePath = source.basePath || '/docs'
   const outputPath = source.outputPath || source.id
-  const targetDir = `/vercel/sandbox${basePath}/${outputPath}`
 
   try {
+    const ref = await getEffectiveRef(source, githubToken)
+    const refType = source.refType ?? 'branch'
+    const versionFolder = getVersionFolderName(refType, ref)
+    const targetDir = `/vercel/sandbox${basePath}/${outputPath}/${versionFolder}`
+
+    const sourceWithRef: GitHubSource = { ...source, branch: ref }
+
     await sandbox.runCommand({
       cmd: 'mkdir',
       args: ['-p', targetDir],
       cwd: '/vercel/sandbox',
     })
 
+    let fileCount: number
     if (source.readmeOnly) {
-      const fileCount = await syncReadmeOnly(sandbox, source, targetDir)
-      return { sourceId: source.id, label: source.label, success: true, fileCount }
+      fileCount = await syncReadmeOnly(sandbox, sourceWithRef, targetDir)
+    } else {
+      fileCount = await syncFullRepository(sandbox, sourceWithRef, targetDir, githubToken)
     }
 
-    const fileCount = await syncFullRepository(sandbox, source, targetDir, githubToken)
-    return { sourceId: source.id, label: source.label, success: true, fileCount }
+    return {
+      sourceId: source.id,
+      label: source.label,
+      success: true,
+      fileCount,
+      versionFolderName: versionFolder,
+      refType,
+      ref,
+    }
   } catch (error) {
     const err = error as Error & { data?: { why?: string } }
     const message = err?.message ?? String(error)

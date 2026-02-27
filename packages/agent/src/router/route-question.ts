@@ -1,5 +1,5 @@
-import { createOpenAI } from '@ai-sdk/openai'
-import { generateText, Output } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { generateText, type LanguageModel, Output } from 'ai'
 import type { UIMessage } from 'ai'
 import { log } from 'evlog'
 import { ROUTER_SYSTEM_PROMPT } from '../prompts/router'
@@ -22,7 +22,7 @@ export async function routeQuestion(
   requestId: string,
   apiKey?: string,
 ): Promise<AgentConfig> {
-  const openai = createOpenAI(apiKey ? { apiKey } : {})
+  const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
 
   const question = extractQuestionFromMessages(messages)
   if (!question) {
@@ -32,7 +32,7 @@ export async function routeQuestion(
 
   try {
     const { output } = await generateText({
-      model: openai(ROUTER_MODEL),
+      model: openrouter(ROUTER_MODEL) as unknown as LanguageModel,
       output: Output.object({ schema: agentConfigSchema }),
       messages: [
         { role: 'system', content: ROUTER_SYSTEM_PROMPT },

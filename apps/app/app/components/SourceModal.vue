@@ -1,10 +1,13 @@
 <script setup lang="ts">
+type RefType = 'branch' | 'tag' | 'release'
+
 interface SourceData {
   id: string
   type: 'github' | 'youtube'
   label: string
   repo: string | null
   branch: string | null
+  refType?: RefType | null
   contentPath: string | null
   outputPath: string | null
   readmeOnly: boolean | null
@@ -33,6 +36,7 @@ const form = ref({
   label: props.source?.label || '',
   repo: props.source?.repo || '',
   branch: props.source?.branch || 'main',
+  refType: (props.source?.refType as RefType) || 'branch',
   contentPath: props.source?.contentPath || '',
   outputPath: props.source?.outputPath || '',
   basePath: props.source?.type === 'youtube' ? '/youtube' : '/docs',
@@ -46,6 +50,24 @@ const typeOptions = [
   { label: 'GitHub Repository', value: 'github', icon: 'i-simple-icons-github' },
   { label: 'YouTube Channel', value: 'youtube', icon: 'i-simple-icons-youtube' },
 ]
+
+const refTypeOptions: { label: string, value: RefType }[] = [
+  { label: 'Branch', value: 'branch' },
+  { label: 'Tag', value: 'tag' },
+  { label: 'Release', value: 'release' },
+]
+
+const refInputLabel = computed(() => {
+  if (form.value.refType === 'branch') return 'Branch'
+  if (form.value.refType === 'tag') return 'Tag'
+  return 'Release (tag or "latest")'
+})
+
+const refInputPlaceholder = computed(() => {
+  if (form.value.refType === 'branch') return 'main'
+  if (form.value.refType === 'tag') return 'v1.0.0'
+  return 'v1.0.0 or latest'
+})
 
 function slugify(text: string): string {
   return text
@@ -78,8 +100,12 @@ async function save() {
     const url = isEditing.value ? `/api/sources/${props.source!.id}` : '/api/sources'
     const method = isEditing.value ? 'PUT' : 'POST'
 
+    const refType = typeof form.value.refType === 'object' && form.value.refType && 'value' in form.value.refType
+      ? (form.value.refType as { value: RefType }).value
+      : (form.value.refType ?? 'branch')
     const body = {
       ...form.value,
+      refType,
       outputPath: form.value.outputPath || outputFolderFromLabel.value,
     }
 
@@ -197,13 +223,22 @@ async function save() {
               </div>
 
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-highlighted">Branch</label>
-                <UInput
-                  v-model="form.branch"
-                  placeholder="main"
-                  icon="i-lucide-git-branch"
+                <label class="text-sm font-medium text-highlighted">Ref type</label>
+                <USelectMenu
+                  v-model="form.refType"
+                  :items="refTypeOptions"
+                  value-key="value"
                 />
               </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium text-highlighted">{{ refInputLabel }}</label>
+              <UInput
+                v-model="form.branch"
+                :placeholder="refInputPlaceholder"
+                icon="i-lucide-git-branch"
+              />
             </div>
 
             <div class="grid grid-cols-2 gap-4">

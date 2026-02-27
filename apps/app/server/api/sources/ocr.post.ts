@@ -1,5 +1,5 @@
-import { generateText, Output } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { generateText, Output, type LanguageModel } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { z } from 'zod'
 import type { SourceOcrItem } from '#shared/utils/source-ocr'
 import { IMAGE_OPTIMIZATION_CONFIG } from '#shared/utils/file'
@@ -130,9 +130,9 @@ async function extractFromImage(image: string) {
     optimizedImage = image
   }
 
-  const openai = createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })
   const { output } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: openrouter('qwen/qwen3-vl-235b-a22b-thinking') as unknown as LanguageModel,
     output: Output.object({ schema: sourceOcrSchema }),
     messages: [
       {
@@ -148,9 +148,9 @@ async function extractFromImage(image: string) {
 }
 
 async function extractFromConfig(config: { filename: string, content: string }) {
-  const openai = createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })
   const { output } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: openrouter('openai/gpt-oss-120b:free') as unknown as LanguageModel,
     output: Output.object({ schema: sourceOcrSchema }),
     messages: [
       {

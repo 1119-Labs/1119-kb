@@ -60,7 +60,8 @@ Fetches Markdown documentation from GitHub repositories.
 | `id` | `string` | Unique identifier |
 | `label` | `string` | Display name |
 | `repo` | `string` | GitHub repository (`owner/repo`) |
-| `branch` | `string?` | Branch to fetch from (default: `main`) |
+| `branch` | `string?` | Ref to clone: branch name, tag name, or for release type a tag (e.g. `v1.0.0`) or `latest` (default: `main`) |
+| `refType` | `'branch' \| 'tag' \| 'release'?` | What to clone: branch (default), tag, or release. For release, use `branch` = tag name or `latest` to use the latest GitHub Release. |
 | `contentPath` | `string?` | Path to content directory (default: `docs`) |
 | `outputPath` | `string?` | Output directory in snapshot (default: `id`) |
 | `basePath` | `string?` | URL base path for this source (default: `/docs`) |

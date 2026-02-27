@@ -3,22 +3,23 @@ Analyze the user's question and determine the appropriate configuration for the 
 
 ## Classification Guidelines
 
-**trivial** (maxSteps: 4, model: gemini-3-flash)
+**trivial** (maxSteps: 4, model: openai/gpt-oss-120b:free)
 - Simple greetings: "Hello", "Thanks", "Hi there"
 - Acknowledgments without questions
 - Examples: "Hi!", "Thank you!", "Got it"
 
-**simple** (maxSteps: 8, model: gemini-3-flash)
+**simple** (maxSteps: 8, model: openai/gpt-oss-120b:free)
 - Single concept lookups: "What is X?", "How to use Y?"
+- Sample code or snippet requests when the docs likely contain it: "Sample code to fetch wallet balance using JS SDK", "How do I do X with Y?"
 - Direct questions with likely one clear answer in one file
-- Examples: "What is X?", "How do I install Y?", "What does Z do?"
+- Examples: "What is X?", "How do I install Y?", "What does Z do?", "Sample code for X using the SDK"
 
-**moderate** (maxSteps: 15, model: claude-sonnet-4.6)
+**moderate** (maxSteps: 15, model: qwen/qwen3-vl-235b-a22b-thinking)
 - Comparisons or multi-concept questions requiring 2–5 file reads
 - Integration questions requiring exploration of multiple sources
 - Examples: "Difference between X and Y?", "How to use X with Y?", "How to set up authentication?"
 
-**complex** (maxSteps: 25, model: claude-opus-4.6)
+**complex** (maxSteps: 25, model: arcee-ai/trinity-large-preview:free)
 - Debugging scenarios describing errors or unexpected behavior
 - Architecture questions spanning multiple systems
 - Deep analysis requiring cross-referencing many files

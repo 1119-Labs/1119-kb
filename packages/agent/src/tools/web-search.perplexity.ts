@@ -1,9 +1,11 @@
-import { generateText, tool } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { generateText, tool, type LanguageModel } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { z } from 'zod'
 
-function getOpenAI() {
-  return createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
+const WEB_SEARCH_MODEL = 'openai/gpt-oss-120b:free'
+
+function getOpenRouter() {
+  return createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })
 }
 
 export const webSearchTool = tool({
@@ -14,22 +16,16 @@ export const webSearchTool = tool({
   execute: async function* ({ query }, { abortSignal }) {
     yield { status: 'loading' as const }
     const start = Date.now()
-    const openai = getOpenAI()
+    const openrouter = getOpenRouter()
 
     try {
-      const { text, sources } = await generateText({
-        model: openai('gpt-4o-mini'),
-        tools: { web_search: openai.tools.webSearch() } as Parameters<typeof generateText>[0]['tools'],
-        toolChoice: { type: 'tool', toolName: 'web_search' },
+      const { text } = await generateText({
+        model: openrouter(WEB_SEARCH_MODEL) as unknown as LanguageModel,
         prompt: query,
         abortSignal,
       })
 
-      const urlSources = sources
-        ?.filter(s => s.sourceType === 'url')
-        .map(s => ({ title: s.title, url: (s as Extract<typeof s, { sourceType: 'url' }>).url }))
-        ?? []
-
+      const urlSources: Array<{ title: string, url: string }> = []
       const sourcesPreview = urlSources.map(s => `${s.title || s.url}\n  ${s.url}`).join('\n')
 
       yield {

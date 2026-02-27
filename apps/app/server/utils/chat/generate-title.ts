@@ -1,16 +1,16 @@
 import type { UIMessage } from 'ai'
-import { generateText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { generateText, type LanguageModel } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { db, schema } from '@nuxthub/db'
 import { eq } from 'drizzle-orm'
 import { log } from 'evlog'
-import { ROUTER_MODEL } from '@savoir/agent'
+import { GENERATE_TITLE_MODEL } from '@savoir/agent'
 
 interface GenerateTitleOptions {
   firstMessage: UIMessage
   chatId: string
   requestId: string
-  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
+  /** OpenRouter API key. Optional — falls back to OPENROUTER_API_KEY env var. */
   apiKey?: string
 }
 
@@ -21,9 +21,9 @@ interface GenerateTitleOptions {
  */
 export async function generateTitle({ firstMessage, chatId, requestId, apiKey }: GenerateTitleOptions): Promise<string | null> {
   try {
-    const openai = createOpenAI(apiKey ? { apiKey } : {})
+    const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
     const { text: title } = await generateText({
-      model: openai(ROUTER_MODEL),
+      model: openrouter(GENERATE_TITLE_MODEL) as unknown as LanguageModel,
       system: `Generate a short chat title (max 30 chars) from the user's message.
 Rules: no quotes, no colons, no punctuation, plain text only.
 If the message is a simple greeting (hi, hey, hello, etc.), respond with a generic title like "New conversation" or "Quick chat".`,

@@ -1,5 +1,5 @@
-import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { stepCountIs, ToolLoopAgent, type LanguageModel, type StepResult, type ToolSet } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { ADMIN_SYSTEM_PROMPT } from '../prompts/chat'
 import { compactContext } from '../core/context'
@@ -12,7 +12,7 @@ export interface AdminAgentOptions {
   /** Defaults to the built-in ADMIN_SYSTEM_PROMPT */
   systemPrompt?: string
   maxSteps?: number
-  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
+  /** OpenRouter API key. Optional — falls back to OPENROUTER_API_KEY env var. */
   apiKey?: string
   onStepFinish?: (stepResult: any) => void
   onFinish?: (result: any) => void
@@ -26,10 +26,10 @@ export function createAdminAgent({
   onStepFinish,
   onFinish,
 }: AdminAgentOptions) {
-  const openai = createOpenAI(apiKey ? { apiKey } : {})
+  const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
 
   return new ToolLoopAgent({
-    model: openai(DEFAULT_MODEL),
+    model: openrouter(DEFAULT_MODEL) as unknown as LanguageModel,
     callOptionsSchema,
     prepareCall: ({ options, ...settings }) => {
       const modelOverride = (options as AgentCallOptions | undefined)?.model
@@ -45,7 +45,7 @@ export function createAdminAgent({
 
       return {
         ...settings,
-        model: openai(effectiveModel),
+        model: openrouter(effectiveModel) as unknown as LanguageModel,
         instructions: systemPrompt,
         tools,
         stopWhen: stepCountIs(maxSteps),

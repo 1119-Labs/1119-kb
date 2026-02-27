@@ -1,5 +1,5 @@
-import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet, type UIMessage } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { stepCountIs, ToolLoopAgent, type LanguageModel, type StepResult, type ToolSet, type UIMessage } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { log } from 'evlog'
 import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { routeQuestion } from '../router/route-question'
@@ -16,15 +16,15 @@ export interface SourceAgentOptions {
   tools: Record<string, unknown>
   getAgentConfig: () => Promise<AgentConfigData>
   messages: UIMessage[]
-  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
+  /** OpenRouter API key. Optional — falls back to OPENROUTER_API_KEY env var. */
   apiKey?: string
   requestId?: string
   /** Falls back to agentConfig.defaultModel then DEFAULT_MODEL */
   defaultModel?: string
+  /** Restrict search to these sandbox-relative paths (e.g. docs/repo1/[branch]-master). When empty/omitted, search whole docs. */
+  searchPaths?: string[]
   onRouted?: (result: RoutingResult) => void
-   
   onStepFinish?: (stepResult: any) => void
-   
   onFinish?: (result: any) => void
 }
 
@@ -35,16 +35,17 @@ export function createSourceAgent({
   apiKey,
   requestId,
   defaultModel = DEFAULT_MODEL,
+  searchPaths,
   onRouted,
   onStepFinish,
   onFinish,
 }: SourceAgentOptions) {
   const id = requestId ?? crypto.randomUUID().slice(0, 8)
   let maxSteps = 15
-  const openai = createOpenAI(apiKey ? { apiKey } : {})
+  const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
 
   return new ToolLoopAgent({
-    model: openai(DEFAULT_MODEL),
+    model: openrouter(DEFAULT_MODEL) as unknown as LanguageModel,
     callOptionsSchema,
     prepareCall: async ({ options, ...settings }) => {
       const modelOverride = (options as AgentCallOptions | undefined)?.model
@@ -68,12 +69,18 @@ export function createSourceAgent({
         routerConfig,
         agentConfig,
         customContext,
+        searchPaths: searchPaths?.length ? searchPaths : undefined,
+      }
+
+      let instructions = applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig)
+      if (searchPaths?.length) {
+        instructions += `\n\n## Search scope\nSearch only in these directories (relative to the sandbox root):\n${searchPaths.map(p => `- \`${p}\``).join('\n')}\nUse these paths in your grep/find/cat commands (e.g. \`grep -rl "keyword" ${searchPaths[0]}/ --include="*.md" | head -5\`).`
       }
 
       return {
         ...settings,
-        model: openai(effectiveModel),
-        instructions: applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig),
+        model: openrouter(effectiveModel) as unknown as LanguageModel,
+        instructions,
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),
         providerOptions: getModelFallbackOptions(effectiveModel),

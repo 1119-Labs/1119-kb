@@ -65,14 +65,61 @@ useSeoMeta({ title: () => data.value?.title || 'Chat' })
 const input = ref('')
 const isNewChat = (data.value?.messages.length ?? 0) <= 1
 
+interface SourceVersion {
+  versionFolderName: string
+  refType: string
+  ref: string
+  syncedAt: string
+}
+interface SourceWithVersions {
+  id: string
+  label: string
+  type: string
+  versions: SourceVersion[]
+}
+const { data: sourcesData } = await useFetch<{ github: { sources: SourceWithVersions[] }; youtube: { sources: SourceWithVersions[] } }>('/api/sources')
+const sourcesWithVersions = computed(() => {
+  const list = [...(sourcesData.value?.github?.sources ?? []), ...(sourcesData.value?.youtube?.sources ?? [])]
+  return list.filter(s => s.versions?.length > 0)
+})
+const selectedSourceVersions = ref<Record<string, string>>({})
+watch(sourcesWithVersions, (sources) => {
+  const next: Record<string, string> = { ...selectedSourceVersions.value }
+  for (const s of sources) {
+    if (next[s.id] === undefined && s.versions?.[0])
+      next[s.id] = s.versions[0].versionFolderName
+  }
+  selectedSourceVersions.value = next
+  // Apply versions passed from new-chat screen (sessionStorage)
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const stored = sessionStorage.getItem('newChatSourceVersions')
+      if (stored) {
+        const parsed = JSON.parse(stored) as Record<string, string>
+        sessionStorage.removeItem('newChatSourceVersions')
+        selectedSourceVersions.value = { ...selectedSourceVersions.value, ...parsed }
+      }
+    } catch (_) {}
+  }
+}, { immediate: true })
+
+const transportBody = reactive<{ model: string; sourceVersions: Record<string, string> }>({
+  model: model.value,
+  sourceVersions: {},
+})
+watch([model, selectedSourceVersions], () => {
+  transportBody.model = model.value
+  transportBody.sourceVersions = { ...selectedSourceVersions.value }
+}, { immediate: true, deep: true })
+
+const knowledgeVersionsOpen = ref(false)
+
 const chat = new Chat({
   id: data.value.id,
   messages: data.value.messages as UIMessage[],
   transport: new DefaultChatTransport({
     api: `/api/chats/${data.value.id}`,
-    body: {
-      model: model.value
-    }
+    body: transportBody,
   }),
   onData: (dataPart) => {
     if (dataPart.type === 'data-chat-title') {
@@ -432,6 +479,29 @@ watch(() => chat.status, (newStatus, oldStatus) => {
           </template>
 
           <template #footer>
+            <div v-if="data?.mode === 'chat' && sourcesWithVersions.length > 0" class="w-full mb-2">
+              <UCollapsible v-model:open="knowledgeVersionsOpen">
+                <UButton variant="ghost" size="xs" color="neutral" class="gap-1.5" trailing-icon="i-lucide-chevron-down">
+                  Knowledge versions
+                </UButton>
+                <template #content>
+                  <div class="flex flex-wrap gap-3 pl-1 pt-1">
+                    <div v-for="s in sourcesWithVersions" :key="s.id" class="flex items-center gap-2">
+                      <span class="text-xs text-muted truncate max-w-24" :title="s.label">{{ s.label }}</span>
+                      <USelectMenu
+                        :model-value="selectedSourceVersions[s.id] ?? s.versions[0]?.versionFolderName"
+                        :items="s.versions.map(v => ({ value: v.versionFolderName, label: v.versionFolderName }))"
+                        value-key="value"
+                        size="xs"
+                        variant="ghost"
+                        class="w-48"
+                        @update:model-value="(v: string) => { selectedSourceVersions = { ...selectedSourceVersions, [s.id]: v } }"
+                      />
+                    </div>
+                  </div>
+                </template>
+              </UCollapsible>
+            </div>
             <div class="flex items-center gap-1">
               <FileUploadButton @files-selected="addFiles($event)" />
               <ModelSelect v-model="model" />

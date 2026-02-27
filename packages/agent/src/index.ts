@@ -16,6 +16,7 @@ export {
   getModelFallbackOptions,
   DEFAULT_MODEL,
   ROUTER_MODEL,
+  GENERATE_TITLE_MODEL,
 } from './router/schema'
 
 // Prompts

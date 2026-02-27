@@ -20,6 +20,7 @@ import {
   stepSyncSource,
   stepPushChanges,
   stepTakeSnapshot,
+  stepRecordVersions,
 } from './steps'
 
 export async function syncDocumentation(
@@ -77,6 +78,9 @@ export async function syncDocumentation(
 
   // Step 4: Take snapshot
   const { snapshotId } = await stepTakeSnapshot(sandboxId)
+
+  // Step 5: Record synced versions (GitHub) in DB
+  await stepRecordVersions(results)
 
   // Compute summary
   const successCount = results.filter((r: SyncSourceResult) => r.success).length

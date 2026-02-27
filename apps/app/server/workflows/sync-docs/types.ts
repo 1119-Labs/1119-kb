@@ -19,6 +19,8 @@ export interface GitHubSource {
   basePath: string
   repo: string
   branch: string
+  /** When to clone: branch (default), tag, or release (use branch value as tag name or "latest") */
+  refType?: 'branch' | 'tag' | 'release'
   contentPath: string
   outputPath: string
   readmeOnly: boolean
@@ -43,6 +45,10 @@ export interface SyncSourceResult {
   success: boolean
   fileCount: number
   error?: string
+  /** GitHub only: version folder name e.g. [branch]-master, [release]-v0.0.1 */
+  versionFolderName?: string
+  refType?: 'branch' | 'tag' | 'release'
+  ref?: string
 }
 
 export interface SyncResult {

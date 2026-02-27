@@ -12,3 +12,5 @@ export type { PushChangesConfig, PushChangesResult } from './push-changes'
 
 export { stepTakeSnapshot } from './take-snapshot'
 export type { TakeSnapshotResult } from './take-snapshot'
+
+export { stepRecordVersions } from './record-versions'

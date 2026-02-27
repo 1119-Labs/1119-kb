@@ -149,7 +149,7 @@ GITHUB_CLIENT_ID=...                  # GitHub OAuth app client ID
 GITHUB_CLIENT_SECRET=...              # GitHub OAuth app client secret
 
 # AI (required)
-# OPENAI_API_KEY=...                 # OpenAI API key
+# OPENROUTER_API_KEY=...            # OpenRouter API key (https://openrouter.ai/keys)
 
 # Sandbox
 # NUXT_GITHUB_SNAPSHOT_REPO=org/repo  # Optional default (can be set from admin sandbox UI)

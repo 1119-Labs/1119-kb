@@ -16,7 +16,7 @@ cp apps/app/.env.example apps/app/.env
 | `GITHUB_CLIENT_ID` | From your [GitHub App settings](https://github.com/settings/apps) → Client ID |
 | `GITHUB_CLIENT_SECRET` | From your [GitHub App settings](https://github.com/settings/apps) → Generate a client secret |
 
-These three variables are all you need to deploy. You also need `OPENAI_API_KEY` (see [AI](#ai) below). Everything else is optional.
+These three variables are all you need to deploy. You also need `OPENROUTER_API_KEY` (see [AI](#ai) below). Everything else is optional.
 
 ## Authentication
 
@@ -50,15 +50,17 @@ Session encryption password. Auto-generated if not set.
 
 ## AI
 
-### `OPENAI_API_KEY` (required)
+### `OPENROUTER_API_KEY` (required)
 
-OpenAI API key used for chat, title generation, bots, and OCR. Read from the environment (e.g. from your `.env` file).
+OpenRouter API key used for chat, title generation, bots, and OCR. Read from the environment (e.g. from your `.env` file).
 
-1. Go to [OpenAI API keys](https://platform.openai.com/api-keys)
-2. Create a new key
-3. Copy the key → `OPENAI_API_KEY` in your `.env`
+1. Go to [OpenRouter Dashboard](https://openrouter.ai/keys)
+2. Create or copy your API key
+3. Copy the key → `OPENROUTER_API_KEY` in your `.env`
 
-For Nuxt runtime config you can also set `NUXT_OPENAI_API_KEY`; the app falls back to `process.env.OPENAI_API_KEY`.
+For Nuxt runtime config you can also set `NUXT_OPENROUTER_API_KEY`; the app falls back to `process.env.OPENROUTER_API_KEY`.
+
+For a list of models suitable for this product (free and paid), see [OpenRouter Models](./OPENROUTER-MODELS.md).
 
 ## Sandbox & Sync
 

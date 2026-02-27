@@ -15,7 +15,8 @@ Guide for adding a new knowledge source to the Knowledge Agent Template instance
 | `id` | Yes | Unique identifier (e.g. `my-docs`) |
 | `label` | Yes | Display name (e.g. `My Docs`) |
 | `repo` | Yes | GitHub repository in `owner/repo` format |
-| `branch` | No | Branch to fetch (default: `main`) |
+| `refType` | No | Clone from: `branch`, `tag`, or `release` (default: `branch`) |
+| `branch` | No | Branch name, tag name, or for release: tag (e.g. `v1.0.0`) or `latest` (default: `main`) |
 | `contentPath` | No | Path to content directory (default: `docs`) |
 | `outputPath` | No | Output directory in snapshot (default: `id`) |
 | `readmeOnly` | No | Only fetch README.md (default: `false`) |
@@ -55,5 +56,6 @@ curl -X POST <your-url>/api/sync \
 ## Notes
 
 - After adding sources, always trigger a **sync** to pull content
+- For GitHub sources, use **Ref type** Branch, Tag, or Release. For Release, set the ref to a tag (e.g. `v1.0.0`) or `latest` to sync from the latest GitHub Release.
 - YouTube sources require `NUXT_YOUTUBE_API_KEY` to be set
 - Sources are stored in SQLite and can be managed from the admin UI at any time

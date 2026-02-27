@@ -2,7 +2,7 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { kv } from '@nuxthub/kv'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { createSavoir } from '@savoir/sdk'
 import { log, useLogger } from 'evlog'
 import { createSourceAgent, createAdminAgent } from '@savoir/agent'
@@ -39,9 +39,10 @@ export default defineEventHandler(async (event) => {
     }).parse)
     requestLog.set({ chatId: id })
 
-    const { model, messages } = await readValidatedBody(event, z.object({
+    const { model, messages, sourceVersions } = await readValidatedBody(event, z.object({
       model: z.string(),
       messages: z.array(z.custom<UIMessage>()),
+      sourceVersions: z.record(z.string(), z.string()).optional(),
     }).parse)
     requestLog.set({ model, messageCount: messages.length })
 
@@ -148,8 +149,32 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig(event)
-    const apiKey = config.openai?.apiKey || process.env.OPENAI_API_KEY
-    console.log('[debug] OpenAI API key used:', apiKey)
+    const apiKey = config.openrouter?.apiKey || process.env.OPENROUTER_API_KEY
+
+    let searchPaths: string[] | undefined
+    if (!isAdminChat && sourceVersions && Object.keys(sourceVersions).length > 0) {
+      const [sourcesList, versionsList] = await Promise.all([
+        db.select({ id: schema.sources.id, basePath: schema.sources.basePath, outputPath: schema.sources.outputPath }).from(schema.sources),
+        db.select().from(schema.sourceVersions).orderBy(desc(schema.sourceVersions.syncedAt)),
+      ])
+      const versionsBySource = new Map<string, Array<{ versionFolderName: string }>>()
+      for (const v of versionsList) {
+        const list = versionsBySource.get(v.sourceId) ?? []
+        list.push({ versionFolderName: v.versionFolderName })
+        versionsBySource.set(v.sourceId, list)
+      }
+      searchPaths = []
+      for (const s of sourcesList) {
+        const versions = versionsBySource.get(s.id)
+        const first = versions?.[0]
+        if (!first) continue
+        const selected = sourceVersions[s.id] ?? first.versionFolderName
+        if (!versions.some(v => v.versionFolderName === selected)) continue
+        const base = (s.basePath || '/docs').replace(/^\//, '') || 'docs'
+        const out = s.outputPath || s.id
+        searchPaths.push(`${base}/${out}/${selected}`)
+      }
+    }
 
     const agent = isAdminChat
       ? createAdminAgent({
@@ -165,6 +190,7 @@ export default defineEventHandler(async (event) => {
         defaultModel: model,
         requestId,
         apiKey,
+        searchPaths: searchPaths?.length ? searchPaths : undefined,
         onRouted: ({ routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }) => {
           effectiveModel = routedModel
           routingResult = { routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }

@@ -1,5 +1,5 @@
-import { generateText, Output } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { generateText, Output, type LanguageModel } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { log } from 'evlog'
 import {
   type AgentConfig,
@@ -15,8 +15,8 @@ import {
 import { createInternalSavoir } from './savoir'
 import type { ThreadContext } from './types'
 
-function getOpenAIApiKey(): string | undefined {
-  return process.env.OPENAI_API_KEY
+function getOpenRouterApiKey(): string | undefined {
+  return process.env.OPENROUTER_API_KEY
 }
 
 function buildRouterInput(question: string, context?: ThreadContext): string {
@@ -43,12 +43,12 @@ function buildRouterInput(question: string, context?: ThreadContext): string {
 }
 
 async function routeQuestion(question: string, context?: ThreadContext): Promise<AgentConfig> {
-  const apiKey = getOpenAIApiKey()
-  const openai = createOpenAI(apiKey ? { apiKey } : {})
+  const apiKey = getOpenRouterApiKey()
+  const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
 
   try {
     const { output } = await generateText({
-      model: openai(ROUTER_MODEL),
+      model: openrouter(ROUTER_MODEL) as unknown as LanguageModel,
       output: Output.object({ schema: agentConfigSchema }),
       messages: [
         { role: 'system', content: ROUTER_SYSTEM_PROMPT },
@@ -88,7 +88,7 @@ export async function generateAIResponse(
       route: () => routeQuestion(question, context),
       buildPrompt: (routerConfig, agentConfig) => buildBotSystemPrompt(context, routerConfig, agentConfig),
       resolveModel: (routerConfig, agentConfig) => agentConfig.defaultModel || routerConfig.model,
-      apiKey: getOpenAIApiKey(),
+      apiKey: getOpenRouterApiKey(),
     })
 
     const result = await agent.generate({
@@ -110,9 +110,9 @@ export async function generateAIResponse(
     // do one final call with NO tools to force a text response.
     if (!result.text?.trim()) {
       log.info('bot', 'Agent produced no text, forcing fallback generation')
-      const openai = createOpenAI(getOpenAIApiKey() ? { apiKey: getOpenAIApiKey() } : {})
+      const openrouter = createOpenRouter({ apiKey: getOpenRouterApiKey() ?? undefined })
       const fallback = await generateText({
-        model: openai(DEFAULT_MODEL),
+        model: openrouter(DEFAULT_MODEL) as unknown as LanguageModel,
         messages: [
           { role: 'user', content: buildBotUserMessage(question, context) },
           ...result.response.messages,

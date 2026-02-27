@@ -131,7 +131,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    openai: {
+    openrouter: {
       apiKey: '',
     },
     github: {

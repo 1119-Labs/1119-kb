@@ -1,5 +1,5 @@
-import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { stepCountIs, ToolLoopAgent, type LanguageModel, type StepResult, type ToolSet } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { log } from 'evlog'
 import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { compactContext } from '../core/context'
@@ -21,10 +21,10 @@ export function createAgent({
   onFinish,
 }: CreateAgentOptions) {
   let maxSteps = 15
-  const openai = createOpenAI(apiKey ? { apiKey } : {})
+  const openrouter = createOpenRouter({ apiKey: apiKey ?? undefined })
 
   return new ToolLoopAgent({
-    model: openai(DEFAULT_MODEL),
+    model: openrouter(DEFAULT_MODEL) as unknown as LanguageModel,
     callOptionsSchema,
     prepareCall: async ({ options, ...settings }) => {
       const modelOverride = (options as AgentCallOptions | undefined)?.model
@@ -55,7 +55,7 @@ export function createAgent({
 
       return {
         ...settings,
-        model: openai(effectiveModel),
+        model: openrouter(effectiveModel) as unknown as LanguageModel,
         instructions: buildPrompt(routerConfig, agentConfig),
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),
