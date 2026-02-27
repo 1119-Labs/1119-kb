@@ -21,15 +21,8 @@ useSeoMeta({
 const route = useRoute()
 const mode = ref<'signin' | 'signup'>('signin')
 const loading = ref(false)
-const githubLoading = ref(false)
 const error = ref('')
 const { signIn, signUp } = useUserSession()
-
-const oauthErrors: Record<string, string> = {
-  access_denied: 'Access denied by GitHub.',
-  server_error: 'GitHub encountered an error. Please try again.',
-  temporarily_unavailable: 'GitHub is temporarily unavailable. Please try again later.',
-}
 
 const shaderColors = reactive({
   swirlA: '#404040',
@@ -42,7 +35,7 @@ const shaderColors = reactive({
 onMounted(() => {
   const queryError = route.query.error as string | undefined
   if (queryError) {
-    error.value = oauthErrors[queryError] || `Authentication error: ${queryError}`
+    error.value = `Authentication error: ${queryError}`
   }
 })
 
@@ -79,25 +72,12 @@ async function onSubmit() {
   }
 }
 
-function onGitHub() {
-  githubLoading.value = true
-  signIn.social({ provider: 'github', callbackURL: '/' })
-}
 </script>
 
 <template>
   <div class="flex min-h-dvh bg-default">
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
       <div class="absolute top-4 right-4 flex items-center gap-1">
-        <UButton
-          :to="appConfig.app.deployUrl"
-          target="_blank"
-          icon="i-simple-icons-vercel"
-          label="Deploy on Vercel"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-        />
         <UButton
           :to="appConfig.app.repoUrl"
           target="_blank"
@@ -122,19 +102,6 @@ function onGitHub() {
             {{ mode === 'signin' ? 'Sign in to your account.' : 'Create your account to get started.' }}
           </p>
         </div>
-
-        <UButton
-          label="Continue with GitHub"
-          icon="i-simple-icons-github"
-          color="neutral"
-          variant="outline"
-          block
-          size="lg"
-          :loading="githubLoading"
-          @click="onGitHub"
-        />
-
-        <USeparator label="or" class="my-6" />
 
         <UAlert
           v-if="error"
