@@ -1,4 +1,5 @@
 import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { log } from 'evlog'
 import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { compactContext } from '../core/context'
@@ -14,14 +15,16 @@ export function createAgent({
   route,
   buildPrompt,
   resolveModel,
+  apiKey,
   onRouted,
   onStepFinish,
   onFinish,
 }: CreateAgentOptions) {
   let maxSteps = 15
+  const openai = createOpenAI(apiKey ? { apiKey } : {})
 
   return new ToolLoopAgent({
-    model: DEFAULT_MODEL,
+    model: openai(DEFAULT_MODEL),
     callOptionsSchema,
     prepareCall: async ({ options, ...settings }) => {
       const modelOverride = (options as AgentCallOptions | undefined)?.model
@@ -52,7 +55,7 @@ export function createAgent({
 
       return {
         ...settings,
-        model: effectiveModel,
+        model: openai(effectiveModel),
         instructions: buildPrompt(routerConfig, agentConfig),
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),

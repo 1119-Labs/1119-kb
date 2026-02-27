@@ -1,8 +1,7 @@
-import type { SharedV3ProviderOptions } from '@ai-sdk/provider'
 import { z } from 'zod'
 
-export const ROUTER_MODEL = 'google/gemini-2.5-flash-lite'
-export const DEFAULT_MODEL = 'google/gemini-3-flash'
+export const ROUTER_MODEL = 'gpt-4o-mini'
+export const DEFAULT_MODEL = 'gpt-4.1'
 
 export const agentConfigSchema = z.object({
   complexity: z.enum(['trivial', 'simple', 'moderate', 'complex'])
@@ -12,10 +11,9 @@ export const agentConfigSchema = z.object({
     .describe('Agent iterations: 4 trivial, 8 simple, 15 moderate, 25 complex'),
 
   model: z.enum([
-    'google/gemini-3-flash',
-    'anthropic/claude-sonnet-4.6',
-    'anthropic/claude-opus-4.6',
-  ]).describe('flash for trivial/simple, sonnet for moderate, opus for complex'),
+    'gpt-4o-mini',
+    'gpt-4.1',
+  ]).describe('gpt-4o-mini for trivial/simple, gpt-4.1 for moderate/complex'),
 
   reasoning: z.string().max(200)
     .describe('Brief explanation of the classification'),
@@ -27,20 +25,12 @@ export function getDefaultConfig(): AgentConfig {
   return {
     complexity: 'moderate',
     maxSteps: 15,
-    model: 'anthropic/claude-sonnet-4.6',
+    model: 'gpt-4.1',
     reasoning: 'Default fallback configuration',
   }
 }
 
-const MODEL_FALLBACKS: Record<string, string[]> = {
-  'google/gemini-3-flash': ['anthropic/claude-sonnet-4.6', 'openai/gpt-4o'],
-  'anthropic/claude-sonnet-4.6': ['google/gemini-3-flash', 'openai/gpt-4o'],
-  'anthropic/claude-opus-4.6': ['anthropic/claude-sonnet-4.6', 'google/gemini-3-flash'],
-  'google/gemini-2.5-flash-lite': ['google/gemini-3-flash', 'openai/gpt-4o-mini'],
-}
-
-export function getModelFallbackOptions(model: string): SharedV3ProviderOptions | undefined {
-  const fallbacks = MODEL_FALLBACKS[model]
-  if (!fallbacks?.length) return undefined
-  return { gateway: { models: fallbacks } }
+/** No fallbacks when using direct OpenAI provider. */
+export function getModelFallbackOptions(_model: string): undefined {
+  return undefined
 }

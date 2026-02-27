@@ -58,7 +58,7 @@ export async function syncDocumentation(
   const results = await Promise.all(
     filteredSources.map(source =>
       stepSyncSource(sandboxId, source, {
-        githubToken: config.githubToken,
+        githubToken: config.githubTokenBySourceId?.[source.id] ?? config.githubToken,
         youtubeApiKey: config.youtubeApiKey,
       }),
     ),

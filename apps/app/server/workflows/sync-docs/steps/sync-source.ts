@@ -27,7 +27,7 @@ export async function stepSyncSource(
   let result: SyncSourceResult
 
   if (source.type === 'github') {
-    result = await syncGitHubSource(sandbox, source)
+    result = await syncGitHubSource(sandbox, source, config.githubToken)
   } else if (source.type === 'youtube') {
     if (!config.youtubeApiKey) {
       result = {

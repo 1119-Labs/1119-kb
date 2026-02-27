@@ -3,7 +3,10 @@
  */
 
 export interface SyncConfig {
+  /** Fallback token (e.g. PAT); used when no per-source token is set */
   githubToken?: string
+  /** Per-source GitHub token (for App: installation token for that repo). Used for cloning each source. */
+  githubTokenBySourceId?: Record<string, string>
   youtubeApiKey?: string
   snapshotRepo: string
   snapshotBranch: string

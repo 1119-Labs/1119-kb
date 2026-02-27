@@ -22,7 +22,7 @@ const usageSchema = z.object({
  *   body: {
  *     source: 'github-bot',
  *     sourceId: 'issue-123',
- *     model: 'google/gemini-3-flash',
+ *     model: 'gpt-4.1',
  *     inputTokens: 1000,
  *     outputTokens: 500,
  *     durationMs: 2500,

@@ -1,4 +1,5 @@
 import { stepCountIs, ToolLoopAgent, type StepResult, type ToolSet, type UIMessage } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { log } from 'evlog'
 import { DEFAULT_MODEL, getModelFallbackOptions } from '../router/schema'
 import { routeQuestion } from '../router/route-question'
@@ -15,7 +16,7 @@ export interface SourceAgentOptions {
   tools: Record<string, unknown>
   getAgentConfig: () => Promise<AgentConfigData>
   messages: UIMessage[]
-  /** AI Gateway API key. Optional — falls back to OIDC on Vercel or AI_GATEWAY_API_KEY env var. */
+  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
   apiKey?: string
   requestId?: string
   /** Falls back to agentConfig.defaultModel then DEFAULT_MODEL */
@@ -40,9 +41,10 @@ export function createSourceAgent({
 }: SourceAgentOptions) {
   const id = requestId ?? crypto.randomUUID().slice(0, 8)
   let maxSteps = 15
+  const openai = createOpenAI(apiKey ? { apiKey } : {})
 
   return new ToolLoopAgent({
-    model: DEFAULT_MODEL,
+    model: openai(DEFAULT_MODEL),
     callOptionsSchema,
     prepareCall: async ({ options, ...settings }) => {
       const modelOverride = (options as AgentCallOptions | undefined)?.model
@@ -70,7 +72,7 @@ export function createSourceAgent({
 
       return {
         ...settings,
-        model: effectiveModel,
+        model: openai(effectiveModel),
         instructions: applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig),
         tools: { ...tools, web_search: webSearchTool },
         stopWhen: stepCountIs(effectiveMaxSteps),

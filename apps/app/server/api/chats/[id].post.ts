@@ -147,9 +147,14 @@ export default defineEventHandler(async (event) => {
       log.info('chat', `[${requestId}] Finished: ${result.finishReason} (total: ${totalDurationMs}ms)`)
     }
 
+    const config = useRuntimeConfig(event)
+    const apiKey = config.openai?.apiKey || process.env.OPENAI_API_KEY
+    console.log('[debug] OpenAI API key used:', apiKey)
+
     const agent = isAdminChat
       ? createAdminAgent({
         tools: adminTools,
+        apiKey,
         onStepFinish,
         onFinish,
       })
@@ -159,6 +164,7 @@ export default defineEventHandler(async (event) => {
         messages,
         defaultModel: model,
         requestId,
+        apiKey,
         onRouted: ({ routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }) => {
           effectiveModel = routedModel
           routingResult = { routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }
@@ -183,6 +189,7 @@ export default defineEventHandler(async (event) => {
         firstMessage: messages[0],
         chatId: id as string,
         requestId,
+        apiKey,
       })
       : null
 

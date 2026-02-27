@@ -148,8 +148,8 @@ BETTER_AUTH_SECRET=your-secret        # Secret for signing sessions/tokens
 GITHUB_CLIENT_ID=...                  # GitHub OAuth app client ID
 GITHUB_CLIENT_SECRET=...              # GitHub OAuth app client secret
 
-# AI (optional — only needed for local dev, Vercel uses OIDC automatically)
-# AI_GATEWAY_API_KEY=...              # Vercel AI Gateway API key
+# AI (required)
+# OPENAI_API_KEY=...                 # OpenAI API key
 
 # Sandbox
 # NUXT_GITHUB_SNAPSHOT_REPO=org/repo  # Optional default (can be set from admin sandbox UI)

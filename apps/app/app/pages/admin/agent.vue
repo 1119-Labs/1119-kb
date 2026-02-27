@@ -92,9 +92,8 @@ const languageOptions = [
 
 const modelOptions = [
   { value: 'auto', label: 'Automatic (Recommended)' },
-  { value: 'google/gemini-2.5-flash-lite', label: 'Fast' },
-  { value: 'google/gemini-3-flash', label: 'Balanced' },
-  { value: 'anthropic/claude-opus-4.5', label: 'Advanced' },
+  { value: 'gpt-4o-mini', label: 'Fast' },
+  { value: 'gpt-4.1', label: 'Advanced' },
 ]
 
 async function saveConfig() {

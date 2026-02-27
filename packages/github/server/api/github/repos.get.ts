@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event)
   const config = useRuntimeConfig()
   const query = await getValidatedQuery(event, querySchema.parse)
-
+  console.log('config.github', config.github)
   const auth = resolveGitHubAuth(config.github)
   if (!auth) {
     throw createError({

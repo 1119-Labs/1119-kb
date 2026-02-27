@@ -1,22 +1,24 @@
 import { generateText, tool } from 'ai'
-import { createGateway } from '@ai-sdk/gateway'
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 
-const gateway = createGateway()
+function getOpenAI() {
+  return createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
+}
 
 export const webSearchTool = tool({
-  description: 'Search the web for up-to-date information. Use when you need current data, recent events, or facts not available in the documentation.',
+  description: 'Search the web. Use ONLY after you have already searched the sandbox (bash/bash_batch) and found no relevant documentation. Do not use for questions about projects, protocols, or products that may be in the sandbox — search the sandbox first.',
   inputSchema: z.object({
     query: z.string().describe('The search query'),
   }),
   execute: async function* ({ query }, { abortSignal }) {
     yield { status: 'loading' as const }
     const start = Date.now()
+    const openai = getOpenAI()
 
     try {
       const { text, sources } = await generateText({
-        model: gateway('openai/gpt-5-chat'),
+        model: openai('gpt-4o-mini'),
         tools: { web_search: openai.tools.webSearch() } as Parameters<typeof generateText>[0]['tools'],
         toolChoice: { type: 'tool', toolName: 'web_search' },
         prompt: query,

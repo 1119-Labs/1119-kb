@@ -61,8 +61,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const githubTokenBySourceId: Record<string, string> = {}
+  if (source.type === 'github' && source.repo) {
+    const token = await getSnapshotToken(source.repo)
+    if (token) githubTokenBySourceId[source.id] = token
+  }
+
   const syncConfig = {
     githubToken: await getSnapshotToken(),
+    githubTokenBySourceId: Object.keys(githubTokenBySourceId).length > 0 ? githubTokenBySourceId : undefined,
     youtubeApiKey: config.youtube?.apiKey,
     snapshotRepo: snapshotConfig.snapshotRepo,
     snapshotBranch: snapshotConfig.snapshotBranch,

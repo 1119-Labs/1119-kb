@@ -55,6 +55,8 @@ export interface CreateAgentOptions {
   route: () => Promise<AgentConfig>
   buildPrompt: (routerConfig: AgentConfig, agentConfig: AgentConfigData) => string
   resolveModel?: (routerConfig: AgentConfig, agentConfig: AgentConfigData) => string
+  /** OpenAI API key. Optional — falls back to OPENAI_API_KEY env var. */
+  apiKey?: string
   onRouted?: (result: RoutingResult) => void
   onStepFinish?: (stepResult: any) => void
   onFinish?: (result: any) => void

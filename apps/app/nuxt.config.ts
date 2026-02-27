@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  telemetry: false,
+
   extends: ['../../packages/github'],
 
   modules: [
@@ -58,6 +60,14 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
+
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        rewriteRelativeImportExtensions: true,
+      },
+    },
+  },
 
   $development: {
     vite: {
@@ -121,6 +131,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    openai: {
+      apiKey: '',
+    },
     github: {
       token: '',
       snapshotRepo: '',

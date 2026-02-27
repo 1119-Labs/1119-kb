@@ -1,5 +1,3 @@
-import { createGateway } from '@ai-sdk/gateway'
-
 interface ModelPricing {
   input: number // cost per token in USD
   output: number
@@ -7,28 +5,15 @@ interface ModelPricing {
 
 type PricingRecord = Record<string, ModelPricing>
 
+/** Static OpenAI model pricing (USD per token). Updated from https://openai.com/api/pricing/ */
+const OPENAI_PRICING: PricingRecord = {
+  'gpt-4o-mini': { input: 0.15 / 1_000_000, output: 0.60 / 1_000_000 },
+  'gpt-4.1': { input: 2.50 / 1_000_000, output: 10.00 / 1_000_000 },
+  'gpt-4.1-mini': { input: 0.40 / 1_000_000, output: 1.60 / 1_000_000 },
+}
+
 export const getModelPricingMap = defineCachedFunction(
-  async (apiKey?: string): Promise<PricingRecord> => {
-    try {
-      const gateway = createGateway(apiKey ? { apiKey } : undefined)
-      const { models } = await gateway.getAvailableModels()
-
-      const pricing: PricingRecord = {}
-      for (const model of models) {
-        if (model.pricing) {
-          pricing[model.id] = {
-            input: parseFloat(model.pricing.input),
-            output: parseFloat(model.pricing.output),
-          }
-        }
-      }
-
-      return pricing
-    } catch {
-      // Return empty record on failure — cost will show as $0
-      return {}
-    }
-  },
+  async (): Promise<PricingRecord> => await Promise.resolve(OPENAI_PRICING),
   {
     maxAge: 3600,
     swr: true,

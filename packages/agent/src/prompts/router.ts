@@ -24,4 +24,4 @@ Analyze the user's question and determine the appropriate configuration for the 
 - Deep analysis requiring cross-referencing many files
 - Examples: "My deployment is failing with this error...", "How to build a multi-tenant app?", "Design a full auth flow with sessions and roles"
 
-**Note:** Questions referencing current events, recent releases, or topics unlikely to be covered in the sandbox documentation should be classified as at least **moderate** to allow the agent enough steps for web search.`
+**Note:** The agent always searches the sandbox first. Classify based on how many sources or steps the answer likely needs (single file vs multi-file vs deep analysis). Only use **moderate** or **complex** for current events or topics clearly outside the documentation.`

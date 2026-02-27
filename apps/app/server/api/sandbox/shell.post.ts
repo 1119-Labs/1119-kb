@@ -64,19 +64,23 @@ export default defineEventHandler(async (event) => {
 
   for (const command of commands) {
     const execStart = Date.now()
+    console.log('[sandbox search] query:', command)
     const result = await sandbox.runCommand({
       cmd: 'bash',
       args: ['-c', command],
       cwd: '/vercel/sandbox',
     })
 
+    const stdout = truncateOutput(await result.stdout())
+    const stderr = truncateOutput(await result.stderr())
     results.push({
       command,
-      stdout: truncateOutput(await result.stdout()),
-      stderr: truncateOutput(await result.stderr()),
+      stdout,
+      stderr,
       exitCode: result.exitCode,
       execMs: Date.now() - execStart,
     })
+    console.log('[sandbox search] result:', { command, exitCode: result.exitCode, stdout: stdout.slice(0, 500), stderr: stderr.slice(0, 200) })
   }
 
   requestLog.set({ totalExecMs: results.reduce((sum, r) => sum + r.execMs, 0), commandsExecuted: results.length })

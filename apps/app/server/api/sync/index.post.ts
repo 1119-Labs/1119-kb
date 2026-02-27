@@ -78,8 +78,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Resolve a GitHub token per source so each clone uses a token that can access that repo
+  // (PAT works for all; App installation token is per-repo)
+  const githubTokenBySourceId: Record<string, string> = {}
+  for (const source of sources) {
+    if (source.type === 'github' && source.repo) {
+      const token = await getSnapshotToken(source.repo)
+      if (token) githubTokenBySourceId[source.id] = token
+    }
+  }
+
   const syncConfig = {
     githubToken: await getSnapshotToken(),
+    githubTokenBySourceId: Object.keys(githubTokenBySourceId).length > 0 ? githubTokenBySourceId : undefined,
     youtubeApiKey: config.youtube?.apiKey,
     snapshotRepo: snapshotConfig.snapshotRepo,
     snapshotBranch: snapshotConfig.snapshotBranch,

@@ -1,4 +1,5 @@
 import { generateText, Output } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 import type { SourceOcrItem } from '#shared/utils/source-ocr'
 import { IMAGE_OPTIMIZATION_CONFIG } from '#shared/utils/file'
@@ -129,8 +130,9 @@ async function extractFromImage(image: string) {
     optimizedImage = image
   }
 
+  const openai = createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
   const { output } = await generateText({
-    model: 'google/gemini-3-flash',
+    model: openai('gpt-4o-mini'),
     output: Output.object({ schema: sourceOcrSchema }),
     messages: [
       {
@@ -146,8 +148,9 @@ async function extractFromImage(image: string) {
 }
 
 async function extractFromConfig(config: { filename: string, content: string }) {
+  const openai = createOpenAI(process.env.OPENAI_API_KEY ? { apiKey: process.env.OPENAI_API_KEY } : {})
   const { output } = await generateText({
-    model: 'google/gemini-2.5-flash-lite',
+    model: openai('gpt-4o-mini'),
     output: Output.object({ schema: sourceOcrSchema }),
     messages: [
       {

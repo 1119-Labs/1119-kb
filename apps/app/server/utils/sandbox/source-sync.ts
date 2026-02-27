@@ -4,6 +4,15 @@ import { youtube } from '@googleapis/youtube'
 import { YoutubeTranscript } from 'youtube-transcript'
 import type { GitHubSource, Source, SyncSourceResult, YouTubeSource } from '../../workflows/sync-docs/types'
 
+function generateAuthRepoUrl(repoPath: string, token?: string): string {
+  if (!token) {
+    return `https://github.com/${repoPath}.git`
+  }
+  // Encode token so PATs with +, /, = (e.g. base64-like) don't break the URL
+  const encoded = encodeURIComponent(token)
+  return `https://x-access-token:${encoded}@github.com/${repoPath}.git`
+}
+
 interface YouTubeVideo {
   id: string
   title: string
@@ -24,6 +33,7 @@ interface VideoIndex {
 export async function syncGitHubSource(
   sandbox: Sandbox,
   source: GitHubSource,
+  githubToken?: string,
 ): Promise<SyncSourceResult> {
   const basePath = source.basePath || '/docs'
   const outputPath = source.outputPath || source.id
@@ -41,10 +51,13 @@ export async function syncGitHubSource(
       return { sourceId: source.id, label: source.label, success: true, fileCount }
     }
 
-    const fileCount = await syncFullRepository(sandbox, source, targetDir)
+    const fileCount = await syncFullRepository(sandbox, source, targetDir, githubToken)
     return { sourceId: source.id, label: source.label, success: true, fileCount }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const err = error as Error & { data?: { why?: string } }
+    const message = err?.message ?? String(error)
+    const why = err?.data?.why
+    const errorMessage = why ? `${message} — ${why}` : message
     return { sourceId: source.id, label: source.label, success: false, fileCount: 0, error: errorMessage }
   }
 }
@@ -79,9 +92,11 @@ async function syncFullRepository(
   sandbox: Sandbox,
   source: GitHubSource,
   targetDir: string,
+  githubToken?: string,
 ): Promise<number> {
   const contentPath = source.contentPath || ''
   const tempDir = `/tmp/sync-${source.id}-${Date.now()}`
+  const repoUrl = generateAuthRepoUrl(source.repo, githubToken)
 
   const cloneResult = await sandbox.runCommand({
     cmd: 'sh',
@@ -90,7 +105,7 @@ async function syncFullRepository(
       [
         `git clone --depth 1 --single-branch --branch ${source.branch}`,
         `--filter=blob:none --sparse`,
-        `https://github.com/${source.repo}.git ${tempDir}`,
+        `${repoUrl} ${tempDir}`,
         `&& cd ${tempDir}`,
         `&& git sparse-checkout set ${contentPath || '.'}`,
       ].join(' '),
@@ -137,11 +152,15 @@ async function syncFullRepository(
 
   const countResult = await sandbox.runCommand({
     cmd: 'sh',
-    args: ['-c', `find ${targetDir} -type f -name "*.md" -o -name "*.mdx" | wc -l`],
+    args: ['-c', `find ${targetDir} -type f \\( -name "*.md" -o -name "*.mdx" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \\) | wc -l`],
     cwd: '/vercel/sandbox',
   })
 
-  return parseInt((await countResult.stdout()).trim()) || 0
+  const count = parseInt((await countResult.stdout()).trim()) || 0
+  if (count === 0) {
+    log.warn('sync', `Source ${source.repo} (contentPath: ${contentPath || '.'}) produced 0 doc files after sync — check branch "${source.branch}" and path contain .md/.mdx/.yml/.yaml/.json`)
+  }
+  return count
 }
 
 /** Synchronizes a YouTube channel to the sandbox filesystem */
@@ -367,7 +386,7 @@ export async function syncSources(
     let result: SyncSourceResult
 
     if (source.type === 'github') {
-      result = await syncGitHubSource(sandbox, source)
+      result = await syncGitHubSource(sandbox, source, config?.githubToken)
     } else if (source.type === 'youtube') {
       if (!config?.youtubeApiKey) {
         result = {
