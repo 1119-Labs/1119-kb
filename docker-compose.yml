@@ -1,0 +1,70 @@
+# =============================================================================
+# Knowledge Agent Template - Docker Compose (dedicated server, no Vercel)
+# =============================================================================
+# Usage:
+#   1. Copy apps/app/.env.example to apps/app/.env and set required variables.
+#   2. Ensure DATABASE_URL in .env points to postgres service (see below).
+#   3. docker compose up -d
+#
+# Required env (in apps/app/.env or below): BETTER_AUTH_SECRET, GITHUB_CLIENT_ID,
+#   GITHUB_CLIENT_SECRET, OPENROUTER_API_KEY, DATABASE_URL (or use compose default).
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NITRO_HOST: 0.0.0.0
+      NITRO_PORT: 3000
+      # Override DATABASE_URL to use the postgres service (default for compose)
+      DATABASE_URL: postgresql://kb:kb_secret@postgres:5432/kb
+      VERCEL_OIDC_TOKEN: ${VERCEL_OIDC_TOKEN}
+    env_file:
+      - apps/app/.env
+    volumes:
+      # Persist local blob storage (file uploads) when not using Vercel Blob
+      - app_data:.data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kb
+      POSTGRES_PASSWORD: kb_secret
+      POSTGRES_DB: kb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kb -d kb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Optional: Redis for bot state (GitHub/Discord) so state survives restarts.
+  # Start with: docker compose --profile with-redis up -d
+  # Then set in .env: REDIS_URL=redis://redis:6379
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - with-redis
+
+volumes:
+  postgres_data:
+  app_data:
+  redis_data:

@@ -1,0 +1,37 @@
+# Dependencies and build outputs (rebuilt in image)
+node_modules
+**/node_modules
+apps/app/.output
+apps/app/.nuxt
+apps/app/.data
+**/dist
+**/.turbo
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.md
+!README.md
+
+# Env and secrets (mount or pass at run time)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# Test and dev
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+**/playwright*
+**/.playwright
+coverage
+.nyc_output
+
+# Misc
+*.log
+.DS_Store
+.vercel
