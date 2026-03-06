@@ -51,19 +51,95 @@ async function fetchLatestReleaseTag(repo: string, token?: string): Promise<stri
   return res.tag_name
 }
 
-/** Resolves the git ref to use for clone: branch/tag as-is, or latest release tag when refType is release and branch is "latest". */
-async function getEffectiveRef(source: GitHubSource, githubToken?: string): Promise<string> {
-  const refType = source.refType ?? 'branch'
-  const branch = source.branch || 'main'
-  if (refType === 'release' && branch.toLowerCase() === 'latest') {
-    return await fetchLatestReleaseTag(source.repo, githubToken)
+/** Fetches latest commit SHA for a branch from GitHub API. */
+async function fetchBranchHeadCommit(repo: string, branch: string, token?: string): Promise<string> {
+  const [owner, repoName] = repo.split('/')
+  if (!owner || !repoName) {
+    throw createError({
+      message: `Invalid repo format: ${repo}`,
+      why: 'Expected owner/repo',
+      fix: 'Use GitHub repo in owner/repo format',
+    })
   }
-  return await Promise.resolve(branch)
+
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const encodedBranch = encodeURIComponent(branch)
+  const res = await $fetch<{ sha: string }>(
+    `https://api.github.com/repos/${owner}/${repoName}/commits/${encodedBranch}`,
+    { headers },
+  ).catch((err: { statusCode?: number; data?: { message?: string } }) => {
+    const msg = err?.data?.message ?? (err as Error).message
+    throw createError({
+      message: `Failed to fetch latest commit for ${repo}@${branch}`,
+      why: String(msg),
+      fix: 'Check that branch exists and token has access if private',
+    })
+  })
+
+  return res.sha
 }
 
-/** Returns version folder name for snapshot layout: [branch]-<ref>, [tag]-<ref>, [release]-<ref> */
-export function getVersionFolderName(refType: 'branch' | 'tag' | 'release', ref: string): string {
-  const prefix = refType === 'branch' ? '[branch]' : refType === 'tag' ? '[tag]' : '[release]'
+interface ResolvedGitRef {
+  cloneRef: string
+  versionRefType: 'commit' | 'tag' | 'release'
+  versionRef: string
+}
+
+/**
+ * Resolves refs for syncing:
+ * - branch -> clone by branch, version by latest branch commit SHA
+ * - commit -> clone/version by commit SHA
+ * - tag -> clone/version by tag
+ * - release(latest) -> resolve latest tag, then clone/version by that tag
+ */
+async function resolveGitRefs(source: GitHubSource, githubToken?: string): Promise<ResolvedGitRef> {
+  const refType = source.refType ?? 'branch'
+  const refValue = source.branch || 'main'
+
+  if (refType === 'branch') {
+    const commitSha = await fetchBranchHeadCommit(source.repo, refValue, githubToken)
+    return {
+      cloneRef: refValue,
+      versionRefType: 'commit',
+      versionRef: commitSha,
+    }
+  }
+
+  if (refType === 'commit') {
+    const commitSha = await fetchBranchHeadCommit(source.repo, refValue, githubToken)
+    return {
+      cloneRef: commitSha,
+      versionRefType: 'commit',
+      versionRef: commitSha,
+    }
+  }
+
+  if (refType === 'release' && refValue.toLowerCase() === 'latest') {
+    const latestTag = await fetchLatestReleaseTag(source.repo, githubToken)
+    return {
+      cloneRef: latestTag,
+      versionRefType: 'release',
+      versionRef: latestTag,
+    }
+  }
+
+  return {
+    cloneRef: refValue,
+    versionRefType: refType,
+    versionRef: refValue,
+  }
+}
+
+/** Returns version folder name for snapshot layout: [commit]-<sha>, [tag]-<ref>, [release]-<ref> */
+export function getVersionFolderName(refType: 'commit' | 'tag' | 'release', ref: string): string {
+  const prefix = refType === 'commit' ? '[commit]' : refType === 'tag' ? '[tag]' : '[release]'
   return `${prefix}-${ref}`
 }
 
@@ -93,12 +169,11 @@ export async function syncGitHubSource(
   const outputPath = source.outputPath || source.id
 
   try {
-    const ref = await getEffectiveRef(source, githubToken)
-    const refType = source.refType ?? 'branch'
-    const versionFolder = getVersionFolderName(refType, ref)
+    const resolvedRefs = await resolveGitRefs(source, githubToken)
+    const versionFolder = getVersionFolderName(resolvedRefs.versionRefType, resolvedRefs.versionRef)
     const targetDir = `/vercel/sandbox${basePath}/${outputPath}/${versionFolder}`
 
-    const sourceWithRef: GitHubSource = { ...source, branch: ref }
+    const sourceWithRef: GitHubSource = { ...source, branch: resolvedRefs.cloneRef }
 
     await sandbox.runCommand({
       cmd: 'mkdir',
@@ -119,8 +194,8 @@ export async function syncGitHubSource(
       success: true,
       fileCount,
       versionFolderName: versionFolder,
-      refType,
-      ref,
+      refType: resolvedRefs.versionRefType,
+      ref: resolvedRefs.versionRef,
     }
   } catch (error) {
     const err = error as Error & { data?: { why?: string } }
@@ -167,17 +242,32 @@ async function syncFullRepository(
   const tempDir = `/tmp/sync-${source.id}-${Date.now()}`
   const repoUrl = generateAuthRepoUrl(source.repo, githubToken)
 
+  // When contentPath is empty we need the full repo (all subfolders). In cone mode,
+  // "sparse-checkout set ." only includes root-level files (parent pattern), not
+  // files in subfolders. So we clone with sparse, set a path, then disable
+  // sparse-checkout to populate the full tree when syncing the whole repo.
+  const sparsePath = contentPath || '.'
   const cloneResult = await sandbox.runCommand({
     cmd: 'sh',
     args: [
       '-c',
-      [
-        `git clone --depth 1 --single-branch --branch ${source.branch}`,
-        `--filter=blob:none --sparse`,
-        `${repoUrl} ${tempDir}`,
-        `&& cd ${tempDir}`,
-        `&& git sparse-checkout set ${contentPath || '.'}`,
-      ].join(' '),
+      source.refType === 'commit'
+        ? [
+            `git clone --depth 1 --no-checkout --filter=blob:none --sparse ${repoUrl} ${tempDir}`,
+            `&& cd ${tempDir}`,
+            `&& git fetch --depth 1 origin ${source.branch}`,
+            `&& git checkout --detach FETCH_HEAD`,
+            `&& git sparse-checkout set ${sparsePath}`,
+            contentPath ? '' : '&& git sparse-checkout disable',
+        ].filter(Boolean).join(' ')
+        : [
+            `git clone --depth 1 --single-branch --branch ${source.branch}`,
+            `--filter=blob:none --sparse`,
+            `${repoUrl} ${tempDir}`,
+            `&& cd ${tempDir}`,
+            `&& git sparse-checkout set ${sparsePath}`,
+            contentPath ? '' : '&& git sparse-checkout disable',
+        ].filter(Boolean).join(' '),
     ],
     cwd: '/vercel/sandbox',
   })
@@ -227,7 +317,7 @@ async function syncFullRepository(
 
   const count = parseInt((await countResult.stdout()).trim()) || 0
   if (count === 0) {
-    log.warn('sync', `Source ${source.repo} (contentPath: ${contentPath || '.'}) produced 0 doc files after sync — check branch "${source.branch}" and path contain .md/.mdx/.yml/.yaml/.json`)
+    log.warn('sync', `Source ${source.repo} (contentPath: ${contentPath || '.'}) produced 0 doc files after sync — check ref "${source.branch}" and path contain .md/.mdx/.yml/.yaml/.json`)
   }
   return count
 }

@@ -7,7 +7,7 @@ const bodySchema = z.object({
   basePath: z.string().optional().default('/docs'),
   repo: z.string().optional(),
   branch: z.string().optional().default('main'),
-  refType: z.enum(['branch', 'tag', 'release']).optional().default('branch'),
+  refType: z.enum(['branch', 'tag', 'release', 'commit']).optional().default('branch'),
   contentPath: z.string().optional(),
   outputPath: z.string().optional(),
   readmeOnly: z.boolean().optional().default(false),

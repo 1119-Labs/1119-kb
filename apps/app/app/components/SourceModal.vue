@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type RefType = 'branch' | 'tag' | 'release'
+type RefType = 'branch' | 'tag' | 'release' | 'commit'
 
 interface SourceData {
   id: string
@@ -55,17 +55,20 @@ const refTypeOptions: { label: string, value: RefType }[] = [
   { label: 'Branch', value: 'branch' },
   { label: 'Tag', value: 'tag' },
   { label: 'Release', value: 'release' },
+  { label: 'Commit hash', value: 'commit' },
 ]
 
 const refInputLabel = computed(() => {
   if (form.value.refType === 'branch') return 'Branch'
   if (form.value.refType === 'tag') return 'Tag'
+  if (form.value.refType === 'commit') return 'Commit hash'
   return 'Release (tag or "latest")'
 })
 
 const refInputPlaceholder = computed(() => {
   if (form.value.refType === 'branch') return 'main'
   if (form.value.refType === 'tag') return 'v1.0.0'
+  if (form.value.refType === 'commit') return 'e.g. 2f1a9c3...'
   return 'v1.0.0 or latest'
 })
 

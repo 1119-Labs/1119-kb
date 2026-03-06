@@ -13,7 +13,7 @@ const bodySchema = z.object({
   // GitHub fields
   repo: z.string().optional(),
   branch: z.string().optional(),
-  refType: z.enum(['branch', 'tag', 'release']).optional(),
+  refType: z.enum(['branch', 'tag', 'release', 'commit']).optional(),
   contentPath: z.string().optional(),
   outputPath: z.string().optional(),
   readmeOnly: z.boolean().optional(),

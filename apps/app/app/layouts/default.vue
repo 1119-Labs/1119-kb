@@ -70,9 +70,78 @@ const hasMoreChats = computed(() => {
   return total > DISPLAY_LIMIT
 })
 
+const generatingTitleFor = ref<string | null>(null)
+
+/** When set, the sidebar shows an inline input to edit this chat's title. */
+const editingChat = ref<{ id: string; title: string } | null>(null)
+
+function startEditingTitle(chat: UIChat) {
+  editingChat.value = { id: chat.id, title: chat.label === 'Generating title…' ? '' : chat.label }
+}
+
+function cancelEditTitle() {
+  editingChat.value = null
+}
+
+async function saveEditedTitle() {
+  if (!editingChat.value) return
+  const { id, title } = editingChat.value
+  try {
+    await $fetch(`/api/chats/${id}/title`, {
+      method: 'PATCH',
+      body: { title: title.trim() || undefined },
+    })
+    toast.add({
+      title: 'Title updated',
+      icon: 'i-lucide-pencil',
+    })
+    refreshChats()
+  } catch (e) {
+    const msg = e && typeof e === 'object' && 'data' in e && typeof (e as { data?: { message?: string } }).data?.message === 'string'
+      ? (e as { data: { message: string } }).data.message
+      : 'Failed to update title'
+    toast.add({
+      title: 'Update failed',
+      description: msg,
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  } finally {
+    editingChat.value = null
+  }
+}
+
+async function generateChatTitle(chat: UIChat) {
+  if (generatingTitleFor.value === chat.id) return
+  generatingTitleFor.value = chat.id
+  try {
+    const { title } = await $fetch<{ title: string }>(`/api/chats/${chat.id}/generate-title`, { method: 'POST' })
+    toast.add({
+      title: 'Title updated',
+      description: title,
+      icon: 'i-lucide-sparkles',
+    })
+    refreshChats()
+  } catch (e) {
+    const msg = e && typeof e === 'object' && 'data' in e && typeof (e as { data?: { message?: string } }).data?.message === 'string'
+      ? (e as { data: { message: string } }).data.message
+      : 'Failed to generate title'
+    toast.add({
+      title: 'Generate title failed',
+      description: msg,
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  } finally {
+    generatingTitleFor.value = null
+  }
+}
+
 function chatContextItems(chat: UIChat) {
   return [
     [
+      { label: 'Generate title', icon: 'i-lucide-sparkles', onSelect: () => generateChatTitle(chat) },
+      { label: 'Edit title', icon: 'i-lucide-pencil', onSelect: () => startEditingTitle(chat) },
       { label: 'Share', icon: 'i-lucide-share', onSelect: () => shareChat(chat) },
       { label: 'Delete', icon: 'i-lucide-trash', color: 'error' as const, onSelect: () => deleteChat(chat.id) },
     ]
@@ -308,21 +377,84 @@ defineShortcuts({
                     :items="chatContextItems(chat)"
                     size="sm"
                   >
-                    <NuxtLink
-                      :to="chat.to"
-                      class="group flex items-center gap-1.5 px-2 py-1 rounded-md text-sm overflow-hidden transition-colors"
+                    <div
+                      class="group/row flex items-center gap-1.5 px-2 py-1 rounded-md text-sm overflow-hidden transition-colors"
                       :class="[
                         route.params.id === chat.id
                           ? 'text-highlighted bg-linear-to-r from-elevated to-elevated/0 brightness-125'
                           : 'text-muted hover:bg-linear-to-r from-elevated to-elevated/0',
                         chat.generating && 'text-muted!',
                       ]"
-                      @click="open = false"
                     >
-                      <UIcon v-if="chat.mode === 'admin'" name="i-custom-shield" class="size-4 shrink-0" />
-                      <TextScramble v-if="chat.generating" />
-                      <span v-else class="truncate">{{ chat.label }}</span>
-                    </NuxtLink>
+                      <template v-if="editingChat?.id === chat.id">
+                        <UInput
+                          :model-value="editingChat.title"
+                          size="xs"
+                          class="flex-1 min-w-0"
+                          placeholder="Chat title"
+                          autofocus
+                          @update:model-value="editingChat.title = $event"
+                          @keydown.enter="saveEditedTitle"
+                          @keydown.escape="cancelEditTitle"
+                        />
+                        <div class="shrink-0 flex items-center gap-0.5" @click.stop>
+                          <UButton
+                            icon="i-lucide-check"
+                            size="xs"
+                            variant="ghost"
+                            color="primary"
+                            aria-label="Save title"
+                            @click.stop="saveEditedTitle"
+                          />
+                          <UButton
+                            icon="i-lucide-x"
+                            size="xs"
+                            variant="ghost"
+                            color="neutral"
+                            aria-label="Cancel"
+                            @click.stop="cancelEditTitle"
+                          />
+                        </div>
+                      </template>
+                      <template v-else>
+                        <NuxtLink
+                          :to="chat.to"
+                          class="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden"
+                          @click="open = false"
+                        >
+                          <UIcon v-if="chat.mode === 'admin'" name="i-custom-shield" class="size-4 shrink-0" />
+                          <TextScramble v-if="chat.generating" />
+                          <span v-else class="truncate">{{ chat.label }}</span>
+                        </NuxtLink>
+                        <div class="shrink-0 flex items-center gap-0.5 text-muted hover:text-highlighted" @click.stop>
+                          <UButton
+                            icon="i-lucide-sparkles"
+                            size="xs"
+                            variant="ghost"
+                            color="neutral"
+                            :loading="generatingTitleFor === chat.id"
+                            aria-label="Generate title"
+                            @click.stop="generateChatTitle(chat)"
+                          />
+                          <UButton
+                            icon="i-lucide-pencil"
+                            size="xs"
+                            variant="ghost"
+                            color="neutral"
+                            aria-label="Edit title"
+                            @click.stop="startEditingTitle(chat)"
+                          />
+                          <UButton
+                            icon="i-lucide-trash"
+                            size="xs"
+                            variant="ghost"
+                            color="error"
+                            aria-label="Delete conversation"
+                            @click.stop="deleteChat(chat.id)"
+                          />
+                        </div>
+                      </template>
+                    </div>
                   </UContextMenu>
                 </template>
               </nav>

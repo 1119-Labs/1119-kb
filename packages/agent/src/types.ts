@@ -47,7 +47,7 @@ export interface AgentExecutionContext {
   routerConfig?: AgentConfig
   agentConfig?: AgentConfigData
   customContext?: Record<string, unknown>
-  /** When set, restrict search to these sandbox-relative paths (e.g. docs/repo1/[branch]-master) */
+  /** When set, restrict search to these sandbox-relative paths (e.g. docs/repo1/[commit]-abc123) */
   searchPaths?: string[]
 }
 

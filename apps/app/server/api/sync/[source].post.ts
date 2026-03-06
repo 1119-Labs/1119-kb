@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
       basePath: dbSource.basePath || '/docs',
       repo: dbSource.repo || '',
       branch: dbSource.branch || 'main',
-      refType: (dbSource.refType as 'branch' | 'tag' | 'release') ?? 'branch',
+      refType: (dbSource.refType as 'branch' | 'tag' | 'release' | 'commit') ?? 'branch',
       contentPath: dbSource.contentPath || '',
       outputPath: dbSource.outputPath || dbSource.id,
       readmeOnly: dbSource.readmeOnly ?? false,

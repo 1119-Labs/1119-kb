@@ -7,7 +7,7 @@ interface SourceData {
   label: string
   repo: string | null
   branch: string | null
-  refType?: 'branch' | 'tag' | 'release' | null
+  refType?: 'branch' | 'tag' | 'release' | 'commit' | null
   contentPath: string | null
   outputPath: string | null
   readmeOnly: boolean | null
@@ -57,7 +57,13 @@ const sourceIdentifier = computed(() => {
 const refBadgeLabel = computed(() => {
   if (props.source.type !== 'github' || !props.source.branch) return null
   const refType = props.source.refType ?? 'branch'
-  const refLabel = refType === 'branch' ? 'Branch' : refType === 'tag' ? 'Tag' : 'Release'
+  const refLabel = refType === 'branch'
+    ? 'Branch'
+    : refType === 'tag'
+      ? 'Tag'
+      : refType === 'release'
+        ? 'Release'
+        : 'Commit'
   return `${refLabel}: ${props.source.branch}`
 })
 </script>

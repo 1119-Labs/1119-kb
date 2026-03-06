@@ -21,7 +21,7 @@ export interface SourceAgentOptions {
   requestId?: string
   /** Falls back to agentConfig.defaultModel then DEFAULT_MODEL */
   defaultModel?: string
-  /** Restrict search to these sandbox-relative paths (e.g. docs/repo1/[branch]-master). When empty/omitted, search whole docs. */
+  /** Restrict search to these sandbox-relative paths (e.g. docs/repo1/[commit]-abc123). When empty/omitted, search whole docs. */
   searchPaths?: string[]
   onRouted?: (result: RoutingResult) => void
   onStepFinish?: (stepResult: any) => void

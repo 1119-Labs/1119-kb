@@ -19,8 +19,8 @@ export interface GitHubSource {
   basePath: string
   repo: string
   branch: string
-  /** When to clone: branch (default), tag, or release (use branch value as tag name or "latest") */
-  refType?: 'branch' | 'tag' | 'release'
+  /** When to clone: branch (default), tag, release (branch value as tag name or "latest"), or commit hash */
+  refType?: 'branch' | 'tag' | 'release' | 'commit'
   contentPath: string
   outputPath: string
   readmeOnly: boolean
@@ -45,9 +45,9 @@ export interface SyncSourceResult {
   success: boolean
   fileCount: number
   error?: string
-  /** GitHub only: version folder name e.g. [branch]-master, [release]-v0.0.1 */
+  /** GitHub only: version folder name e.g. [commit]-abc123, [release]-v0.0.1 */
   versionFolderName?: string
-  refType?: 'branch' | 'tag' | 'release'
+  refType?: 'commit' | 'tag' | 'release'
   ref?: string
 }
 

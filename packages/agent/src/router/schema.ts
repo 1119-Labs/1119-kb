@@ -2,7 +2,8 @@ import { z } from 'zod'
 
 export const ROUTER_MODEL = 'openai/gpt-5.3-codex'
 export const DEFAULT_MODEL = 'anthropic/claude-opus-4.6'
-export const GENERATE_TITLE_MODEL = 'openai/gpt-oss-120b:free'
+// export const GENERATE_TITLE_MODEL = 'openai/gpt-oss-120b:free'
+export const GENERATE_TITLE_MODEL = 'qwen/qwen3.5-35b-a3b'
 
 /** OpenRouter model IDs that support tools + structured_outputs. See docs/OPENROUTER-MODELS.md. */
 const OPENROUTER_MODELS = [
