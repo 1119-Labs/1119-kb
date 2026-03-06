@@ -10,8 +10,12 @@
 # -----------------------------------------------------------------------------
 FROM node:22-alpine AS builder
 
-# Install Bun for fast installs and project's packageManager
-RUN corepack enable && corepack prepare bun@1.2.22 --activate
+# Install Bun via official install script
+RUN apk add --no-cache curl bash \
+    && curl -fsSL https://bun.com/install | bash
+
+ENV BUN_INSTALL=/root/.bun
+ENV PATH=$BUN_INSTALL/bin:$PATH
 
 WORKDIR /app
 
@@ -26,8 +30,8 @@ COPY packages/agent/package.json ./packages/agent/
 COPY packages/github/package.json ./packages/github/
 COPY packages/sdk/package.json ./packages/sdk/
 
-# Install all dependencies (workspace roots)
-RUN bun install --frozen-lockfile
+# Install all dependencies (skip prepare script — we build after copying source)
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy full source
 COPY apps ./apps
