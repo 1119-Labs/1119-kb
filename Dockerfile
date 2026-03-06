@@ -37,6 +37,13 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY apps ./apps
 COPY packages ./packages
 
+# Required by nuxt-better-auth at build time (pass via docker build --build-arg or compose build args)
+ARG BETTER_AUTH_SECRET
+ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
+
+# Avoid "JavaScript heap out of memory" during Nuxt build. If build still OOMs, increase Docker memory (e.g. 6–8GB).
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Build workspace packages then the Nuxt app
 RUN bun run build --filter=@savoir/app
 

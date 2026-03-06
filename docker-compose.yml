@@ -4,15 +4,22 @@
 # Usage:
 #   1. Copy apps/app/.env.example to apps/app/.env and set required variables.
 #   2. Ensure DATABASE_URL in .env points to postgres service (see below).
-#   3. docker compose up -d
+#   3. For build, Compose only substitutes ${VAR} from a .env in this directory
+#      or your shell. So either put BETTER_AUTH_SECRET and POSTGRES_PASSWORD in
+#      a .env here, or run: export $(grep -v '^#' apps/app/.env | xargs)
+#   4. docker compose build && docker compose up -d
 #
-# Required env (in apps/app/.env or below): BETTER_AUTH_SECRET, GITHUB_CLIENT_ID,
-#   GITHUB_CLIENT_SECRET, OPENROUTER_API_KEY, DATABASE_URL (or use compose default).
+# Note: env_file (apps/app/.env) is loaded only when the container RUNS, not
+# during image build. Build args and ${VAR} in this file come from the host
+# environment or from a .env file in this directory (next to docker-compose.yml).
 # =============================================================================
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
     image: 1119labs/kb:latest
     container_name: kb-app
     ports:
@@ -21,6 +28,7 @@ services:
       NODE_ENV: production
       NITRO_HOST: 0.0.0.0
       NITRO_PORT: 3000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       # Override DATABASE_URL to use the postgres service (default for compose)
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
       VERCEL_OIDC_TOKEN: ${VERCEL_OIDC_TOKEN}
@@ -28,7 +36,7 @@ services:
       - apps/app/.env
     volumes:
       # Persist local blob storage (file uploads) when not using Vercel Blob
-      - ../app_data:.data
+      - ../app_data:/app/.data
     depends_on:
       postgres:
         condition: service_healthy
