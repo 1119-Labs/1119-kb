@@ -68,22 +68,21 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nuxt
 
 # Copy built Nitro output (what the server runs)
-COPY --from=builder /app/apps/app/.output ./.output
+COPY --from=builder --chown=nuxt:nodejs /app/apps/app/.output ./.output
 
 # Copy workspace layout so `bun run db:migrate` from apps/app finds deps (same as builder)
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/turbo.json ./turbo.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/packages ./packages
+COPY --from=builder --chown=nuxt:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nuxt:nodejs /app/turbo.json ./turbo.json
+COPY --from=builder --chown=nuxt:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nuxt:nodejs /app/apps ./apps
+COPY --from=builder --chown=nuxt:nodejs /app/packages ./packages
 
 # Entrypoint: run migrations when DB URL is set, then exec CMD
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY --chown=nuxt:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Optional: persist blob/data at runtime
-RUN mkdir -p .data && chown -R nuxt:nodejs .data && \
-    chown -R nuxt:nodejs /app/apps /app/node_modules /app/packages /app/package.json /app/turbo.json /app/docker-entrypoint.sh
+RUN mkdir -p .data && chown nuxt:nodejs .data
 
 USER nuxt
 
