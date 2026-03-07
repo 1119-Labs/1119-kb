@@ -36,7 +36,6 @@ services:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
     env_file:
       - apps/app/.env
-      - apps/app/.env.local
     volumes:
       # Persist local blob storage (file uploads) when not using Vercel Blob
       - ../app_data:/app/.data
