@@ -30,7 +30,6 @@ services:
       NODE_ENV: production
       NITRO_HOST: 0.0.0.0
       NITRO_PORT: 3000
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       # Force Postgres (Nuxt Hub checks POSTGRES_URL first; without it falls back to PGLite and fails in Docker)
       POSTGRES_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
