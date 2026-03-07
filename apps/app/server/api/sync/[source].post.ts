@@ -2,8 +2,8 @@ import { start } from 'workflow/api'
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@nuxthub/db'
-import { syncDocumentation } from '../../workflows/sync-docs'
-import type { Source } from '../../workflows/sync-docs'
+import { syncDocumentation } from '../../workflows/sync-docs/workflow'
+import type { Source } from '../../workflows/sync-docs/types'
 import { getSnapshotRepoConfig } from '../../utils/sandbox/snapshot-config'
 
 const paramsSchema = z.object({

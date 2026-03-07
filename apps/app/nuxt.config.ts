@@ -115,7 +115,12 @@ export default defineNuxtConfig({
   },
 
   hub: {
-    db: 'postgresql',
+    // Force postgres-js so we never fall back to PGLite (which fails in Docker: /app/apps/app/.data doesn't exist)
+    db: {
+      dialect: 'postgresql',
+      driver: 'postgres-js',
+      applyMigrationsDuringBuild: false, // Docker build has no DATABASE_URL; run migrations at runtime or on startup
+    },
     kv: true,
     blob: true,
     cache: true
@@ -131,6 +136,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    vercelOidcToken: '', // VERCEL_OIDC_TOKEN or NUXT_VERCEL_OIDC_TOKEN — for @vercel/sandbox (Snapshot list, etc.)
     openrouter: {
       apiKey: '',
     },

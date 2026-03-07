@@ -3,15 +3,17 @@
 # =============================================================================
 # Usage:
 #   1. Copy apps/app/.env.example to apps/app/.env and set required variables.
-#   2. Ensure DATABASE_URL in .env points to postgres service (see below).
-#   3. For build, Compose only substitutes ${VAR} from a .env in this directory
-#      or your shell. So either put BETTER_AUTH_SECRET and POSTGRES_PASSWORD in
-#      a .env here, or run: export $(grep -v '^#' apps/app/.env | xargs)
+#   2. Put local overrides/secrets in apps/app/.env.local (loaded after .env).
+#      Optional for non-interactive token refresh in Docker:
+#      - AUTO_PULL_VERCEL_OIDC_TOKEN=1
+#      - VERCEL_TOKEN=...
+#      - VERCEL_TEAM_ID=...
+#   3. For build args (${VAR}), Compose substitutes from your shell (or .env next
+#      to this file). Export BETTER_AUTH_SECRET and POSTGRES_PASSWORD before build.
 #   4. docker compose build && docker compose up -d
 #
-# Note: env_file (apps/app/.env) is loaded only when the container RUNS, not
-# during image build. Build args and ${VAR} in this file come from the host
-# environment or from a .env file in this directory (next to docker-compose.yml).
+# Note: env_file entries are loaded only when the container RUNS, not during
+# image build.
 # =============================================================================
 
 services:
@@ -29,11 +31,12 @@ services:
       NITRO_HOST: 0.0.0.0
       NITRO_PORT: 3000
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      # Override DATABASE_URL to use the postgres service (default for compose)
+      # Force Postgres (Nuxt Hub checks POSTGRES_URL first; without it falls back to PGLite and fails in Docker)
+      POSTGRES_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/kb
-      VERCEL_OIDC_TOKEN: ${VERCEL_OIDC_TOKEN}
     env_file:
       - apps/app/.env
+      - apps/app/.env.local
     volumes:
       # Persist local blob storage (file uploads) when not using Vercel Blob
       - ../app_data:/app/.data
@@ -58,7 +61,7 @@ services:
     ports:
       - 5433:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kb -d kb"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kb"]
       interval: 5s
       timeout: 5s
       retries: 5

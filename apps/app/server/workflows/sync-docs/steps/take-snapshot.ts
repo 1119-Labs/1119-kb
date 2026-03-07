@@ -7,6 +7,7 @@
 import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
 
 export interface TakeSnapshotResult {
   snapshotId: string
@@ -19,7 +20,7 @@ export async function stepTakeSnapshot(sandboxId: string): Promise<TakeSnapshotR
   log.info('sync', `[${stepId}] Taking snapshot of sandbox ${sandboxId}`)
 
   // Reconnect to existing sandbox
-  const sandbox = await Sandbox.get({ sandboxId })
+  const sandbox = await Sandbox.get(withVercelSandboxCredentials({ sandboxId }))
 
   const snapshot = await sandbox.snapshot()
 

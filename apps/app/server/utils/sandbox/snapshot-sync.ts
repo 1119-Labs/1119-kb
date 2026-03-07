@@ -5,6 +5,7 @@ import type { SnapshotMetadata } from './types'
 import { KV_KEYS } from './types'
 import { getCurrentSnapshot, setCurrentSnapshot } from './snapshot'
 import { getSnapshotRepoConfig } from './snapshot-config'
+import { getVercelCredentialsDebugSummary, withVercelSandboxCredentials } from './vercel-credentials'
 import type { SnapshotSyncStatus } from '#shared/types/snapshot'
 
 const CACHE_TTL_MS = 60 * 1000
@@ -23,11 +24,13 @@ interface VercelSnapshot {
   updatedAt: number
   sourceSandboxId: string
   sizeBytes: number
-  expiresAt: number
+  expiresAt?: number
 }
 
 export async function listSnapshots(): Promise<VercelSnapshot[]> {
-  const result = await Snapshot.list()
+  const debug = getVercelCredentialsDebugSummary()
+  console.log('[sandbox-auth-debug] Snapshot.list credentials', debug)
+  const result = await Snapshot.list(withVercelSandboxCredentials({}))
   return result.json.snapshots
 }
 
@@ -94,7 +97,9 @@ export async function syncToSnapshot(snapshotId?: string): Promise<SnapshotMetad
     targetSnapshotId = latest.id
   }
 
-  const snapshot = await Snapshot.get({ snapshotId: targetSnapshotId })
+  const debug = getVercelCredentialsDebugSummary()
+  console.log('[sandbox-auth-debug] Snapshot.get credentials', debug)
+  const snapshot = await Snapshot.get(withVercelSandboxCredentials({ snapshotId: targetSnapshotId }))
   const snapshotConfig = await getSnapshotRepoConfig()
 
   const metadata: SnapshotMetadata = {

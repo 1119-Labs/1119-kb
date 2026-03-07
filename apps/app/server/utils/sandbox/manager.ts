@@ -4,6 +4,7 @@ import type { ActiveSandbox, SandboxManagerConfig, SnapshotMetadata } from './ty
 import { getCurrentSnapshot, setCurrentSnapshot } from './snapshot'
 import { deleteSandboxSession, generateSessionId, getSandboxSession, setSandboxSession, touchSandboxSession } from './session'
 import { getSnapshotRepoConfig } from './snapshot-config'
+import { withVercelSandboxCredentials } from './vercel-credentials'
 
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000
 const SANDBOX_TIMEOUT_MS = 5 * 60 * 1000
@@ -44,11 +45,11 @@ async function createSandboxFromSnapshot(snapshotId: string): Promise<Sandbox> {
   log.info('sandbox', `Creating sandbox from snapshot: ${snapshotId}`)
   const startTime = Date.now()
 
-  const sandbox = await Sandbox.create({
+  const sandbox = await Sandbox.create(withVercelSandboxCredentials({
     source: { type: 'snapshot', snapshotId },
     timeout: SANDBOX_TIMEOUT_MS,
     runtime: 'node24',
-  })
+  }))
 
   log.info('sandbox', `Sandbox created: ${sandbox.sandboxId} (${Date.now() - startTime}ms)`)
   return sandbox
@@ -56,7 +57,7 @@ async function createSandboxFromSnapshot(snapshotId: string): Promise<Sandbox> {
 
 async function getSandboxById(sandboxId: string): Promise<Sandbox | null> {
   try {
-    const sandbox = await Sandbox.get({ sandboxId })
+    const sandbox = await Sandbox.get(withVercelSandboxCredentials({ sandboxId }))
     return sandbox.status === 'running' ? sandbox : null
   } catch {
     return null
@@ -68,11 +69,11 @@ export async function createSnapshotFromRepo(repoUrl: string, branch: string = '
 
   log.info('sandbox', `Creating sandbox from repo: ${repoUrl}#${branch}`)
 
-  const sandbox = await Sandbox.create({
+  const sandbox = await Sandbox.create(withVercelSandboxCredentials({
     source: getGitSourceOptions(repoUrl, branch, config.githubToken),
     timeout: SANDBOX_TIMEOUT_MS,
     runtime: 'node24',
-  })
+  }))
 
   log.info('sandbox', `Sandbox created: ${sandbox.sandboxId}, taking snapshot...`)
 
@@ -114,12 +115,12 @@ async function getOrCreateSnapshot(): Promise<string> {
 
 async function findRunningSandbox(snapshotId: string): Promise<Sandbox | null> {
   try {
-    const result = await Sandbox.list({ limit: 20 })
+    const result = await Sandbox.list(withVercelSandboxCredentials({ limit: 20 }))
     const running = result.json.sandboxes.find(
       (s: { status: string, sourceSnapshotId?: string }) => s.status === 'running' && s.sourceSnapshotId === snapshotId,
     )
     if (running) {
-      return await Sandbox.get({ sandboxId: running.id })
+      return await Sandbox.get(withVercelSandboxCredentials({ sandboxId: running.id }))
     }
     return null
   } catch {

@@ -10,6 +10,7 @@ import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { SyncConfig } from '../types'
 import { createGitSource } from '../../../utils/sandbox/context'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
 
 export interface CreateSandboxResult {
   sandboxId: string
@@ -26,11 +27,11 @@ export async function stepCreateSandbox(
 
   const source = createGitSource(config)
 
-  const sandbox = await Sandbox.create({
+  const sandbox = await Sandbox.create(withVercelSandboxCredentials({
     source,
     timeout: timeoutMs,
     runtime: 'node24',
-  })
+  }))
 
   log.info('sync', `[${stepId}] Sandbox created: ${sandbox.sandboxId}`)
 

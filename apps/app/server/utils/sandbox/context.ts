@@ -1,5 +1,6 @@
 import { Sandbox } from '@vercel/sandbox'
 import type { SyncConfig } from '../../workflows/sync-docs/types'
+import { withVercelSandboxCredentials } from './vercel-credentials'
 
 export interface SandboxSource {
   type: 'git'
@@ -32,11 +33,11 @@ export async function createSandbox(
 ): Promise<Sandbox> {
   const source = createGitSource(config)
 
-  return await Sandbox.create({
+  return await Sandbox.create(withVercelSandboxCredentials({
     source,
     timeout: timeoutMs,
     runtime: 'node24',
-  })
+  }))
 }
 
 /** Generates GitHub repo URL with token authentication if provided */

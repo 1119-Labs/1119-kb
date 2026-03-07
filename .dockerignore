@@ -16,11 +16,11 @@ apps/app/.data
 !README.md
 
 # Env and secrets (mount or pass at run time)
-.env
 .env.*
 !.env.example
 **/.env
 **/.env.*
+# Keep root .env excluded; pass secrets at runtime via env_file/-e.
 
 # Test and dev
 **/*.test.ts
@@ -35,3 +35,6 @@ coverage
 *.log
 .DS_Store
 .vercel
+# Allow apps/app/.vercel for Vercel OIDC / project config in Docker
+!apps/app/.vercel
+!apps/app/.vercel/**

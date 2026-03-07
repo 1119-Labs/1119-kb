@@ -10,6 +10,7 @@ import { Sandbox } from '@vercel/sandbox'
 import type { SyncSourceResult } from '../types'
 import { pushChanges as gitPushChanges, generateCommitMessage } from '../../../utils/sandbox/git'
 import { generateAuthRepoUrl } from '../../../utils/sandbox/context'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
 
 export interface PushChangesConfig {
   snapshotRepo: string
@@ -34,7 +35,7 @@ export async function stepPushChanges(
   log.info('sync', `[${stepId}] Pushing changes to ${config.snapshotRepo}#${config.snapshotBranch}`)
 
   // Reconnect to existing sandbox
-  const sandbox = await Sandbox.get({ sandboxId })
+  const sandbox = await Sandbox.get(withVercelSandboxCredentials({ sandboxId }))
 
   const commitMessage = generateCommitMessage(results)
   const repoUrl = generateAuthRepoUrl(config.snapshotRepo, config.githubToken)

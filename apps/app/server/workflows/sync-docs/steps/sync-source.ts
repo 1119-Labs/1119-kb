@@ -10,6 +10,7 @@ import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { Source, SyncSourceResult } from '../types'
 import { syncGitHubSource, syncYouTubeSource } from '../../../utils/sandbox/source-sync'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
 
 export async function stepSyncSource(
   sandboxId: string,
@@ -22,7 +23,7 @@ export async function stepSyncSource(
   log.info('sync', `[${stepId}] Syncing source "${source.label}" (attempt ${attempt})`)
 
   // Reconnect to existing sandbox
-  const sandbox = await Sandbox.get({ sandboxId })
+  const sandbox = await Sandbox.get(withVercelSandboxCredentials({ sandboxId }))
 
   let result: SyncSourceResult
 

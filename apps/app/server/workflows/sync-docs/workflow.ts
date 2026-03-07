@@ -15,13 +15,11 @@
 import { FatalError } from 'workflow'
 import { log } from 'evlog'
 import type { Source, SyncConfig, SyncResult, SyncSourceResult } from './types'
-import {
-  stepCreateSandbox,
-  stepSyncSource,
-  stepPushChanges,
-  stepTakeSnapshot,
-  stepRecordVersions,
-} from './steps'
+import { stepCreateSandbox } from './steps/create-sandbox'
+import { stepSyncSource } from './steps/sync-source'
+import { stepPushChanges } from './steps/push-changes'
+import { stepTakeSnapshot } from './steps/take-snapshot'
+import { stepRecordVersions } from './steps/record-versions'
 
 export async function syncDocumentation(
   config: SyncConfig,
