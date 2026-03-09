@@ -49,7 +49,7 @@ ENV TURBO_CONCURRENCY=1
 # Build packages sequentially to reduce peak memory vs turbo fan-out.
 RUN bun run --filter @savoir/sdk build
 RUN bun run --filter @savoir/agent build
-RUN bun run --filter @savoir/app build
+RUN NODE_OPTIONS="--max-old-space-size=4096" bun run --filter @savoir/app build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production runtime (keeps app + bun so we can run db:migrate on startup)

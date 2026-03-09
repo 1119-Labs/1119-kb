@@ -71,7 +71,7 @@ export default defineNuxtConfig({
     },
   },
 
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   // typescript: {
   //   tsConfig: {
@@ -122,7 +122,7 @@ export default defineNuxtConfig({
 
   nitro: {
     experimental: {
-      openAPI: true
+      openAPI: false
     },
     typescript: {
       tsConfig: {
