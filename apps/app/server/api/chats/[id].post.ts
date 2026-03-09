@@ -99,9 +99,22 @@ export default defineEventHandler(async (event) => {
     }
 
     const cookie = getHeader(event, 'cookie')
+    const authorization = getHeader(event, 'authorization')
+    const xApiKey = getHeader(event, 'x-api-key')
+    const forwardedHeaders: Record<string, string> = {}
+    if (cookie) forwardedHeaders.cookie = cookie
+    if (authorization) forwardedHeaders.authorization = authorization
+    if (xApiKey) forwardedHeaders['x-api-key'] = xApiKey
+
+    // Use an internal loopback URL for server-to-server calls.
+    // In Docker, request origin can be the mapped host port (e.g. :9006),
+    // which is not reachable from inside the container.
+    const internalApiUrl = process.env.SAVOIR_INTERNAL_API_URL
+      || `http://127.0.0.1:${process.env.NITRO_PORT || '3000'}`
+
     const savoir = createSavoir({
-      apiUrl: getRequestURL(event).origin,
-      headers: cookie ? { cookie } : undefined,
+      apiUrl: internalApiUrl,
+      headers: Object.keys(forwardedHeaders).length > 0 ? forwardedHeaders : undefined,
       sessionId: existingSessionId || undefined,
     })
 
