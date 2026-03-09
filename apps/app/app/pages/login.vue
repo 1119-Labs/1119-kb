@@ -2,6 +2,8 @@
 import { z } from 'zod'
 
 const appConfig = useAppConfig()
+const runtimeConfig = useRuntimeConfig()
+const githubLoginEnabled = computed(() => runtimeConfig.public.githubLoginEnabled)
 
 definePageMeta({ layout: false, auth: 'guest' })
 
@@ -45,6 +47,17 @@ const signUpSchema = z.object({
 })
 
 const schema = computed(() => mode.value === 'signup' ? signUpSchema : signInSchema)
+
+async function onGitHubSignIn() {
+  loading.value = true
+  error.value = ''
+  try {
+    await signIn.social({ provider: 'github', callbackURL: '/' })
+  } catch (e: any) {
+    error.value = e?.data?.message || e?.message || 'GitHub login failed. Please try again.'
+    loading.value = false
+  }
+}
 
 async function onSubmit() {
   loading.value = true
@@ -136,6 +149,27 @@ async function onSubmit() {
             :loading
           />
         </UForm>
+
+        <div v-if="githubLoginEnabled" class="relative my-5">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-default" />
+          </div>
+          <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-default px-2 text-muted">Or continue with</span>
+          </div>
+        </div>
+
+        <UButton
+          v-if="githubLoginEnabled"
+          label="Login with GitHub"
+          icon="i-simple-icons-github"
+          color="neutral"
+          variant="soft"
+          block
+          size="lg"
+          :loading
+          @click="onGitHubSignIn"
+        />
 
         <p class="mt-6 text-center text-sm text-muted">
           <template v-if="mode === 'signin'">
