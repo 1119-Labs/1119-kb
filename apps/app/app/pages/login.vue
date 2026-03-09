@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { z } from 'zod'
-import { Circle, DotGrid, Glow, ProgressiveBlur, Saturation, Shader, Swirl } from 'shaders/vue'
 
 const appConfig = useAppConfig()
 
@@ -23,14 +22,6 @@ const mode = ref<'signin' | 'signup'>('signin')
 const loading = ref(false)
 const error = ref('')
 const { signIn, signUp } = useUserSession()
-
-const shaderColors = reactive({
-  swirlA: '#404040',
-  swirlB: '#a3a3a3',
-  circle: '#e5e5e5',
-  dots: '#737373',
-  rays: '#a3a3a3',
-})
 
 onMounted(() => {
   const queryError = route.query.error as string | undefined
@@ -177,24 +168,8 @@ async function onSubmit() {
     </div>
 
     <div class="hidden lg:block w-1/2 m-2 rounded-lg relative overflow-hidden">
-      <ClientOnly>
-        <Shader class="absolute inset-0 size-full">
-          <Glow :intensity="2.69" :size="27.5" :threshold="0.37">
-            <Saturation :intensity="1.13">
-              <Swirl
-                :color-a="shaderColors.swirlA"
-                :color-b="shaderColors.swirlB"
-                :speed="0.8"
-                :detail="1.2"
-                :blend="50"
-              />
-            </Saturation>
-            <ProgressiveBlur :angle="270" blend-mode="linearDodge" :center="{ x: 0.5, y: 0.5 }" :intensity="5">
-              <DotGrid :color="shaderColors.dots" :density="190" :dot-size="0.22" :twinkle="1" />
-            </ProgressiveBlur>
-          </Glow>
-        </Shader>
-      </ClientOnly>
+      <div class="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-950" />
+      <div class="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12),transparent_40%),radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.08),transparent_35%)]" />
       <div class="absolute inset-0 rounded-lg shadow-[inset_0_4px_30px_rgba(0,0,0,0.5),inset_0_0_80px_rgba(0,0,0,0.35),inset_0_-2px_20px_rgba(0,0,0,0.25)] pointer-events-none" />
     </div>
   </div>

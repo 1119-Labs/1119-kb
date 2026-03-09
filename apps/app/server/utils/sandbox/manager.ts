@@ -4,7 +4,7 @@ import type { ActiveSandbox, SandboxManagerConfig, SnapshotMetadata } from './ty
 import { getCurrentSnapshot, setCurrentSnapshot } from './snapshot'
 import { deleteSandboxSession, generateSessionId, getSandboxSession, setSandboxSession, touchSandboxSession } from './session'
 import { getSnapshotRepoConfig } from './snapshot-config'
-import { withVercelSandboxCredentials } from './vercel-credentials'
+import { withVercelSandboxCredentials } from './vercel-credentials.ts'
 
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000
 const SANDBOX_TIMEOUT_MS = 5 * 60 * 1000
@@ -44,9 +44,13 @@ function getGitSourceOptions(repoUrl: string, branch: string, githubToken?: stri
 async function createSandboxFromSnapshot(snapshotId: string): Promise<Sandbox> {
   log.info('sandbox', `Creating sandbox from snapshot: ${snapshotId}`)
   const startTime = Date.now()
+  const source: { type: 'snapshot', snapshotId: string } = {
+    type: 'snapshot',
+    snapshotId,
+  }
 
   const sandbox = await Sandbox.create(withVercelSandboxCredentials({
-    source: { type: 'snapshot', snapshotId },
+    source,
     timeout: SANDBOX_TIMEOUT_MS,
     runtime: 'node24',
   }))

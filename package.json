@@ -41,5 +41,9 @@
   },
   "patchedDependencies": {
     "@nuxthub/core@0.10.6": "patches/@nuxthub%2Fcore@0.10.6.patch"
+  },
+  "dependencies": {
+    "@nuxthub/core": "^0.10.7",
+    "workflow": "4.2.0-beta.66"
   }
 }

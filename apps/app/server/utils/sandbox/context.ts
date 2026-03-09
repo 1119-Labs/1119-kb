@@ -1,6 +1,6 @@
 import { Sandbox } from '@vercel/sandbox'
 import type { SyncConfig } from '../../workflows/sync-docs/types'
-import { withVercelSandboxCredentials } from './vercel-credentials'
+import { withVercelSandboxCredentials } from './vercel-credentials.ts'
 
 export interface SandboxSource {
   type: 'git'

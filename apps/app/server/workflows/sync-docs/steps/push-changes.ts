@@ -10,7 +10,7 @@ import { Sandbox } from '@vercel/sandbox'
 import type { SyncSourceResult } from '../types'
 import { pushChanges as gitPushChanges, generateCommitMessage } from '../../../utils/sandbox/git'
 import { generateAuthRepoUrl } from '../../../utils/sandbox/context'
-import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials.ts'
 
 export interface PushChangesConfig {
   snapshotRepo: string

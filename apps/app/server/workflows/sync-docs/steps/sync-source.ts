@@ -10,7 +10,7 @@ import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { Source, SyncSourceResult } from '../types'
 import { syncGitHubSource, syncYouTubeSource } from '../../../utils/sandbox/source-sync'
-import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials.ts'
 
 export async function stepSyncSource(
   sandboxId: string,

@@ -28,8 +28,8 @@ interface VercelSnapshot {
 }
 
 export async function listSnapshots(): Promise<VercelSnapshot[]> {
-  const debug = getVercelCredentialsDebugSummary()
-  console.log('[sandbox-auth-debug] Snapshot.list credentials', debug)
+  // const debug = getVercelCredentialsDebugSummary()
+  // console.log('[sandbox-auth-debug] Snapshot.list credentials', debug)
   const result = await Snapshot.list(withVercelSandboxCredentials({}))
   return result.json.snapshots
 }

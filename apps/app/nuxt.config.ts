@@ -42,6 +42,18 @@ export default defineNuxtConfig({
   },
 
   $production: {
+    // sourcemap: {
+    //   client: false,
+    //   server: false,
+    // },
+    // vite: {
+    //   build: {
+    //     sourcemap: false,
+    //   },
+    // },
+    // nitro: {
+    //   sourceMap: false,
+    // },
     evlog: {
       sampling: {
         rates: {
@@ -61,13 +73,13 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  typescript: {
-    tsConfig: {
-      compilerOptions: {
-        rewriteRelativeImportExtensions: true,
-      },
-    },
-  },
+  // typescript: {
+  //   tsConfig: {
+  //     compilerOptions: {
+  //       rewriteRelativeImportExtensions: true,
+  //     },
+  //   },
+  // },
 
   $development: {
     vite: {
@@ -111,7 +123,14 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       openAPI: true
-    }
+    },
+    typescript: {
+      tsConfig: {
+        compilerOptions: {
+          allowImportingTsExtensions: true,
+        },
+      },
+    },
   },
 
   hub: {

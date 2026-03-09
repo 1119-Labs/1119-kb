@@ -1,5 +1,5 @@
 # =============================================================================
-# Knowledge Agent Template - Docker Compose (dedicated server, no Vercel)
+# Knowledge Agent Template - Docker Compose (single app server, no Vercel)
 # =============================================================================
 # Usage:
 #   1. Copy apps/app/.env.example to apps/app/.env and set required variables.
@@ -10,6 +10,9 @@
 #      - VERCEL_TEAM_ID=...
 #   3. For build args (${VAR}), Compose substitutes from your shell (or .env next
 #      to this file). Export BETTER_AUTH_SECRET and POSTGRES_PASSWORD before build.
+#      Optional: NODE_MAX_OLD_SPACE (default 4096) for build heap tuning.
+#      - If build says "Reached heap limit", increase (e.g. 4096/6144).
+#      - If build is SIGKILL/cannot allocate memory, lower it and/or raise Docker RAM.
 #   4. docker compose build && docker compose up -d
 #
 # Note: env_file entries are loaded only when the container RUNS, not during
@@ -22,6 +25,7 @@ services:
       context: .
       args:
         BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+        NODE_MAX_OLD_SPACE: ${NODE_MAX_OLD_SPACE:-6144}
     image: 1119labs/kb:latest
     container_name: kb-app
     ports:

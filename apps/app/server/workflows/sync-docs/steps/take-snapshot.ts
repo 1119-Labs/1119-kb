@@ -7,7 +7,7 @@
 import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
-import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials'
+import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials.ts'
 
 export interface TakeSnapshotResult {
   snapshotId: string

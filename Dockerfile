@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Dependencies and build
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Install Bun via official install script
 RUN apk add --no-cache curl bash \
@@ -42,16 +42,24 @@ COPY docker-entrypoint.sh ./docker-entrypoint.sh
 ARG BETTER_AUTH_SECRET
 ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
 
-# Avoid "JavaScript heap out of memory" during Nuxt build. If build still OOMs, increase Docker memory (e.g. 6–8GB).
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Build memory tuning:
+# - Keep heap configurable for different hosts
+# - Use a balanced default to avoid both Node heap OOM and container OOM kills
+#   * "Reached heap limit" => increase NODE_MAX_OLD_SPACE
+#   * SIGKILL / "cannot allocate memory" => lower NODE_MAX_OLD_SPACE or raise Docker RAM
+ARG NODE_MAX_OLD_SPACE=6144
+ENV NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE}"
+ENV TURBO_CONCURRENCY=1
 
-# Build workspace packages then the Nuxt app
-RUN bun run build --filter=@savoir/app
+# Build packages sequentially to reduce peak memory vs turbo fan-out.
+RUN bun run --filter @savoir/sdk build
+RUN bun run --filter @savoir/agent build
+RUN bun run --filter @savoir/app build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production runtime (keeps app + bun so we can run db:migrate on startup)
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Install Bun to /usr/local so the nuxt user can run `bun run db:migrate`
 RUN apk add --no-cache curl bash \
