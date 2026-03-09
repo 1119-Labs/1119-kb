@@ -44,6 +44,7 @@ ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
 
 # Build memory tuning:
 # - Build with default Node.js heap settings.
+ENV NODE_MAX_OLD_SPACE=3072
 ENV TURBO_CONCURRENCY=1
 
 # Build packages sequentially to reduce peak memory vs turbo fan-out.
