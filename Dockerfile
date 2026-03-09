@@ -43,12 +43,7 @@ ARG BETTER_AUTH_SECRET
 ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
 
 # Build memory tuning:
-# - Keep heap configurable for different hosts
-# - Use a balanced default to avoid both Node heap OOM and container OOM kills
-#   * "Reached heap limit" => increase NODE_MAX_OLD_SPACE
-#   * SIGKILL / "cannot allocate memory" => lower NODE_MAX_OLD_SPACE or raise Docker RAM
-ARG NODE_MAX_OLD_SPACE=3072
-ENV NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE}"
+# - Build with default Node.js heap settings.
 ENV TURBO_CONCURRENCY=1
 
 # Build packages sequentially to reduce peak memory vs turbo fan-out.
