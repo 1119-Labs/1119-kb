@@ -47,7 +47,7 @@ ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
 # - Use a balanced default to avoid both Node heap OOM and container OOM kills
 #   * "Reached heap limit" => increase NODE_MAX_OLD_SPACE
 #   * SIGKILL / "cannot allocate memory" => lower NODE_MAX_OLD_SPACE or raise Docker RAM
-ARG NODE_MAX_OLD_SPACE=6144
+ARG NODE_MAX_OLD_SPACE=4096
 ENV NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE}"
 ENV TURBO_CONCURRENCY=1
 
