@@ -5,7 +5,7 @@
  * Each source is its own step for granular retry and observability.
  */
 
-import { getStepMetadata, RetryableError } from 'workflow'
+import { RetryableError } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { Source, SyncSourceResult } from '../types'
@@ -19,8 +19,8 @@ export async function stepSyncSource(
 ): Promise<SyncSourceResult> {
   'use step'
 
-  const { stepId, attempt } = getStepMetadata()
-  log.info('sync', `[${stepId}] Syncing source "${source.label}" (attempt ${attempt})`)
+  const stepId = 'stepSyncSource'
+  log.info('sync', `[${stepId}] Syncing source "${source.label}"`)
 
   // Reconnect to existing sandbox
   const sandbox = await Sandbox.get(withVercelSandboxCredentials({ sandboxId }))
@@ -56,7 +56,7 @@ export async function stepSyncSource(
   // If failed due to network/transient error, throw RetryableError
   if (!result.success && result.error?.includes('ECONNRESET')) {
     throw new RetryableError(`Transient error syncing ${source.label}: ${result.error}`, {
-      retryAfter: attempt * 2000, // Exponential backoff
+      retryAfter: 2000,
     })
   }
 

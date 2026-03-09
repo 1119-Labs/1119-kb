@@ -6,6 +6,7 @@ import { syncDocumentation } from '../../workflows/sync-docs/workflow'
 import type { Source } from '../../workflows/sync-docs/types'
 import { KV_KEYS } from '../../utils/sandbox/types'
 import { getSnapshotRepoConfig } from '../../utils/sandbox/snapshot-config'
+import { syncRequests } from '../../db/schema'
 
 const bodySchema = z
   .object({
@@ -97,14 +98,29 @@ export default defineEventHandler(async (event) => {
     snapshotBranch: snapshotConfig.snapshotBranch,
   }
 
-  await start(syncDocumentation, [syncConfig, sources])
+  const [syncRequest] = await db
+    .insert(syncRequests)
+    .values({
+      status: 'started',
+      sourceFilter: body?.sourceFilter ?? null,
+      sourceCount: sources.length,
+      updatedAt: new Date(),
+    })
+    .returning({ id: syncRequests.id })
+
+  if (!syncRequest) {
+    throw createError({ statusCode: 500, message: 'Failed to create sync request record' })
+  }
+
+  await start(syncDocumentation, [syncConfig, sources, syncRequest.id])
 
   await kv.set(KV_KEYS.LAST_SOURCE_SYNC, Date.now())
 
-  requestLog.set({ sourceCount: sources.length })
+  requestLog.set({ sourceCount: sources.length, syncRequestId: syncRequest.id })
 
   return {
     status: 'started',
     message: `Sync workflow started for ${sources.length} source(s).`,
+    syncRequestId: syncRequest.id,
   }
 })

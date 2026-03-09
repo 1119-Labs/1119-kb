@@ -14,89 +14,105 @@
 
 import { FatalError } from 'workflow'
 import { log } from 'evlog'
-import type { Source, SyncConfig, SyncResult, SyncSourceResult } from './types'
+import type { Source, SyncConfig, SyncResult, SyncSourceResult, SyncSummary } from './types'
 import { stepCreateSandbox } from './steps/create-sandbox'
 import { stepSyncSource } from './steps/sync-source'
 import { stepPushChanges } from './steps/push-changes'
 import { stepTakeSnapshot } from './steps/take-snapshot'
 import { stepRecordVersions } from './steps/record-versions'
+import { stepMarkSyncRequestFailed, stepMarkSyncRequestSuccess } from './steps/update-sync-request'
 
 export async function syncDocumentation(
   config: SyncConfig,
   sources: Source[],
+  syncRequestId?: string,
 ): Promise<SyncResult> {
   'use workflow'
 
-  // Validate configuration
-  if (!config.snapshotRepo) {
-    throw new FatalError('Snapshot repository is not configured')
-  }
-
-  if (!sources || sources.length === 0) {
-    throw new FatalError('No sources provided')
-  }
-
-  // Filter out YouTube sources if API key is not configured
-  const filteredSources = sources.filter((s) => {
-    if (s.type === 'youtube' && !config.youtubeApiKey) {
-      log.warn('sync', `Skipping YouTube source "${s.label}" - NUXT_YOUTUBE_API_KEY not configured`)
-      return false
+  try {
+    // Validate configuration
+    if (!config.snapshotRepo) {
+      throw new FatalError('Snapshot repository is not configured')
     }
-    return true
-  })
 
-  if (filteredSources.length === 0) {
-    throw new FatalError('No sources to sync after filtering')
-  }
+    if (!sources || sources.length === 0) {
+      throw new FatalError('No sources provided')
+    }
 
-  // Step 1: Create sandbox
-  const { sandboxId } = await stepCreateSandbox(config)
+    // Filter out YouTube sources if API key is not configured
+    const filteredSources = sources.filter((s) => {
+      if (s.type === 'youtube' && !config.youtubeApiKey) {
+        log.warn('sync', `Skipping YouTube source "${s.label}" - NUXT_YOUTUBE_API_KEY not configured`)
+        return false
+      }
+      return true
+    })
 
-  // Step 2: Sync all sources in parallel
-  // Each source is its own step for granular retry and observability
-  const results = await Promise.all(
-    filteredSources.map(source =>
-      stepSyncSource(sandboxId, source, {
-        githubToken: config.githubTokenBySourceId?.[source.id] ?? config.githubToken,
-        youtubeApiKey: config.youtubeApiKey,
-      }),
-    ),
-  )
+    if (filteredSources.length === 0) {
+      throw new FatalError('No sources to sync after filtering')
+    }
 
-  // Step 3: Push changes to git
-  await stepPushChanges(
-    sandboxId,
-    {
-      snapshotRepo: config.snapshotRepo,
-      snapshotBranch: config.snapshotBranch,
-      githubToken: config.githubToken,
-    },
-    results,
-  )
+    // Step 1: Create sandbox
+    const { sandboxId } = await stepCreateSandbox(config)
 
-  // Step 4: Take snapshot
-  const { snapshotId } = await stepTakeSnapshot(sandboxId)
+    // Step 2: Sync all sources in parallel
+    // Each source is its own step for granular retry and observability
+    const results = await Promise.all(
+      filteredSources.map(source =>
+        stepSyncSource(sandboxId, source, {
+          githubToken: config.githubTokenBySourceId?.[source.id] ?? config.githubToken,
+          youtubeApiKey: config.youtubeApiKey,
+        }),
+      ),
+    )
 
-  // Step 5: Record synced versions (GitHub) in DB
-  await stepRecordVersions(results)
+    // Step 3: Push changes to git
+    await stepPushChanges(
+      sandboxId,
+      {
+        snapshotRepo: config.snapshotRepo,
+        snapshotBranch: config.snapshotBranch,
+        githubToken: config.githubToken,
+      },
+      results,
+    )
 
-  // Compute summary
-  const successCount = results.filter((r: SyncSourceResult) => r.success).length
-  const failCount = results.filter((r: SyncSourceResult) => !r.success).length
-  const totalFiles = results.reduce((sum: number, r: SyncSourceResult) => sum + (r.fileCount || 0), 0)
+    // Step 4: Take snapshot
+    const { snapshotId } = await stepTakeSnapshot(sandboxId)
 
-  const status = failCount === 0 ? '✓' : '✗'
-  log.info('sync', `${status} Done: ${successCount}/${sources.length} sources, ${totalFiles} files`)
+    // Step 5: Record synced versions (GitHub) in DB
+    await stepRecordVersions(results)
 
-  return {
-    success: failCount === 0,
-    snapshotId,
-    summary: {
+    // Compute summary
+    const successCount = results.filter((r: SyncSourceResult) => r.success).length
+    const failCount = results.filter((r: SyncSourceResult) => !r.success).length
+    const totalFiles = results.reduce((sum: number, r: SyncSourceResult) => sum + (r.fileCount || 0), 0)
+    const summary: SyncSummary = {
       total: sources.length,
       success: successCount,
       failed: failCount,
       files: totalFiles,
-    },
-    results,
+    }
+
+    const status = failCount === 0 ? '✓' : '✗'
+    log.info('sync', `${status} Done: ${successCount}/${sources.length} sources, ${totalFiles} files`)
+
+    if (syncRequestId) {
+      await stepMarkSyncRequestSuccess(syncRequestId, sources.length, summary)
+    }
+
+    return {
+      success: failCount === 0,
+      snapshotId,
+      summary,
+      results,
+    }
+  } catch (error) {
+    if (syncRequestId) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await stepMarkSyncRequestFailed(syncRequestId, errorMessage)
+    }
+
+    throw error
   }
 }

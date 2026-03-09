@@ -4,7 +4,6 @@
  * Commits and pushes synced documentation changes to the repository.
  */
 
-import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { SyncSourceResult } from '../types'
@@ -31,7 +30,7 @@ export async function stepPushChanges(
 ): Promise<PushChangesResult> {
   'use step'
 
-  const { stepId } = getStepMetadata()
+  const stepId = 'stepPushChanges'
   log.info('sync', `[${stepId}] Pushing changes to ${config.snapshotRepo}#${config.snapshotBranch}`)
 
   // Reconnect to existing sandbox

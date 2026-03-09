@@ -5,7 +5,6 @@
  * This is an atomic step that can be retried independently.
  */
 
-import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import type { SyncConfig } from '../types'
@@ -22,7 +21,7 @@ export async function stepCreateSandbox(
 ): Promise<CreateSandboxResult> {
   'use step'
 
-  const { stepId } = getStepMetadata()
+  const stepId = 'stepCreateSandbox'
   log.info('sync', `[${stepId}] Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
 
   const source = createGitSource(config)

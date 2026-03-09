@@ -159,6 +159,7 @@ const adminNavigation = [
     { label: 'Sandbox', icon: 'i-custom-box', to: '/admin/sandbox' },
     { label: 'Statistics', icon: 'i-custom-chart', to: '/admin/stats' },
     { label: 'Logs', icon: 'i-custom-terminal', to: '/admin/logs' },
+    { label: 'Sync Requests', icon: 'i-lucide-refresh-cw', to: '/admin/sync-requests' },
     { label: 'API Keys', icon: 'i-custom-api-access', to: '/admin/api-keys' },
     { label: 'Users', icon: 'i-custom-users', to: '/admin/users' },
   ],

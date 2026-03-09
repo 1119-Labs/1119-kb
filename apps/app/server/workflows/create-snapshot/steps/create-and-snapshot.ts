@@ -4,7 +4,6 @@
  * Creates sandbox from repository and takes snapshot.
  */
 
-import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import type { SnapshotConfig } from '../types'
 import { createSandbox } from '../../../utils/sandbox/context'
@@ -17,8 +16,8 @@ export interface SnapshotResult {
 export async function stepCreateAndSnapshot(config: SnapshotConfig): Promise<SnapshotResult> {
   'use step'
 
-  const { stepId, attempt } = getStepMetadata()
-  log.info('snapshot', `[${stepId}] Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch} (attempt ${attempt})`)
+  const stepId = 'stepCreateAndSnapshot'
+  log.info('snapshot', `[${stepId}] Creating sandbox from ${config.snapshotRepo}#${config.snapshotBranch}`)
 
   const sandbox = await createSandbox(config, 2 * 60 * 1000)
   log.info('snapshot', `[${stepId}] Sandbox created: ${sandbox.sandboxId}`)

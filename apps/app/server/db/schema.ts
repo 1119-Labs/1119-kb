@@ -75,6 +75,20 @@ export const sourceVersions = pgTable('source_versions', {
   uniqueIndex('source_versions_source_version_idx').on(table.sourceId, table.versionFolderName),
 ])
 
+export const syncRequests = pgTable('sync_requests', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  status: text('status', { enum: ['started', 'success', 'failed'] }).notNull().default('started'),
+  sourceFilter: text('source_filter'),
+  sourceCount: integer('source_count').notNull().default(0),
+  summary: jsonb('summary'),
+  error: text('error'),
+  ...timestamps,
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, table => [
+  index('sync_requests_status_idx').on(table.status),
+  index('sync_requests_created_at_idx').on(table.createdAt),
+])
+
 export const agentConfig = pgTable('agent_config', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull().default('default'),

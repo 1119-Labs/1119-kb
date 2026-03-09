@@ -54,11 +54,13 @@ export interface SyncSourceResult {
 export interface SyncResult {
   success: boolean
   snapshotId?: string
-  summary: {
-    total: number
-    success: number
-    failed: number
-    files: number
-  }
+  summary: SyncSummary
   results: SyncSourceResult[]
+}
+
+export interface SyncSummary {
+  total: number
+  success: number
+  failed: number
+  files: number
 }

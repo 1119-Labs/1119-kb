@@ -5,6 +5,7 @@ import { db, schema } from '@nuxthub/db'
 import { syncDocumentation } from '../../workflows/sync-docs/workflow'
 import type { Source } from '../../workflows/sync-docs/types'
 import { getSnapshotRepoConfig } from '../../utils/sandbox/snapshot-config'
+import { syncRequests } from '../../db/schema'
 
 const paramsSchema = z.object({
   source: z.string().min(1),
@@ -76,13 +77,28 @@ export default defineEventHandler(async (event) => {
     snapshotBranch: snapshotConfig.snapshotBranch,
   }
 
-  await start(syncDocumentation, [syncConfig, [source]])
+  const [syncRequest] = await db
+    .insert(syncRequests)
+    .values({
+      status: 'started',
+      sourceFilter: source.id,
+      sourceCount: 1,
+      updatedAt: new Date(),
+    })
+    .returning({ id: syncRequests.id })
 
-  requestLog.set({ type: source.type, label: source.label })
+  if (!syncRequest) {
+    throw createError({ statusCode: 500, message: 'Failed to create sync request record' })
+  }
+
+  await start(syncDocumentation, [syncConfig, [source], syncRequest.id])
+
+  requestLog.set({ type: source.type, label: source.label, syncRequestId: syncRequest.id })
 
   return {
     status: 'started',
     message: `Sync workflow started for "${source.label}".`,
     source: source.id,
+    syncRequestId: syncRequest.id,
   }
 })

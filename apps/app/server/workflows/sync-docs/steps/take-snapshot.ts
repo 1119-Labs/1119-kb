@@ -4,7 +4,6 @@
  * Takes a snapshot of the sandbox for instant startup.
  */
 
-import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { Sandbox } from '@vercel/sandbox'
 import { withVercelSandboxCredentials } from '../../../utils/sandbox/vercel-credentials.ts'
@@ -16,7 +15,7 @@ export interface TakeSnapshotResult {
 export async function stepTakeSnapshot(sandboxId: string): Promise<TakeSnapshotResult> {
   'use step'
 
-  const { stepId } = getStepMetadata()
+  const stepId = 'stepTakeSnapshot'
   log.info('sync', `[${stepId}] Taking snapshot of sandbox ${sandboxId}`)
 
   // Reconnect to existing sandbox

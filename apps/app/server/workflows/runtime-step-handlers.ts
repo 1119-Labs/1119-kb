@@ -1,13 +1,15 @@
 import { RetryableError } from 'workflow'
 import { log } from 'evlog'
+import { eq } from 'drizzle-orm'
 import { db, schema } from '@nuxthub/db'
 import { Sandbox } from '@vercel/sandbox'
 import { createSandbox, createGitSource, generateAuthRepoUrl } from '../utils/sandbox/context'
 import { pushChanges, generateCommitMessage } from '../utils/sandbox/git'
 import { syncGitHubSource, syncYouTubeSource } from '../utils/sandbox/source-sync'
 import { withVercelSandboxCredentials } from '../utils/sandbox/vercel-credentials.ts'
+import { syncRequests } from '../db/schema'
 import type { SnapshotConfig } from './create-snapshot/types'
-import type { Source, SyncConfig, SyncSourceResult } from './sync-docs/types'
+import type { Source, SyncConfig, SyncSourceResult, SyncSummary } from './sync-docs/types'
 
 export async function runtimeStepCreateAndSnapshot(config: SnapshotConfig) {
   const stepId = 'stepCreateAndSnapshot'
@@ -160,5 +162,42 @@ export async function runtimeStepRecordVersions(results: SyncSourceResult[]) {
       log.warn('sync', `[${stepId}] Failed to record version for ${r.sourceId}: ${(err as Error).message}`)
     }
   }
+}
+
+export async function runtimeStepMarkSyncRequestSuccess(
+  syncRequestId: string,
+  sourceCount: number,
+  summary: SyncSummary,
+) {
+  const stepId = 'stepMarkSyncRequestSuccess'
+  await db
+    .update(syncRequests)
+    .set({
+      status: 'success',
+      summary,
+      error: null,
+      sourceCount,
+      updatedAt: new Date(),
+    })
+    .where(eq(syncRequests.id, syncRequestId))
+
+  log.info('sync', `[${stepId}] Marked sync request ${syncRequestId} as success`)
+}
+
+export async function runtimeStepMarkSyncRequestFailed(
+  syncRequestId: string,
+  errorMessage: string,
+) {
+  const stepId = 'stepMarkSyncRequestFailed'
+  await db
+    .update(syncRequests)
+    .set({
+      status: 'failed',
+      error: errorMessage,
+      updatedAt: new Date(),
+    })
+    .where(eq(syncRequests.id, syncRequestId))
+
+  log.warn('sync', `[${stepId}] Marked sync request ${syncRequestId} as failed`)
 }
 

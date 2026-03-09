@@ -97,8 +97,8 @@ export async function syncToSnapshot(snapshotId?: string): Promise<SnapshotMetad
     targetSnapshotId = latest.id
   }
 
-  const debug = getVercelCredentialsDebugSummary()
-  console.log('[sandbox-auth-debug] Snapshot.get credentials', debug)
+  // const debug = getVercelCredentialsDebugSummary()
+  // console.log('[sandbox-auth-debug] Snapshot.get credentials', debug)
   const snapshot = await Snapshot.get(withVercelSandboxCredentials({ snapshotId: targetSnapshotId }))
   const snapshotConfig = await getSnapshotRepoConfig()
 

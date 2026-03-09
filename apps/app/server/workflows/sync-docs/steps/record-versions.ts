@@ -4,7 +4,6 @@
  * Upserts synced GitHub source versions into source_versions table.
  */
 
-import { getStepMetadata } from 'workflow'
 import { log } from 'evlog'
 import { db, schema } from '@nuxthub/db'
 import type { SyncSourceResult } from '../types'
@@ -12,7 +11,7 @@ import type { SyncSourceResult } from '../types'
 export async function stepRecordVersions(results: SyncSourceResult[]): Promise<void> {
   'use step'
 
-  const { stepId } = getStepMetadata()
+  const stepId = 'stepRecordVersions'
 
   for (const r of results) {
     if (!r.success || !r.versionFolderName || !r.refType || r.ref === undefined)
