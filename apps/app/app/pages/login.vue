@@ -2,8 +2,8 @@
 import { z } from 'zod'
 
 const appConfig = useAppConfig()
-const runtimeConfig = useRuntimeConfig()
-const githubLoginEnabled = computed(() => runtimeConfig.public.githubLoginEnabled)
+const { data: loginProviders } = await useFetch<{ github: boolean }>('/api/login-providers')
+const githubLoginEnabled = computed(() => loginProviders.value?.github ?? false)
 
 definePageMeta({ layout: false, auth: 'guest' })
 

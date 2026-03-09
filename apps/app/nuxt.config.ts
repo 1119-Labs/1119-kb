@@ -178,7 +178,6 @@ export default defineNuxtConfig({
       apiKey: '',
     },
     public: {
-      githubLoginEnabled: Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
       github: {
         appName: '',
         botTrigger: '',
