@@ -323,6 +323,15 @@ Authentication uses [Better Auth](https://www.better-auth.com) with the [`@onmax
 | POST | `/api/stats/usage` | User/API key | Report usage (SDK/bots) |
 | POST | `/api/stats/compute` | Admin | Recompute stats |
 
+### MCP
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/mcp` | User/API key | MCP server (Streamable HTTP). Tools: `listSources`, `searchKnowledge` |
+| GET | `/api/mcp` | — | Returns 405 (POST only) |
+
+See [MCP](./MCP.md) for usage and how to add the server in Cursor, Claude Code, etc.
+
 ### Other
 
 | Method | Endpoint | Auth | Description |

@@ -28,7 +28,7 @@ export default defineNuxtConfig({
   evlog: {
     retention: '7d',
     env: {
-      service: 'knowledge-agent-template',
+      service: '1119labs-kb',
       version: '0.1.0',
     },
     routes: {
@@ -38,7 +38,8 @@ export default defineNuxtConfig({
       '/api/sandbox/**': { service: 'sandbox-api' },
       '/api/stats/**': { service: 'stats-api' },
     },
-    transport: { enabled: true },
+    // Disable HTTP access logs in both development and production.
+    transport: { enabled: false },
   },
 
   $production: {
@@ -121,6 +122,8 @@ export default defineNuxtConfig({
   compatibilityDate: 'latest',
 
   nitro: {
+    // Silence Nitro request/access logs in both dev and production.
+    logLevel: 0,
     experimental: {
       openAPI: false
     },

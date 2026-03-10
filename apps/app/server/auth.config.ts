@@ -53,10 +53,23 @@ export default defineServerAuth(({ db }) => {
       apiKey({
         enableSessionForAPIKeys: true,
         customAPIKeyGetter: (ctx) => {
-          const xApiKey = ctx.headers?.get('x-api-key')
-          if (xApiKey) return xApiKey
-          const authHeader = ctx.headers?.get('authorization')
-          if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7)
+          const xApiKey = ctx.headers?.get('x-api-key')?.trim()
+          if (xApiKey) {
+            // Be forgiving: some clients may include "Bearer " in custom header values.
+            return xApiKey.replace(/^Bearer\s+/i, '').trim()
+          }
+
+          const authHeader = ctx.headers?.get('authorization')?.trim()
+          if (authHeader) {
+            // Authorization scheme is case-insensitive in HTTP; accept any Bearer casing.
+            const bearerMatch = /^Bearer\s+(.+)$/i.exec(authHeader)
+            if (bearerMatch) {
+              const token = (bearerMatch[1] ?? '').trim()
+              if (!token) return null
+              // Some client configs accidentally include surrounding quotes.
+              return token.replace(/^"(.*)"$/, '$1').trim()
+            }
+          }
           return null
         },
       }),

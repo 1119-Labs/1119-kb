@@ -1,15 +1,28 @@
 ---
-description: Rules for implementing new features — plan mode, feature_specs, and testing
+description: Rules for implementing new features — spec-first in feature_specs, implement only when asked
 alwaysApply: true
 ---
 
-# New Feature Implementation
+# New Feature Workflow
 
-When implementing a **new feature**:
+## Creating a new feature (spec only)
 
-1. **Use plan mode first** — Create a plan before writing code.
+When the user asks for a **new feature** (in plan mode or agent mode):
+
+1. **Do not implement code.** Only produce the spec.
 2. **Create a feature folder** under **`feature_specs/`** at the repo root (e.g. `feature_specs/my-feature-name/`).
 3. **Add a detailed implementation doc** in that folder (e.g. `implementation.md` or `README.md`) with:
    - **Steps to implement** — Numbered steps, file paths, and key code touchpoints.
-   - **How to test** — Automated tests if possible (`bun run test`, or new test file); otherwise clear manual steps (what to run, what to click, expected outcome).
-4. **Only after the spec is agreed/created**, proceed with implementation following the spec.
+   - **How to test** — Automated tests if possible; otherwise clear manual steps (what to run, what to click, expected outcome).
+
+Stop after the spec is written. Do not write application code, create files under `apps/` or `packages/`, or run implementation steps unless the user explicitly asks for implementation.
+
+## Implementing from specs
+
+**Only when the user explicitly asks** to implement, code, or build following the specs in `feature_specs/` (e.g. “implement following the spec in feature_specs/mcp-server” or “implement the generated specs”):
+
+1. Read the implementation doc in the relevant `feature_specs/<name>/` folder.
+2. Follow the steps in that doc to implement the feature.
+3. Run the tests described in the doc to verify.
+
+If the user has not asked to implement or to follow the specs, do not write implementation code.

@@ -399,6 +399,20 @@ async function deleteAccount() {
             </div>
             <UIcon name="i-lucide-chevron-right" class="size-4 text-muted" />
           </NuxtLink>
+          <NuxtLink to="/settings/mcp" class="flex items-center justify-between gap-4 px-4 py-3 hover:bg-elevated/50 transition-colors">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-plug" class="size-5 text-highlighted" />
+              <div>
+                <p class="text-sm text-highlighted">
+                  MCP
+                </p>
+                <p class="text-xs text-muted">
+                  Connect coding agents (Cursor, Claude Code) to your knowledge base.
+                </p>
+              </div>
+            </div>
+            <UIcon name="i-lucide-chevron-right" class="size-4 text-muted" />
+          </NuxtLink>
         </div>
       </section>
 
