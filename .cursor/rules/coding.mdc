@@ -1,0 +1,30 @@
+---
+description: Coding conventions and patches for the tech stack
+globs: "**/*.ts,**/*.vue,**/*.mdc"
+alwaysApply: false
+---
+
+# Coding Conventions
+
+## Tech Stack
+
+Nuxt 3, Vue 3, TypeScript, Drizzle ORM, NuxtHub (SQLite, KV, Blob), Better Auth, Vercel Workflows, AI SDK, Bun.
+
+## Conventions (from docs/CODING-GUIDELINES.md)
+
+- **Comments**: Only for non-obvious choices. JSDoc for public functions. No section dividers in templates; schema section dividers are allowed.
+- **Caching**: No in-memory caches in serverless. Use NuxtHub KV for cache/session data.
+- **Auto-imports**: `app/composables/`, `app/components/`, `server/utils/`, `shared/utils/`, `shared/types/` are auto-imported; avoid redundant imports.
+
+## Pre-PR Checks
+
+Run `bun run lint:fix`, `bun run typecheck`, `bun run build`. Follow ESLint config (`@hrcd/eslint-config`).
+
+## Patch: @nuxthub/core
+
+`patches/@nuxthub%2Fcore@0.10.6.patch` is applied via `package.json` `patchedDependencies`.
+
+- **build.mjs**: Adds alias `@nuxthub/db/schema` and sets `skipNodeModulesBundle: false` so the DB schema resolves and bundles.
+- **module.mjs**: When `driver === "postgres-js"`, break before defaulting to pglite so postgres-js config is respected.
+
+Do not remove or edit the patch without documenting the reason.

@@ -1,0 +1,15 @@
+---
+description: Rules for implementing new features — plan mode, feature_specs, and testing
+alwaysApply: true
+---
+
+# New Feature Implementation
+
+When implementing a **new feature**:
+
+1. **Use plan mode first** — Create a plan before writing code.
+2. **Create a feature folder** under **`feature_specs/`** at the repo root (e.g. `feature_specs/my-feature-name/`).
+3. **Add a detailed implementation doc** in that folder (e.g. `implementation.md` or `README.md`) with:
+   - **Steps to implement** — Numbered steps, file paths, and key code touchpoints.
+   - **How to test** — Automated tests if possible (`bun run test`, or new test file); otherwise clear manual steps (what to run, what to click, expected outcome).
+4. **Only after the spec is agreed/created**, proceed with implementation following the spec.

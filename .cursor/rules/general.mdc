@@ -1,0 +1,28 @@
+---
+description: Project description, features, and high-level flows
+alwaysApply: true
+---
+
+# Knowledge Agent Template — Project Overview
+
+## What This Project Is
+
+File-system and knowledge-based AI agent template. No embeddings or vector DB; agents use `grep`, `find`, and `cat` inside isolated sandboxes over configured sources (GitHub repos, YouTube). One codebase: chat UI, API, admin, bot webhooks, content sync, sandbox.
+
+## Main Components
+
+1. **apps/app** — Nuxt app: chat UI, API routes, admin panel, bot webhooks (GitHub, Discord), sync, sandbox manager.
+2. **packages/sdk** — `@savoir/sdk`: AI SDK–compatible tools (`bash`, `bash_batch`) calling the sandbox API.
+3. **packages/agent** — Router (complexity → model + maxSteps), prompts, tools (e.g. web search). Used by chat and bots.
+
+## Key Flows
+
+- **User → answer**: User (chat/API/bot) → agent (router + tools) → SDK/sandbox for read-only search over snapshot content.
+- **Sync**: DB sources → clone in sandbox → sync content → git push → snapshot. Sandbox starts from snapshot (instant).
+- **Router**: Question → `routeQuestion()` → complexity (trivial | simple | moderate | complex) → model + maxSteps → ToolLoopAgent.
+
+## References
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — System design, API, storage.
+- [docs/SOURCES.md](docs/SOURCES.md) — Source types and config.
+- [AGENTS.md](AGENTS.md) — Commands, structure, rules, skills.

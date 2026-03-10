@@ -32,13 +32,32 @@ knowledge-agent-template/
 - [Environment](docs/ENVIRONMENT.md) - Environment variables
 - [Customization](docs/CUSTOMIZATION.md) - How to customize the instance
 
-## Local Skills (`.agents/skills/`)
+## Cursor Rules (`.cursor/rules/`)
 
-Project-specific guides for AI-assisted customization. When the user asks to add a tool, source, bot adapter, or rename the project, follow the corresponding skill:
+| Rule | Description |
+|------|-------------|
+| `general.mdc` | Project description, features, and high-level flows |
+| `coding.mdc` | Coding conventions and patches for the tech stack (TS, Vue, Nuxt) |
+| `features.mdc` | New feature workflow: plan mode, feature_specs, implementation doc, testing |
 
-| Skill | File | Use when |
-|-------|------|----------|
-| Add Tool | `add-tool.md` | Adding a new AI SDK tool |
-| Add Source | `add-source.md` | Adding a GitHub/YouTube knowledge source |
-| Add Bot Adapter | `add-bot-adapter.md` | Adding a new platform (Slack, Linear, etc.) |
-| Rename Project | `rename-project.md` | Renaming the project from "Knowledge Agent Template" |
+## Feature workflow
+
+When implementing a **new feature**:
+
+1. Use **plan mode** first.
+2. Create a folder under **`feature_specs/`** (e.g. `feature_specs/my-feature-name/`).
+3. Add an implementation doc there with **steps to implement** and **how to test** (automated or manual).
+4. Proceed with implementation only after the spec is agreed. See [feature_specs/README.md](feature_specs/README.md) and `.cursor/rules/features.mdc`.
+
+## Cursor Skills (`.cursor/skills/`)
+
+Project skills for the Cursor agent. Use the matching skill when the user asks for the task:
+
+| Skill | Use when |
+|-------|----------|
+| **add-tool** | Adding a new AI SDK tool or agent tool |
+| **add-source** | Adding a knowledge source, GitHub source, or YouTube source |
+| **add-bot-adapter** | Adding a bot adapter, new platform (Slack, Linear), or webhook adapter |
+| **rename-project** | Renaming the project or rebranding from "Knowledge Agent Template" |
+
+Human-readable guides also live in `.agents/skills/` (add-tool.md, add-source.md, add-bot-adapter.md, rename-project.md).
