@@ -3,6 +3,22 @@ import { schema } from '@nuxthub/db'
 import { count, eq } from 'drizzle-orm'
 import { defineServerAuth } from '@onmax/nuxt-better-auth/config'
 
+/** Use https for non-localhost so OAuth redirect_uri matches GCP (production expects https). */
+function normalizeBaseURL(url: string | undefined): string | undefined {
+  if (!url?.trim()) return undefined
+  try {
+    const parsed = new URL(url)
+    const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1'
+    if (!isLocalhost && parsed.protocol === 'http:') {
+      parsed.protocol = 'https:'
+      return parsed.toString().replace(/\/$/, '') // no trailing slash
+    }
+    return url.replace(/\/$/, '')
+  } catch {
+    return url.replace(/\/$/, '')
+  }
+}
+
 function parseTrustedOrigins(): string[] {
   const envList = process.env.BETTER_AUTH_TRUSTED_ORIGINS || ''
   const values = envList
@@ -11,7 +27,11 @@ function parseTrustedOrigins(): string[] {
     .filter(Boolean)
 
   const baseUrl = process.env.BETTER_AUTH_URL?.trim()
-  if (baseUrl) values.push(baseUrl)
+  if (baseUrl) {
+    values.push(baseUrl)
+    const normalized = normalizeBaseURL(baseUrl)
+    if (normalized && normalized !== baseUrl) values.push(normalized)
+  }
 
   // Keep local development working out of the box.
   values.push('http://localhost:3000', 'http://127.0.0.1:3000')
@@ -21,7 +41,9 @@ function parseTrustedOrigins(): string[] {
 
 export default defineServerAuth(({ db }) => {
   const trustedOrigins = parseTrustedOrigins()
+  const baseURL = normalizeBaseURL(process.env.BETTER_AUTH_URL?.trim())
   return {
+    baseURL: baseURL || undefined,
     trustedOrigins,
     advanced: {
       // In Docker/prod behind reverse proxies, Better Auth should honor forwarded host/proto.

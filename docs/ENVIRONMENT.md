@@ -44,6 +44,10 @@ GitHub OAuth credentials for user login. You need a **GitHub App** (not an OAuth
 
 > See the [Getting Started guide](https://github.com/vercel-labs/knowledge-agent-template/blob/main/apps/app/app/content/docs/getting-started.md#github-app-setup) for the full GitHub App setup with bot permissions.
 
+### `BETTER_AUTH_URL` (required in production for OAuth)
+
+Root URL of your app (e.g. `https://your-domain.com`). Better Auth uses this to build OAuth callback URLs. **Set this in production** or you will get `redirect_uri_mismatch` from Google (and similar issues with GitHub). Use the exact URL users see — no trailing slash. For local dev it can be unset (localhost is used by default).
+
 ### `NUXT_SESSION_PASSWORD` (optional)
 
 Session encryption password. Auto-generated if not set.
@@ -56,9 +60,9 @@ Google OAuth credentials for "Login with Google". You can use a [Firebase](https
 2. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), select the same project as your Firebase project (or create a project).
 3. Configure the **OAuth consent screen** if prompted (User type, App name, support email, Authorized domains for production).
 4. **Create credentials → OAuth client ID** → Application type: **Web application**.
-5. Under **Authorized redirect URIs** add:
+5. Under **Authorized redirect URIs** add (must match exactly; use the same value as `BETTER_AUTH_URL` + path):
    - `http://localhost:3000/api/auth/callback/google` (local)
-   - `https://<your-domain>/api/auth/callback/google` (production)
+   - `https://<your-domain>/api/auth/callback/google` (production — must equal `BETTER_AUTH_URL` + `/api/auth/callback/google`)
 6. Copy **Client ID** → `GOOGLE_CLIENT_ID` and **Client secret** → `GOOGLE_CLIENT_SECRET` in `.env`.
 
 | Variable | Description |
