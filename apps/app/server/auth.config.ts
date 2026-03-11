@@ -39,9 +39,20 @@ function parseTrustedOrigins(): string[] {
   return Array.from(new Set(values))
 }
 
+function getPublicAuthBaseURL(): string | undefined {
+  const configured = normalizeBaseURL(process.env.BETTER_AUTH_URL?.trim())
+  if (configured) return configured
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, '')
+  }
+
+  return undefined
+}
+
 export default defineServerAuth(({ db }) => {
   const trustedOrigins = parseTrustedOrigins()
-  const baseURL = normalizeBaseURL(process.env.BETTER_AUTH_URL?.trim())
+  const baseURL = getPublicAuthBaseURL()
   console.log('baseURL in defineServerAuth', baseURL)
   return {
     baseURL: baseURL || undefined,
@@ -58,6 +69,7 @@ export default defineServerAuth(({ db }) => {
       github: {
         clientId: process.env.GITHUB_CLIENT_ID || '',
         clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+        ...(baseURL ? { redirectURI: `${baseURL}/api/auth/callback/github` } : {}),
         scope: ['user:email'],
         mapProfileToUser: (profile: { name: string, login: string, avatar_url: string }) => ({
           name: profile.name || profile.login,
@@ -68,6 +80,7 @@ export default defineServerAuth(({ db }) => {
       google: {
         clientId: process.env.GOOGLE_CLIENT_ID || '',
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        ...(baseURL ? { redirectURI: `${baseURL}/api/auth/callback/google` } : {}),
       },
     },
     user: {
