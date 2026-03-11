@@ -42,6 +42,7 @@ function parseTrustedOrigins(): string[] {
 export default defineServerAuth(({ db }) => {
   const trustedOrigins = parseTrustedOrigins()
   const baseURL = normalizeBaseURL(process.env.BETTER_AUTH_URL?.trim())
+  console.log('baseURL in defineServerAuth', baseURL)
   return {
     baseURL: baseURL || undefined,
     trustedOrigins,
