@@ -10,7 +10,7 @@ import { callOptionsSchema } from '../core/schemas'
 import { sanitizeToolCallInputs } from '../core/sanitize'
 import { countConsecutiveToolSteps, shouldForceTextOnlyStep } from '../core/policy'
 import { webSearchTool } from '../tools/web-search'
-import type { AgentConfigData, AgentCallOptions, AgentExecutionContext, RoutingResult } from '../types'
+import type { AgentConfigData, AgentCallOptions, AgentExecutionContext, AskMode, RoutingResult } from '../types'
 
 export interface SourceAgentOptions {
   tools: Record<string, unknown>
@@ -23,6 +23,8 @@ export interface SourceAgentOptions {
   defaultModel?: string
   /** Restrict search to these sandbox-relative paths (e.g. docs/repo1/[commit]-abc123). When empty/omitted, search whole docs. */
   searchPaths?: string[]
+  /** Ask mode: general (default), biz, or dev. Affects response style in system prompt. */
+  askMode?: AskMode
   onRouted?: (result: RoutingResult) => void
   onStepFinish?: (stepResult: any) => void
   onFinish?: (result: any) => void
@@ -36,6 +38,7 @@ export function createSourceAgent({
   requestId,
   defaultModel = DEFAULT_MODEL,
   searchPaths,
+  askMode,
   onRouted,
   onStepFinish,
   onFinish,
@@ -72,7 +75,7 @@ export function createSourceAgent({
         searchPaths: searchPaths?.length ? searchPaths : undefined,
       }
 
-      let instructions = applyComplexity(buildChatSystemPrompt(agentConfig), routerConfig)
+      let instructions = applyComplexity(buildChatSystemPrompt(agentConfig, askMode), routerConfig)
       if (searchPaths?.length) {
         instructions += `\n\n## Search scope\nSearch only in these directories (relative to the sandbox root):\n${searchPaths.map(p => `- \`${p}\``).join('\n')}\nUse these paths in your grep/find/cat commands (e.g. \`grep -rl "keyword" ${searchPaths[0]}/ --include="*.md" | head -5\`).`
       }

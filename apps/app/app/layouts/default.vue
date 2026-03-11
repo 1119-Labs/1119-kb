@@ -39,6 +39,7 @@ const chats = computed<UIChat[] | undefined>(() => chatsResponse.value?.map(chat
   to: `/chat/${chat.id}`,
   icon: chat.mode === 'admin' ? 'i-custom-shield' : 'i-custom-chat',
   mode: chat.mode,
+  askMode: chat.askMode ?? 'general',
   createdAt: String(chat.createdAt),
   isPublic: chat.isPublic,
   shareToken: chat.shareToken
@@ -426,6 +427,7 @@ defineShortcuts({
                           <UIcon v-if="chat.mode === 'admin'" name="i-custom-shield" class="size-4 shrink-0" />
                           <TextScramble v-if="chat.generating" />
                           <span v-else class="truncate">{{ chat.label }}</span>
+                          <span v-if="chat.mode === 'chat' && chat.askMode && chat.askMode !== 'general'" class="shrink-0 text-[10px] text-muted">({{ chat.askMode === 'biz' ? 'Biz' : 'Dev' }})</span>
                         </NuxtLink>
                         <div class="shrink-0 flex items-center gap-0.5 text-muted hover:text-highlighted" @click.stop>
                           <UButton

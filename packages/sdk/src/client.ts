@@ -61,6 +61,12 @@ export class SavoirClient {
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('[savoir-sdk:http:get] request failed', {
+          path,
+          statusCode: response.status,
+          message: data?.message || 'Unknown error',
+          error: data?.error,
+        })
         throw new SavoirError({
           statusCode: response.status,
           message: data.message || 'Unknown error',
@@ -71,9 +77,21 @@ export class SavoirClient {
       return data as T
     } catch (error) {
       if (error instanceof SavoirError) {
+        console.error('[savoir-sdk:http:get] savoir error', {
+          path,
+          statusCode: error.statusCode,
+          message: error.message,
+          error: error.error,
+        })
         throw error
       }
 
+      console.error('[savoir-sdk:http:get] network error', {
+        url,
+        path,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        cause: error instanceof Error ? String(error.cause) : undefined,
+      })
       throw new NetworkError(
         `Failed to connect to Savoir API: ${error instanceof Error ? error.message : 'Unknown error'}`,
         error instanceof Error ? error : undefined,
@@ -109,6 +127,12 @@ export class SavoirClient {
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('[savoir-sdk:http:post] request failed', {
+          path,
+          statusCode: response.status,
+          message: data?.message || 'Unknown error',
+          error: data?.error,
+        })
         throw new SavoirError({
           statusCode: response.status,
           message: data.message || 'Unknown error',
@@ -123,9 +147,21 @@ export class SavoirClient {
       return data as T
     } catch (error) {
       if (error instanceof SavoirError) {
+        console.error('[savoir-sdk:http:post] savoir error', {
+          path,
+          statusCode: error.statusCode,
+          message: error.message,
+          error: error.error,
+        })
         throw error
       }
 
+      console.error('[savoir-sdk:http:post] network error', {
+        url,
+        path,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        cause: error instanceof Error ? String(error.cause) : undefined,
+      })
       throw new NetworkError(
         `Failed to connect to Savoir API: ${error instanceof Error ? error.message : 'Unknown error'}`,
         error instanceof Error ? error : undefined,

@@ -1,5 +1,22 @@
-import type { AgentConfigData } from '../types'
+import type { AgentConfigData, AskMode } from '../types'
 import { applyAgentConfig, applyTemporalContext } from './shared'
+
+const ASK_MODE_PROMPTS: Record<Exclude<AskMode, 'general'>, string> = {
+  biz: `
+## Ask Mode: Business
+
+- Prefer clear prose and bullet points over raw technical detail.
+- For flows, architecture, or processes, use Mermaid diagrams in fenced code blocks (\`\`\`mermaid) or structured lists.
+- Avoid jargon; explain in business-friendly terms. If technical terms are needed, briefly define them.
+- Lead with the "so what" and outcomes; support with evidence from the docs.`,
+  dev: `
+## Ask Mode: Developer
+
+- Prefer code snippets, config examples, and commands from the docs. Show code in fenced blocks.
+- Use technical terminology (APIs, endpoints, config, SDK, etc.) appropriate for developers.
+- Structure answers for implementation: steps, code, then short explanation.
+- When the docs contain examples, include them; cite the source file path.`,
+}
 
 export function buildAdminSystemPrompt(appName = 'Knowledge Agent Template'): string {
   return `You are an admin assistant for the ${appName} application. You help administrators understand app usage, monitor performance, manage users, and debug issues.
@@ -135,6 +152,10 @@ You have access to \`web_search\` only for information that is **not** in the sa
 - Cite the source file path
 `
 
-export function buildChatSystemPrompt(agentConfigData: AgentConfigData): string {
-  return applyAgentConfig(applyTemporalContext(BASE_SYSTEM_PROMPT), agentConfigData)
+export function buildChatSystemPrompt(agentConfigData: AgentConfigData, askMode?: AskMode): string {
+  let prompt = applyAgentConfig(applyTemporalContext(BASE_SYSTEM_PROMPT), agentConfigData)
+  if (askMode && askMode !== 'general' && ASK_MODE_PROMPTS[askMode]) {
+    prompt += ASK_MODE_PROMPTS[askMode]
+  }
+  return prompt
 }

@@ -27,8 +27,11 @@ export async function runSearchKnowledge(
   const apiKey = config.openrouter?.apiKey || process.env.OPENROUTER_API_KEY
   const requestId = crypto.randomUUID().slice(0, 8)
 
+  const requestUrl = getRequestURL(event)
+  const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`
   const internalApiUrl =
     process.env.SAVOIR_INTERNAL_API_URL ||
+    requestOrigin ||
     `http://127.0.0.1:${process.env.NITRO_PORT || '3000'}`
 
   const cookie = getHeader(event, 'cookie')

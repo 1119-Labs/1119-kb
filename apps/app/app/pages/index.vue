@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { AskMode } from '#shared/types/chat'
+
 definePageMeta({ auth: 'user' })
 
 useSeoMeta({ title: 'New chat' })
@@ -9,6 +11,13 @@ const chatId = crypto.randomUUID()
 
 const { model } = useModels()
 const { mode } = useChatMode()
+const askMode = ref<AskMode>('general')
+
+const askModeOptions: { value: AskMode, label: string }[] = [
+  { value: 'general', label: 'General' },
+  { value: 'biz', label: 'Biz Mode' },
+  { value: 'dev', label: 'Dev Mode' },
+]
 
 const {
   dropzoneRef,
@@ -65,6 +74,7 @@ async function createChat(prompt: string) {
     body: {
       id: chatId,
       mode: mode.value,
+      askMode: mode.value === 'chat' ? askMode.value : undefined,
       message: {
         role: 'user',
         parts
@@ -204,6 +214,21 @@ const quickChats = computed(() => mode.value === 'admin' ? adminQuickChats : cha
                   </div>
                 </template>
               </UCollapsible>
+            </div>
+            <div v-if="mode === 'chat'" class="flex items-center gap-1 mb-1">
+              <span class="text-xs text-muted mr-1">Ask:</span>
+              <USelectMenu
+                v-model="askMode"
+                :items="askModeOptions"
+                value-key="value"
+                size="xs"
+                variant="ghost"
+                class="min-w-28"
+              >
+                <template #leading>
+                  <UIcon :name="askMode === 'biz' ? 'i-lucide-briefcase' : askMode === 'dev' ? 'i-lucide-code' : 'i-lucide-message-circle'" class="size-3.5" />
+                </template>
+              </USelectMenu>
             </div>
             <div class="flex items-center gap-1">
               <FileUploadButton @files-selected="addFiles($event)" />

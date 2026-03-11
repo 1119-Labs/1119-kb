@@ -48,6 +48,24 @@ GitHub OAuth credentials for user login. You need a **GitHub App** (not an OAuth
 
 Session encryption password. Auto-generated if not set.
 
+### Google (optional)
+
+Google OAuth credentials for "Login with Google". You can use a [Firebase](https://console.firebase.google.com/) project (Firebase projects are Google Cloud projects) or create credentials directly in [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
+1. **Firebase (optional):** In [Firebase Console](https://console.firebase.google.com/) → your project → **Build → Authentication → Sign-in method** → enable **Google**. This does not give you a client secret; create the OAuth client in Google Cloud (same project) as below.
+2. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), select the same project as your Firebase project (or create a project).
+3. Configure the **OAuth consent screen** if prompted (User type, App name, support email, Authorized domains for production).
+4. **Create credentials → OAuth client ID** → Application type: **Web application**.
+5. Under **Authorized redirect URIs** add:
+   - `http://localhost:3000/api/auth/callback/google` (local)
+   - `https://<your-domain>/api/auth/callback/google` (production)
+6. Copy **Client ID** → `GOOGLE_CLIENT_ID` and **Client secret** → `GOOGLE_CLIENT_SECRET` in `.env`.
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | OAuth 2.0 Web client ID from Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 Web client secret from the same client |
+
 ## AI
 
 ### `OPENROUTER_API_KEY` (required)

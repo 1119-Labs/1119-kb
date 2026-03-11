@@ -2,6 +2,7 @@ import type { UIMessage } from 'ai'
 import type { DbChat, DbMessage } from '#shared/types/db'
 
 export type ChatMode = DbChat['mode']
+export type AskMode = DbChat['askMode']
 
 export interface UIChat {
   id: string
@@ -9,6 +10,7 @@ export interface UIChat {
   generating?: boolean
   icon: string
   mode: ChatMode
+  askMode: AskMode
   createdAt: string
   to: string
   isPublic: boolean
@@ -20,6 +22,7 @@ export type GetChatsResponse = DbChat[]
 export interface CreateChatBody {
   id: string
   mode?: ChatMode
+  askMode?: AskMode
   message: UIMessage
 }
 

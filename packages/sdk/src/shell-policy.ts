@@ -112,6 +112,59 @@ export type ShellValidationResult =
   | { ok: true }
   | { ok: false, reason: string }
 
+function splitCommandSegments(command: string): string[] {
+  const segments: string[] = []
+  let current = ''
+  let inSingleQuote = false
+  let inDoubleQuote = false
+
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i]
+    const next = command[i + 1]
+
+    if (ch === '\'' && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote
+      current += ch
+      continue
+    }
+    if (ch === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote
+      current += ch
+      continue
+    }
+
+    if (!inSingleQuote && !inDoubleQuote) {
+      if (ch === ';') {
+        if (current.trim()) segments.push(current.trim())
+        current = ''
+        continue
+      }
+      if (ch === '|' && next === '|') {
+        if (current.trim()) segments.push(current.trim())
+        current = ''
+        i++
+        continue
+      }
+      if (ch === '&' && next === '&') {
+        if (current.trim()) segments.push(current.trim())
+        current = ''
+        i++
+        continue
+      }
+      if (ch === '|') {
+        if (current.trim()) segments.push(current.trim())
+        current = ''
+        continue
+      }
+    }
+
+    current += ch
+  }
+
+  if (current.trim()) segments.push(current.trim())
+  return segments
+}
+
 function extractPotentialPathTokens(command: string): string[] {
   const tokenRegex = /(?:^|\s)(\/[^\s|;&]+|\.{1,2}\/[^\s|;&]+)/g
   const tokens: string[] = []
@@ -160,7 +213,7 @@ export function validateShellCommand(
     }
   }
 
-  const segments = command.split(/\s*(?:\|(?!\|)|\|\||&&|;)\s*/)
+  const segments = splitCommandSegments(command)
   for (const segment of segments) {
     const trimmed = segment.trim()
     if (!trimmed) continue

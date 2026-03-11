@@ -7,6 +7,7 @@ import { checkRateLimit, incrementRateLimit } from '../utils/rate-limit'
 const bodySchema = z.object({
   id: z.string(),
   mode: z.enum(['chat', 'admin']).default('chat'),
+  askMode: z.enum(['general', 'biz', 'dev']).optional().default('general'),
   message: z.custom<UIMessage>()
 })
 
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const requestLog = useLogger(event)
   const { user } = await requireUserSession(event)
   const body: CreateChatBody = await readValidatedBody(event, bodySchema.parse)
-  const { id, message } = body
+  const { id, message, askMode } = body
   const mode = body.mode ?? 'chat'
 
   requestLog.set({ userId: user.id, chatId: id, mode })
@@ -34,6 +35,7 @@ export default defineEventHandler(async (event) => {
     id,
     title: '',
     mode,
+    askMode: mode === 'chat' ? (askMode ?? 'general') : 'general',
     userId: user.id
   }).returning()
 

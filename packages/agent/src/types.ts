@@ -2,6 +2,8 @@ import type { z } from 'zod'
 import type { AgentConfig } from './router/schema'
 import type { callOptionsSchema } from './core/schemas'
 
+export type AskMode = 'general' | 'biz' | 'dev'
+
 export interface AgentConfigData {
   id: string
   name: string

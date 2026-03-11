@@ -11,6 +11,7 @@ export const chats = pgTable('chats', {
   title: text('title'),
   userId: text('user_id').notNull(),
   mode: text('mode', { enum: ['chat', 'admin'] }).notNull().default('chat'),
+  askMode: text('ask_mode', { enum: ['general', 'biz', 'dev'] }).notNull().default('general'),
   isPublic: boolean('is_public').notNull().default(false),
   shareToken: text('share_token'),
   ...timestamps

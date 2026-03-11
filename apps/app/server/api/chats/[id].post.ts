@@ -106,10 +106,14 @@ export default defineEventHandler(async (event) => {
     if (authorization) forwardedHeaders.authorization = authorization
     if (xApiKey) forwardedHeaders['x-api-key'] = xApiKey
 
-    // Use an internal loopback URL for server-to-server calls.
-    // In Docker, request origin can be the mapped host port (e.g. :9006),
-    // which is not reachable from inside the container.
+    // Resolve API URL for server-to-server calls with a safe fallback order:
+    // 1) explicit SAVOIR_INTERNAL_API_URL
+    // 2) current request origin (works for local/proxy setups)
+    // 3) loopback with NITRO_PORT
+    const requestUrl = getRequestURL(event)
+    const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`
     const internalApiUrl = process.env.SAVOIR_INTERNAL_API_URL
+      || requestOrigin
       || `http://127.0.0.1:${process.env.NITRO_PORT || '3000'}`
 
     const savoir = createSavoir({
@@ -117,8 +121,10 @@ export default defineEventHandler(async (event) => {
       headers: Object.keys(forwardedHeaders).length > 0 ? forwardedHeaders : undefined,
       sessionId: existingSessionId || undefined,
     })
+    log.info('chat', `[${requestId}] Chat context: mode=${chat.mode}, askMode=${chat.askMode ?? 'general'}, sourceVersions=${sourceVersions ? Object.keys(sourceVersions).length : 0}`)
+    log.info('chat', `[${requestId}] Savoir API config: url=${internalApiUrl}, requestOrigin=${requestOrigin}, hasCookie=${Boolean(cookie)}, hasAuthorization=${Boolean(authorization)}, hasApiKeyHeader=${Boolean(xApiKey)}`)
 
-    const onStepFinish = (stepResult: { usage?: { inputTokens?: number; outputTokens?: number }; toolCalls?: { toolName: string }[] }) => {
+    const onStepFinish = (stepResult: { usage?: { inputTokens?: number; outputTokens?: number }; toolCalls?: { toolName: string }[]; toolResults?: Array<{ toolName?: string; result?: unknown }> }) => {
       const stepDurationMs = Date.now() - stepStartTime
       stepDurations.push(stepDurationMs)
       stepCount++
@@ -132,6 +138,14 @@ export default defineEventHandler(async (event) => {
         toolCallCount += stepResult.toolCalls.length
         const tools = stepResult.toolCalls.map(c => c.toolName).join(', ')
         log.info('chat', `[${requestId}] Step ${stepCount}: ${tools} (${stepDurationMs}ms)`)
+        if (stepResult.toolResults?.length) {
+          const toolResultPreview = stepResult.toolResults.map((tr) => {
+            const raw = JSON.stringify(tr.result)
+            const preview = raw && raw.length > 500 ? `${raw.slice(0, 500)}...(truncated)` : raw
+            return { toolName: tr.toolName, resultPreview: preview }
+          })
+          log.info('chat', `[${requestId}] Step ${stepCount} toolResults: ${JSON.stringify(toolResultPreview)}`)
+        }
       } else {
         log.info('chat', `[${requestId}] Step ${stepCount}: response (${stepDurationMs}ms)`)
       }
@@ -188,6 +202,7 @@ export default defineEventHandler(async (event) => {
         searchPaths.push(`${base}/${out}/${selected}`)
       }
     }
+    log.info('chat', `[${requestId}] Search paths: ${searchPaths?.length ? searchPaths.join(', ') : '(all docs)'}`)
 
     const agent = isAdminChat
       ? createAdminAgent({
@@ -204,6 +219,7 @@ export default defineEventHandler(async (event) => {
         requestId,
         apiKey,
         searchPaths: searchPaths?.length ? searchPaths : undefined,
+        askMode: chat.askMode ?? 'general',
         onRouted: ({ routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }) => {
           effectiveModel = routedModel
           routingResult = { routerConfig, agentConfig, effectiveModel: routedModel, effectiveMaxSteps }

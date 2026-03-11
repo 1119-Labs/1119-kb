@@ -22,6 +22,10 @@ Use standard Unix commands to explore and read files.`,
         allowedBaseDirectory: '/vercel/sandbox',
       })
       if (!validation.ok) {
+        console.warn('[savoir-sdk:bash] validation failed', {
+          reason: validation.reason,
+          commandPreview: command.slice(0, 160),
+        })
         yield {
           status: 'done' as const,
           success: false,
@@ -37,6 +41,14 @@ Use standard Unix commands to explore and read files.`,
       const result = await client.bash(command)
       const durationMs = Date.now() - start
       const success = result.exitCode === 0
+      if (!success || result.stderr) {
+        console.warn('[savoir-sdk:bash] command returned non-clean result', {
+          commandPreview: command.slice(0, 160),
+          exitCode: result.exitCode,
+          stderrPreview: result.stderr?.slice(0, 300),
+          stdoutPreview: result.stdout?.slice(0, 300),
+        })
+      }
 
       yield {
         status: 'done' as const,
@@ -80,6 +92,10 @@ Maximum 10 commands per batch.`,
           allowedBaseDirectory: '/vercel/sandbox',
         })
         if (!validation.ok) {
+          console.warn('[savoir-sdk:bash_batch] validation failed', {
+            reason: validation.reason,
+            commandPreview: command.slice(0, 160),
+          })
           const errorResult = { command, stdout: '', stderr: validation.reason, exitCode: 1, success: false }
           yield {
             status: 'done' as const,
@@ -102,6 +118,15 @@ Maximum 10 commands per batch.`,
         exitCode: r.exitCode,
         success: r.exitCode === 0,
       }))
+      const failedCommands = commandResults.filter(r => !r.success || !!r.stderr)
+      if (failedCommands.length > 0) {
+        console.warn('[savoir-sdk:bash_batch] command failures/warnings', failedCommands.map(r => ({
+          commandPreview: r.command.slice(0, 160),
+          exitCode: r.exitCode,
+          stderrPreview: r.stderr?.slice(0, 300),
+          stdoutPreview: r.stdout?.slice(0, 200),
+        })))
+      }
 
       yield {
         status: 'done' as const,

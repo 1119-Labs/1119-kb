@@ -2,8 +2,10 @@
 import { z } from 'zod'
 
 const appConfig = useAppConfig()
-const { data: loginProviders } = await useFetch<{ github: boolean }>('/api/login-providers')
+const { data: loginProviders } = await useFetch<{ github: boolean; google: boolean }>('/api/login-providers')
 const githubLoginEnabled = computed(() => loginProviders.value?.github ?? false)
+const googleLoginEnabled = computed(() => loginProviders.value?.google ?? false)
+const socialLoginEnabled = computed(() => githubLoginEnabled.value || googleLoginEnabled.value)
 
 definePageMeta({ layout: false, auth: 'guest' })
 
@@ -55,6 +57,17 @@ async function onGitHubSignIn() {
     await signIn.social({ provider: 'github', callbackURL: '/' })
   } catch (e: any) {
     error.value = e?.data?.message || e?.message || 'GitHub login failed. Please try again.'
+    loading.value = false
+  }
+}
+
+async function onGoogleSignIn() {
+  loading.value = true
+  error.value = ''
+  try {
+    await signIn.social({ provider: 'google', callbackURL: '/' })
+  } catch (e: any) {
+    error.value = e?.data?.message || e?.message || 'Google login failed. Please try again.'
     loading.value = false
   }
 }
@@ -150,7 +163,7 @@ async function onSubmit() {
           />
         </UForm>
 
-        <div v-if="githubLoginEnabled" class="relative my-5">
+        <div v-if="socialLoginEnabled" class="relative my-5">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-default" />
           </div>
@@ -169,6 +182,18 @@ async function onSubmit() {
           size="lg"
           :loading
           @click="onGitHubSignIn"
+        />
+
+        <UButton
+          v-if="googleLoginEnabled"
+          label="Login with Google"
+          icon="i-simple-icons-google"
+          color="neutral"
+          variant="soft"
+          block
+          size="lg"
+          :loading
+          @click="onGoogleSignIn"
         />
 
         <p class="mt-6 text-center text-sm text-muted">
