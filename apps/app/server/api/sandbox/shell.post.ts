@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { useLogger } from 'evlog'
+import type { H3Event } from 'h3'
 import { validateShellCommand } from '@savoir/sdk'
 import { getOrCreateSandbox } from '../../utils/sandbox/manager'
 
@@ -42,8 +43,17 @@ interface CommandResult {
   execMs: number
 }
 
+function hasTrustedInternalToken(event: H3Event): boolean {
+  const configuredToken = process.env.BETTER_AUTH_SECRET?.trim()
+  if (!configuredToken) return false
+  const incomingToken = getHeader(event, 'x-savoir-internal-token')?.trim()
+  return Boolean(incomingToken && incomingToken === configuredToken)
+}
+
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
+  if (!hasTrustedInternalToken(event)) {
+    await requireUserSession(event)
+  }
   const requestLog = useLogger(event)
   const body = await readValidatedBody(event, bodySchema.parse)
 

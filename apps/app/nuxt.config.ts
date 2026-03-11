@@ -149,6 +149,19 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Prevent stale HTML from being cached by proxies/CDNs.
+    // Stale HTML can reference old hashed /_nuxt chunks after deploy, causing 404s.
+    '/**': {
+      headers: {
+        'cache-control': 'no-store',
+      },
+    },
+    // Keep build assets aggressively cached; filenames are content-hashed.
+    '/_nuxt/**': {
+      headers: {
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
+    },
     '/shared/**': { isr: { expiration: 300 } },
     '/api/auth/**': { isr: false, cache: false },
     '/api/chats/**': { isr: false, cache: false },

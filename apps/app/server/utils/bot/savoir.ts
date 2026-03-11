@@ -49,6 +49,7 @@ function truncateOutput(output: string): string {
 interface InternalSavoirConfig {
   source?: string
   sourceId?: string
+  sessionId?: string
 }
 
 export interface InternalSavoir {
@@ -56,13 +57,12 @@ export interface InternalSavoir {
     bash: ReturnType<typeof createInternalBashTool>
     bash_batch: ReturnType<typeof createInternalBashBatchTool>
   }
+  getSessionId: () => string | undefined
   getAgentConfig: () => Promise<AgentConfigData>
   reportUsage: (result: GenerateResult, options?: ReportUsageOptions) => Promise<void>
 }
 
-function createInternalBashTool() {
-  let sessionId: string | undefined
-
+function createInternalBashTool(sessionState: { sessionId?: string }) {
   return tool({
     description: `Execute a bash command in the documentation sandbox.
 Use standard Unix commands to explore and read files.`,
@@ -75,8 +75,8 @@ Use standard Unix commands to explore and read files.`,
 
       validateCommand(command)
 
-      const active = await getOrCreateSandbox(sessionId)
-      ;({ sessionId } = active)
+      const active = await getOrCreateSandbox(sessionState.sessionId)
+      ;({ sessionId: sessionState.sessionId } = active)
 
       const result = await active.sandbox.runCommand({
         cmd: 'bash',
@@ -102,9 +102,7 @@ Use standard Unix commands to explore and read files.`,
   })
 }
 
-function createInternalBashBatchTool() {
-  let sessionId: string | undefined
-
+function createInternalBashBatchTool(sessionState: { sessionId?: string }) {
   return tool({
     description: `Execute multiple bash commands in the documentation sandbox in a single request.
 More efficient than multiple single bash calls — use this as your primary tool.
@@ -119,8 +117,8 @@ Maximum 10 commands per batch.`,
 
       for (const cmd of commands) validateCommand(cmd)
 
-      const active = await getOrCreateSandbox(sessionId)
-      ;({ sessionId } = active)
+      const active = await getOrCreateSandbox(sessionState.sessionId)
+      ;({ sessionId: sessionState.sessionId } = active)
 
       const results = []
       for (const command of commands) {
@@ -172,13 +170,15 @@ async function reportUsageInternal(
 }
 
 export function createInternalSavoir(config: InternalSavoirConfig = {}): InternalSavoir {
-  const { source, sourceId } = config
+  const { source, sourceId, sessionId } = config
+  const sessionState: { sessionId?: string } = { sessionId }
 
   return {
     tools: {
-      bash: createInternalBashTool(),
-      bash_batch: createInternalBashBatchTool(),
+      bash: createInternalBashTool(sessionState),
+      bash_batch: createInternalBashBatchTool(sessionState),
     },
+    getSessionId: () => sessionState.sessionId,
     getAgentConfig,
     reportUsage: (result, options) => reportUsageInternal(source || 'bot', sourceId, result, options),
   }

@@ -3,7 +3,6 @@ import { z } from 'zod'
 import { db, schema } from '@nuxthub/db'
 import { kv } from '@nuxthub/kv'
 import { and, desc, eq } from 'drizzle-orm'
-import { createSavoir } from '@savoir/sdk'
 import { log, useLogger } from 'evlog'
 import { createSourceAgent, createAdminAgent } from '@savoir/agent'
 import type { RoutingResult } from '@savoir/agent'
@@ -12,6 +11,7 @@ import { getAgentConfig } from '../../utils/agent-config'
 import { KV_KEYS } from '../../utils/sandbox/types'
 import { adminTools } from '../../utils/chat/admin-tools'
 import { checkRateLimit, incrementRateLimit } from '../../utils/rate-limit'
+import { createInternalSavoir } from '../../utils/bot/savoir'
 
 defineRouteMeta({
   openAPI: {
@@ -98,31 +98,12 @@ export default defineEventHandler(async (event) => {
       log.info('chat', `[${requestId}] Found active sandbox session ${existingSessionId}`)
     }
 
-    const cookie = getHeader(event, 'cookie')
-    const authorization = getHeader(event, 'authorization')
-    const xApiKey = getHeader(event, 'x-api-key')
-    const forwardedHeaders: Record<string, string> = {}
-    if (cookie) forwardedHeaders.cookie = cookie
-    if (authorization) forwardedHeaders.authorization = authorization
-    if (xApiKey) forwardedHeaders['x-api-key'] = xApiKey
-
-    // Resolve API URL for server-to-server calls with a safe fallback order:
-    // 1) explicit SAVOIR_INTERNAL_API_URL
-    // 2) current request origin (works for local/proxy setups)
-    // 3) loopback with NITRO_PORT
-    const requestUrl = getRequestURL(event)
-    const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`
-    const internalApiUrl = process.env.SAVOIR_INTERNAL_API_URL
-      || requestOrigin
-      || `http://127.0.0.1:${process.env.NITRO_PORT || '3000'}`
-
-    const savoir = createSavoir({
-      apiUrl: internalApiUrl,
-      headers: Object.keys(forwardedHeaders).length > 0 ? forwardedHeaders : undefined,
+    const savoir = createInternalSavoir({
+      source: 'chat',
+      sourceId: chat.id,
       sessionId: existingSessionId || undefined,
     })
     log.info('chat', `[${requestId}] Chat context: mode=${chat.mode}, askMode=${chat.askMode ?? 'general'}, sourceVersions=${sourceVersions ? Object.keys(sourceVersions).length : 0}`)
-    log.info('chat', `[${requestId}] Savoir API config: url=${internalApiUrl}, requestOrigin=${requestOrigin}, hasCookie=${Boolean(cookie)}, hasAuthorization=${Boolean(authorization)}, hasApiKeyHeader=${Boolean(xApiKey)}`)
 
     const onStepFinish = (stepResult: { usage?: { inputTokens?: number; outputTokens?: number }; toolCalls?: { toolName: string }[]; toolResults?: Array<{ toolName?: string; result?: unknown }> }) => {
       const stepDurationMs = Date.now() - stepStartTime

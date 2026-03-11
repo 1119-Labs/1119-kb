@@ -13,6 +13,21 @@ import type {
 } from './types'
 import { NetworkError, SavoirError } from './errors'
 
+function normalizeApiUrl(url: string): string {
+  const trimmed = url.trim().replace(/\/$/, '')
+  try {
+    const parsed = new URL(trimmed)
+    const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1'
+    if (!isLocalhost && parsed.protocol === 'http:') {
+      parsed.protocol = 'https:'
+      return parsed.toString().replace(/\/$/, '')
+    }
+    return trimmed
+  } catch {
+    return trimmed
+  }
+}
+
 /** Low-level HTTP client for the Savoir API. Use `createSavoir()` for the high-level interface with AI SDK tools. */
 export class SavoirClient {
 
@@ -31,7 +46,7 @@ export class SavoirClient {
       )
     }
 
-    this.apiUrl = config.apiUrl.replace(/\/$/, '')
+    this.apiUrl = normalizeApiUrl(config.apiUrl)
     this.apiKey = config.apiKey
     this.extraHeaders = config.headers ?? {}
     this.sessionId = config.sessionId

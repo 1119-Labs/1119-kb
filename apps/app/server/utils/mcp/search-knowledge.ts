@@ -2,11 +2,11 @@ import { convertToModelMessages, createUIMessageStream, type UIMessage } from 'a
 import { kv } from '@nuxthub/kv'
 import { db, schema } from '@nuxthub/db'
 import { desc } from 'drizzle-orm'
-import { createSavoir } from '@savoir/sdk'
 import { createSourceAgent, DEFAULT_MODEL } from '@savoir/agent'
 import type { H3Event } from 'h3'
 import { getAgentConfig } from '../agent-config'
 import { KV_KEYS } from '../sandbox/types'
+import { createInternalSavoir } from '../bot/savoir'
 
 export interface SearchKnowledgeResult {
   answer: string
@@ -27,25 +27,10 @@ export async function runSearchKnowledge(
   const apiKey = config.openrouter?.apiKey || process.env.OPENROUTER_API_KEY
   const requestId = crypto.randomUUID().slice(0, 8)
 
-  const requestUrl = getRequestURL(event)
-  const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`
-  const internalApiUrl =
-    process.env.SAVOIR_INTERNAL_API_URL ||
-    requestOrigin ||
-    `http://127.0.0.1:${process.env.NITRO_PORT || '3000'}`
-
-  const cookie = getHeader(event, 'cookie')
-  const authorization = getHeader(event, 'authorization')
-  const xApiKey = getHeader(event, 'x-api-key')
-  const forwardedHeaders: Record<string, string> = {}
-  if (cookie) forwardedHeaders.cookie = cookie
-  if (authorization) forwardedHeaders.authorization = authorization
-  if (xApiKey) forwardedHeaders['x-api-key'] = xApiKey
-
   const existingSessionId = await kv.get<string>(KV_KEYS.ACTIVE_SANDBOX_SESSION)
-  const savoir = createSavoir({
-    apiUrl: internalApiUrl,
-    headers: Object.keys(forwardedHeaders).length > 0 ? forwardedHeaders : undefined,
+  const savoir = createInternalSavoir({
+    source: 'mcp_search',
+    sourceId: requestId,
     sessionId: existingSessionId || undefined,
   })
 
