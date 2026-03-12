@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
 import { LazyModalConfirm } from '#components'
 
 useSeoMeta({ title: 'Logs - Admin' })
@@ -41,6 +42,80 @@ const normalizedLevels = computed(() => {
 })
 
 const errorCount = computed(() => normalizedLevels.value.find(l => l.level === 'error')?.count ?? 0)
+
+// ─── Log entries table (server-side pagination) ───────────────────────────────
+
+type LogEntry = {
+  id: string
+  timestamp: string
+  level: string | null
+  method: string | null
+  path: string | null
+  status: number | null
+  durationMs: number | null
+  requestId: string | null
+  error: unknown
+}
+
+type LogListResponse = { entries: LogEntry[], totalCount: number }
+
+const logLevel = ref<'all' | 'error' | 'warn' | 'info' | 'debug'>('all')
+const logPage = ref(1)
+const logPageSize = ref(20)
+
+const logsListUrl = computed(() => {
+  const params = new URLSearchParams()
+  params.set('page', String(logPage.value))
+  params.set('pageSize', String(logPageSize.value))
+  if (logLevel.value !== 'all') params.set('level', logLevel.value)
+  return `/api/admin/logs?${params.toString()}`
+})
+
+const { data: logsListData, refresh: refreshLogsList, status: logsListStatus } = useLazyFetch<LogListResponse>(logsListUrl)
+
+const logEntries = computed(() => logsListData.value?.entries ?? [])
+const logTotalCount = computed(() => logsListData.value?.totalCount ?? 0)
+
+function setLogLevel(level: 'all' | 'error' | 'warn' | 'info' | 'debug') {
+  logLevel.value = level
+  logPage.value = 1
+}
+
+function formatLogTimestamp(ts: string | null): string {
+  if (!ts) return '—'
+  return new Date(ts).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' })
+}
+
+function formatErrorPreview(error: unknown, maxLen = 80): string {
+  if (error == null) return '—'
+  const str = typeof error === 'object' ? JSON.stringify(error) : String(error)
+  return str.length > maxLen ? `${str.slice(0, maxLen)}…` : str
+}
+
+function formatErrorDetail(error: unknown): string {
+  if (error == null) return 'null'
+  if (typeof error === 'object') return JSON.stringify(error, null, 2)
+  return String(error)
+}
+
+const detailModalOpen = ref(false)
+const selectedLogEntry = ref<LogEntry | null>(null)
+
+function openDetailModal(entry: LogEntry) {
+  selectedLogEntry.value = entry
+  detailModalOpen.value = true
+}
+
+const logTableColumns: TableColumn<LogEntry>[] = [
+  { accessorKey: 'timestamp', header: 'Time', meta: { class: { th: 'w-36' } } },
+  { accessorKey: 'level', header: 'Level', meta: { class: { th: 'w-20' } } },
+  { accessorKey: 'method', header: 'Method', meta: { class: { th: 'w-18' } } },
+  { accessorKey: 'path', header: 'Path', meta: { class: { th: 'min-w-32' } } },
+  { accessorKey: 'status', header: 'Status', meta: { class: { th: 'w-16 text-right', td: 'text-right' } } },
+  { accessorKey: 'durationMs', header: 'Duration', meta: { class: { th: 'w-20 text-right', td: 'text-right' } } },
+  { accessorKey: 'error', header: 'Error', meta: { class: { th: 'min-w-40 max-w-md' } } },
+  { accessorKey: 'actions', header: '', meta: { class: { th: 'w-20' } } },
+]
 
 // ─── Time unit toggle ────────────────────────────────────────────────────────
 
@@ -183,6 +258,7 @@ async function deleteLogs() {
     toast.add({ title: `${result.deletedCount.toLocaleString()} logs deleted`, icon: 'i-lucide-check' })
     resetSelection()
     await refresh()
+    await refreshLogsList()
   } catch (e) {
     showError(e, { fallback: 'Failed to delete logs' })
   } finally {
@@ -226,7 +302,7 @@ async function investigateErrors() {
 </script>
 
 <template>
-  <div class="px-6 py-8 max-w-2xl mx-auto w-full">
+  <div class="px-6 py-8 w-full max-w-full">
     <header class="mb-8">
       <h1 class="text-lg font-medium text-highlighted mb-1 font-pixel tracking-wide">
         Logs
@@ -325,6 +401,98 @@ async function investigateErrors() {
               </div>
             </div>
           </template>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-[10px] text-muted uppercase tracking-wide mb-3 font-pixel">
+          Log entries
+        </h2>
+        <div class="rounded-lg border border-default p-4 space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-sm text-muted shrink-0">Level:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <UButton
+                label="All"
+                size="xs"
+                :color="logLevel === 'all' ? 'primary' : 'neutral'"
+                :variant="logLevel === 'all' ? 'solid' : 'ghost'"
+                @click="setLogLevel('all')"
+              />
+              <UButton
+                v-for="level in ALL_LEVELS"
+                :key="level"
+                :label="level"
+                size="xs"
+                :color="logLevel === level ? 'primary' : 'neutral'"
+                :variant="logLevel === level ? 'solid' : 'ghost'"
+                class="capitalize"
+                @click="setLogLevel(level)"
+              />
+            </div>
+          </div>
+          <UTable
+            :data="logEntries"
+            :columns="logTableColumns"
+            :loading="logsListStatus === 'pending' && !logsListData"
+          >
+            <template #timestamp-cell="{ row }">
+              <span class="text-muted text-xs">{{ formatLogTimestamp(row.original.timestamp) }}</span>
+            </template>
+            <template #level-cell="{ row }">
+              <div class="flex items-center gap-1.5">
+                <UIcon
+                  :name="levelIcons[row.original.level ?? ''] ?? 'i-lucide-circle'"
+                  :class="[levelColors[row.original.level ?? ''] ?? 'text-muted', 'size-3']"
+                />
+                <span class="text-xs capitalize">{{ row.original.level ?? '—' }}</span>
+              </div>
+            </template>
+            <template #method-cell="{ row }">
+              <span class="text-muted text-xs font-mono">{{ row.original.method ?? '—' }}</span>
+            </template>
+            <template #path-cell="{ row }">
+              <span class="text-xs truncate max-w-[200px] block" :title="row.original.path ?? ''">{{ row.original.path ?? '—' }}</span>
+            </template>
+            <template #status-cell="{ row }">
+              <span class="text-muted text-xs tabular-nums">{{ row.original.status ?? '—' }}</span>
+            </template>
+            <template #durationMs-cell="{ row }">
+              <span class="text-muted text-xs tabular-nums">{{ row.original.durationMs != null ? `${row.original.durationMs} ms` : '—' }}</span>
+            </template>
+            <template #error-cell="{ row }">
+              <span class="text-xs text-muted truncate max-w-[240px] block" :title="formatErrorPreview(row.original.error, 500)">{{ formatErrorPreview(row.original.error) }}</span>
+            </template>
+            <template #actions-cell="{ row }">
+              <UButton
+                label="Detail"
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-file-json"
+                @click="openDetailModal(row.original)"
+              />
+            </template>
+            <template #empty>
+              <div class="py-8 text-center">
+                <p class="text-sm text-muted">
+                  {{ logLevel !== 'all' ? 'No logs match the selected level.' : 'No log entries.' }}
+                </p>
+              </div>
+            </template>
+          </UTable>
+          <div v-if="logTotalCount > logPageSize" class="flex items-center justify-between mt-3 px-1">
+            <p class="text-xs text-muted">
+              {{ logTotalCount.toLocaleString() }} entr{{ logTotalCount === 1 ? 'y' : 'ies' }}
+            </p>
+            <UPagination
+              :page="logPage"
+              :items-per-page="logPageSize"
+              :total="logTotalCount"
+              size="xs"
+              @update:page="(p: number) => logPage = p"
+            />
+          </div>
         </div>
       </section>
 
@@ -430,6 +598,24 @@ async function investigateErrors() {
           </div>
         </div>
       </section>
+
+      <UModal v-model:open="detailModalOpen">
+        <template #content>
+          <div class="p-6 max-h-[80vh] flex flex-col">
+            <div class="mb-4">
+              <h3 class="text-sm font-medium text-highlighted">
+                Log detail
+              </h3>
+              <p v-if="selectedLogEntry" class="text-xs text-muted mt-1">
+                {{ formatLogTimestamp(selectedLogEntry.timestamp) }}
+                · {{ selectedLogEntry.method }} {{ selectedLogEntry.path }}
+                <span v-if="selectedLogEntry.status != null">· {{ selectedLogEntry.status }}</span>
+              </p>
+            </div>
+            <pre class="flex-1 overflow-auto rounded-lg bg-elevated p-4 text-xs font-mono text-highlighted whitespace-pre-wrap break-words">{{ selectedLogEntry ? formatErrorDetail(selectedLogEntry.error) : '' }}</pre>
+          </div>
+        </template>
+      </UModal>
     </div>
   </div>
 </template>
