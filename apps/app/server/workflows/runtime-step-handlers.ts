@@ -8,6 +8,8 @@ import { pushChanges, generateCommitMessage } from '../utils/sandbox/git'
 import { syncGitHubSource, syncYouTubeSource } from '../utils/sandbox/source-sync'
 import { withVercelSandboxCredentials } from '../utils/sandbox/vercel-credentials.ts'
 import { syncRequests } from '../db/schema'
+import { detectKnowledgeConflicts, markConflictRunFailed } from '../utils/conflicts/detect'
+import { DEFAULT_CONFLICT_MODEL } from '../utils/conflicts/types'
 import type { SnapshotConfig } from './create-snapshot/types'
 import type { Source, SyncConfig, SyncSourceResult, SyncSummary } from './sync-docs/types'
 
@@ -199,5 +201,39 @@ export async function runtimeStepMarkSyncRequestFailed(
     .where(eq(syncRequests.id, syncRequestId))
 
   log.warn('sync', `[${stepId}] Marked sync request ${syncRequestId} as failed`)
+}
+
+// --- Conflict detection (in-process; no HTTP callback) ---
+
+export async function runtimeStepRunConflictDetection(input: {
+  runId: string
+  model?: string
+  maxPairs?: number
+}) {
+  const model = input.model || DEFAULT_CONFLICT_MODEL
+  // Run detection in background so the step returns immediately (same as former /api/conflicts/execute 202).
+  Promise.resolve()
+    .then(() =>
+      detectKnowledgeConflicts({
+        runId: input.runId,
+        model,
+        maxPairs: input.maxPairs,
+      }),
+    )
+    .catch(async (err) => {
+      const message = err instanceof Error ? err.message : String(err)
+      await markConflictRunFailed(input.runId, message)
+    })
+  return {
+    checkedPairs: 0,
+    sourceCount: 0,
+    conflictCount: 0,
+    status: 'started' as const,
+  }
+}
+runtimeStepRunConflictDetection.maxRetries = 2
+
+export async function runtimeStepMarkConflictRunFailed(input: { runId: string; error: string }) {
+  await markConflictRunFailed(input.runId, input.error)
 }
 

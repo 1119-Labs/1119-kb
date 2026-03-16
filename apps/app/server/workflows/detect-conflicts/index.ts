@@ -1,0 +1,1 @@
+export { detectConflictsWorkflow } from './workflow'

@@ -193,6 +193,9 @@ export default defineNuxtConfig({
     youtube: {
       apiKey: '',
     },
+    conflictDetection: {
+      internalSecret: '', // NUXT_CONFLICT_DETECTION_INTERNAL_SECRET — for workflow step calling /api/conflicts/execute
+    },
     public: {
       github: {
         appName: '',

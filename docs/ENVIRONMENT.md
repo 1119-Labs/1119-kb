@@ -84,6 +84,16 @@ For Nuxt runtime config you can also set `NUXT_OPENROUTER_API_KEY`; the app fall
 
 For a list of models suitable for this product (free and paid), see [OpenRouter Models](./OPENROUTER-MODELS.md).
 
+### Knowledge conflict detection (optional)
+
+The **Knowledge conflicts** workflow runs detection in-process (no HTTP callback). **Run Detection** on the Admin → Knowledge Conflicts page starts the workflow; the step handler in the app runs `detectKnowledgeConflicts` directly, so no `CONFLICT_DETECTION_APP_URL` or internal secret is required for the workflow itself.
+
+The internal endpoints `/api/conflicts/execute` and `/api/conflicts/mark-failed` still exist for direct or external callers. If you call them (e.g. from another service), set a shared secret and send it in the `x-conflict-internal-secret` header:
+
+| Variable | Description |
+|----------|-------------|
+| `NUXT_CONFLICT_DETECTION_INTERNAL_SECRET` or `CONFLICT_DETECTION_INTERNAL_SECRET` | Optional. Any non-empty string for securing direct calls to `/api/conflicts/execute` and `/api/conflicts/mark-failed`. Not required when using the Admin UI workflow. |
+
 ## Sandbox & Sync
 
 These control how the app syncs knowledge sources into the sandbox. All are optional — you can configure them later from the admin UI.

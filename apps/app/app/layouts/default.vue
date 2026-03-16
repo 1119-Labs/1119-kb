@@ -158,6 +158,7 @@ const adminNavigation = [
   [
     { label: 'System', type: 'label' as const },
     { label: 'Sandbox', icon: 'i-custom-box', to: '/admin/sandbox' },
+    { label: 'Knowledge Conflicts', icon: 'i-lucide-scale', to: '/admin/conflicts' },
     { label: 'Statistics', icon: 'i-custom-chart', to: '/admin/stats' },
     { label: 'Logs', icon: 'i-custom-terminal', to: '/admin/logs' },
     { label: 'Sync Requests', icon: 'i-lucide-refresh-cw', to: '/admin/sync-requests' },

@@ -298,6 +298,15 @@ Authentication uses [Better Auth](https://www.better-auth.com) with the [`@onmax
 | POST | `/api/sync` | Admin | Sync all sources |
 | POST | `/api/sync/:source` | Admin | Sync specific source |
 
+### Knowledge Conflicts
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/conflicts` | Admin | Latest conflict run + conflicts summary |
+| POST | `/api/conflicts/run` | Admin | Trigger conflict detection workflow |
+| GET | `/api/conflicts/:id` | Admin | Get conflict details (claims, source versions, rationale) |
+| PATCH | `/api/conflicts/:id/status` | Admin | Update conflict status (`acknowledged`, `resolved`) |
+
 ### Snapshot
 
 | Method | Endpoint | Auth | Description |

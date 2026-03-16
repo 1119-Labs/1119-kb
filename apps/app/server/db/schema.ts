@@ -90,6 +90,46 @@ export const syncRequests = pgTable('sync_requests', {
   index('sync_requests_created_at_idx').on(table.createdAt),
 ])
 
+export const knowledgeConflictRuns = pgTable('knowledge_conflict_runs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  status: text('status', { enum: ['pending', 'running', 'completed', 'failed'] }).notNull().default('pending'),
+  sourceCount: integer('source_count').notNull().default(0),
+  checkedPairs: integer('checked_pairs').notNull().default(0),
+  model: text('model').notNull().default('anthropic/claude-opus-4.6'),
+  error: text('error'),
+  ...timestamps,
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  finishedAt: timestamp('finished_at'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, table => [
+  index('knowledge_conflict_runs_status_idx').on(table.status),
+  index('knowledge_conflict_runs_created_at_idx').on(table.createdAt),
+])
+
+export const knowledgeConflicts = pgTable('knowledge_conflicts', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  runId: text('run_id').notNull().references(() => knowledgeConflictRuns.id, { onDelete: 'cascade' }),
+  topic: text('topic').notNull(),
+  claimA: text('claim_a').notNull(),
+  claimB: text('claim_b').notNull(),
+  sourceAId: text('source_a_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  sourceAVersionId: text('source_a_version_id').notNull().references(() => sourceVersions.id, { onDelete: 'cascade' }),
+  sourceBId: text('source_b_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  sourceBVersionId: text('source_b_version_id').notNull().references(() => sourceVersions.id, { onDelete: 'cascade' }),
+  severity: text('severity', { enum: ['high', 'medium', 'low'] }).notNull(),
+  confidence: real('confidence').notNull().default(0),
+  rationale: text('rationale').notNull(),
+  status: text('status', { enum: ['open', 'acknowledged', 'resolved'] }).notNull().default('open'),
+  ...timestamps,
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, table => [
+  index('knowledge_conflicts_run_id_idx').on(table.runId),
+  index('knowledge_conflicts_status_idx').on(table.status),
+  index('knowledge_conflicts_severity_idx').on(table.severity),
+  index('knowledge_conflicts_source_a_idx').on(table.sourceAId),
+  index('knowledge_conflicts_source_b_idx').on(table.sourceBId),
+])
+
 export const agentConfig = pgTable('agent_config', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull().default('default'),
